@@ -1,0 +1,4 @@
+# Papers REAL2 — normalize line endings so text stays consistent across machines.
+* text=auto eol=lf
+*.txt text eol=lf
+*.md  text eol=lf

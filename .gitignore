@@ -1,0 +1,33 @@
+# Papers REAL2 — canonical rebuild
+# Clean-repo hygiene. This repo holds docs + (later) app source only —
+# never build output, dependencies, secrets, or personal vault data.
+
+# --- Dependencies / build output (pre-empted; no app code yet) ---
+node_modules/
+dist/
+build/
+target/
+*.tsbuildinfo
+
+# --- Secrets & credentials (NEVER commit) ---
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+auth.json
+*.credentials
+.git-credentials
+
+# --- Local / editor / OS cruft ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+*.tmp
+
+# --- Code-intelligence / agent scratch (do not carry v0 tooling in by accident) ---
+.gitnexus/
+.claude/
+scratchpad/

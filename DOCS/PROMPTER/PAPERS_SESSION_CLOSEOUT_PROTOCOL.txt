@@ -1,0 +1,273 @@
+PAPERS_SESSION_CLOSEOUT_PROTOCOL
+Mandatory end-of-session handoff procedure for Papers chats
+
+Purpose
+This document defines what the assistant must do before a serious Papers session ends and the user moves to a new chat.
+
+Without this protocol, important conclusions stay trapped in chat history, the next session drifts, and the user has to repeatedly re-explain the project or correct the assistant’s worldview.
+This file exists to make the Papers proxy role survive repeated chat resets.
+
+This protocol should be treated as mandatory for any material Papers session.
+
+================================================================================
+1. WHEN THIS PROTOCOL MUST BE RUN
+================================================================================
+
+Run this protocol at the end of any Papers session that did one or more of the following:
+
+1) materially changed the understanding of what Papers is
+2) corrected the assistant’s interpretation of founder intent
+3) made concrete judgments about the repo, architecture, or feature direction
+4) produced instructions or constraints for coding agents
+5) changed the recommended build order / roadmap / execution priorities
+6) introduced a new durable concept, principle, or anti-pattern that future sessions should inherit
+7) involved substantial back-and-forth where losing the conclusions would meaningfully hurt continuity
+
+If the session was only a tiny clarifying question with no durable implications, a full closeout may not be necessary.
+When in doubt, run it.
+
+================================================================================
+2. THE GOAL OF CLOSEOUT
+================================================================================
+
+At closeout, the assistant must convert the session’s important outcomes into durable documents for the next chat.
+
+The assistant must not assume that:
+- chat history will be available later
+- the next assistant instance will infer the same conclusions
+- the user will remember all the decisions well enough to restate them
+- repo judgments will remain obvious without being written down
+
+Closeout exists to prevent regression.
+
+================================================================================
+3. REQUIRED CLOSEOUT STEPS
+================================================================================
+
+At the end of a material Papers session, the assistant must do all of the following:
+
+STEP 1 — Identify what materially changed in this session
+Make an explicit list of the important changes or conclusions from the session.
+
+Examples:
+- “Backpacks were reclassified as original founder DNA rather than later scope.”
+- “Operator workbench should be treated as foundation, not product identity.”
+- “Subsystem X was judged contaminated and should not survive a rebuild.”
+- “Future agents should stop asking Giun to choose service boundaries.”
+
+STEP 2 — Decide which document(s) those changes belong in
+For each material change, determine the correct destination document.
+
+Use this mapping:
+
+A) PAPERS_FOUNDER_BRIEF_Vx
+Use when the change affects:
+- what Papers fundamentally is
+- what the founder actually intended
+- what is non-negotiable product identity
+- the meaning of Backpacks / Tools / global AI / Life OS / world-layer ideas
+
+B) PAPERS_PROXY_OPERATING_MANUAL
+Use when the change affects:
+- how future sessions should behave
+- how authority should be interpreted
+- how repo decisions should be classified
+- how the proxy should talk to Giun or coding agents
+
+C) PAPERS_PROMPTER_HANDOFF
+Use when the change affects:
+- what a fresh session must know immediately
+- the role the assistant should assume
+- what the next session should do first
+
+D) PAPERS_REPO_DECISION_AUDIT
+Use when the change affects:
+- judgments about the current repo
+- what subsystems are Core / Contingent / Mistaken
+- what should survive, be replaced, or be deleted
+
+E) PAPERS_AGENT_CONSTITUTION
+Use when the change affects:
+- durable rules or constraints for coding agents
+- what they may infer
+- what they must stop asking Giun
+- how they should justify implementation choices
+
+F) PAPERS_NEXT_BUILD_ORDER
+Use when the change affects:
+- what gets built next
+- sequencing / roadmap / execution order
+- the definition of the smallest real Papers slice
+
+G) PAPERS_DELTA_LOG
+Use when the change is real but too small to justify a full rewrite of one of the larger docs.
+This can be a lightweight cumulative change log.
+
+STEP 3 — Update the relevant document(s)
+Actually write the updates.
+Do not merely say “this should be updated later.”
+
+If the change is large enough to alter the worldview or replace prior guidance, create a new versioned doc if appropriate:
+- founder brief v3 -> v4
+- build order v1 -> v2
+- etc.
+
+If the change is narrow, append or create a delta note instead.
+
+STEP 4 — Write a short closeout summary for the user
+After updating the docs, tell the user:
+- what changed
+- which files were updated or created
+- which files should be carried into the next session
+
+STEP 5 — If necessary, recommend the next session’s first task
+If the session logically leads into a next step, say so clearly.
+
+Examples:
+- “Next session should produce PAPERS_REPO_DECISION_AUDIT.”
+- “Next session should update the build order around the new Backpack interpretation.”
+- “Next session should convert these repo judgments into agent instructions.”
+
+================================================================================
+4. DOCUMENT UPDATE DECISION RULES
+================================================================================
+
+Use the following rules when deciding whether to revise a big document or write a delta note.
+
+REWRITE / VERSION BUMP a major doc when:
+- the session corrected a core misunderstanding of Papers
+- the current founder brief is materially misleading
+- the proxy behavior rules need structural change
+- the build order has substantially changed
+- the repo audit classification of major subsystems has shifted in a meaningful way
+
+WRITE / APPEND A DELTA NOTE when:
+- the change is important but narrow
+- the old document is mostly right
+- a full rewrite would add churn without clarity
+- the update is best represented as “here is what changed since last time”
+
+If unsure, prefer the smallest durable update that prevents the next session from losing the point.
+
+================================================================================
+5. WHAT COUNTS AS A “MATERIAL CHANGE”
+================================================================================
+
+A change is material if losing it would likely cause the next session to:
+- misunderstand Papers’ identity
+- preserve the wrong subsystem
+- flatten the project into something generic
+- keep asking Giun bad technical questions
+- rebuild around a wrong architectural center of gravity
+- repeat an already-resolved argument
+
+Examples of material changes:
+- reclassifying Backpacks from “later feature” to “original founder DNA”
+- deciding that a current repo abstraction is contaminated and should not survive
+- changing the definition of the smallest real Papers
+- deciding that a workbench layer is foundation, not identity
+- adding a new rule for how future sessions should classify or challenge repo decisions
+
+================================================================================
+6. MINIMUM CLOSEOUT OUTPUT
+================================================================================
+
+At absolute minimum, a material session must end with:
+
+1) a written summary of material conclusions
+2) at least one updated durable document if the session changed anything durable
+3) a list of the current handoff files for the next chat
+
+A closeout is incomplete if the assistant only summarizes in chat but does not update the relevant files.
+
+================================================================================
+7. RECOMMENDED HANDOFF BUNDLE
+================================================================================
+
+Unless newer versions exist, the default handoff bundle for the next Papers chat should contain:
+
+1) PAPERS_FOUNDER_BRIEF_V3 (or latest)
+2) PAPERS_PROMPTER_HANDOFF
+3) PAPERS_PROXY_OPERATING_MANUAL
+4) PAPERS_SESSION_CLOSEOUT_PROTOCOL
+5) PAPERS_REPO_DECISION_AUDIT (once it exists)
+6) PAPERS_AGENT_CONSTITUTION (once it exists)
+7) PAPERS_NEXT_BUILD_ORDER (once it exists)
+8) PAPERS_DELTA_LOG (if being used)
+
+The assistant should tell the user which of these are currently up to date and which still need to be created.
+
+================================================================================
+8. WHAT THE ASSISTANT MUST NOT DO AT SESSION END
+================================================================================
+
+Do not:
+- assume the next session can “just read the chat”
+- leave major corrections only in prose replies
+- say “we should probably update the docs later” and stop there
+- rewrite large docs carelessly when a targeted delta would be cleaner
+- create unnecessary churn by versioning documents for tiny edits
+- bury the important changes without telling the user which files changed
+
+================================================================================
+9. SESSION-END TEMPLATE FOR THE ASSISTANT
+================================================================================
+
+At the end of a material Papers session, the assistant should effectively do this:
+
+A) MATERIAL CHANGES FROM THIS SESSION
+- list the important changes / decisions
+
+B) DOCS UPDATED
+- name each updated or created file
+- state what was changed in it
+
+C) NEXT-SESSION HANDOFF BUNDLE
+- list the files the user should carry into the next chat
+
+D) RECOMMENDED NEXT TASK
+- if relevant, say what the next session should work on first
+
+The exact wording can vary, but the content should be present.
+
+================================================================================
+10. DEFAULT OPERATING RULE
+================================================================================
+
+If the user is about to switch chats, and the session was materially about Papers, the assistant should proactively ask whether to run the handoff update pass if it has not already been done.
+
+Example:
+“Before you switch, I should update the Papers handoff docs with the conclusions from this session. Want me to do the closeout pass?”
+
+However, if the user already clearly asked for doc updates / handoff prep, do not ask again—just do it.
+
+================================================================================
+11. RELATIONSHIP TO THE OTHER PAPERS DOCS
+================================================================================
+
+This file does not replace the founder brief or proxy operating manual.
+
+Think of the Papers docs like this:
+
+- Founder brief = what Papers is
+- Prompter handoff = what a fresh session must know immediately
+- Proxy operating manual = how the assistant should behave across sessions
+- Session closeout protocol = how to preserve the latest session’s conclusions before a chat reset
+- Repo decision audit = what current code / architecture should survive
+- Agent constitution = rules for downstream coding agents
+- Next build order = what gets built next and in what sequence
+- Delta log = lightweight record of important changes over time
+
+================================================================================
+12. OPERATING SUMMARY
+================================================================================
+
+Before a serious Papers chat ends, the assistant must convert important conclusions into durable docs.
+That means:
+- identify what changed
+- map each change to the correct Papers doc
+- actually update or create those docs
+- tell the user what changed and what files to bring into the next session
+
+The closeout protocol exists because continuity is part of the product process.
+If the assistant does not preserve the conclusions in writing, the next chat will drift and the user will have to do the project’s memory work manually.

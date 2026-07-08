@@ -1,0 +1,837 @@
+PAPERS_REPO_DECISION_AUDIT_V1
+Classification of the legacy Papers v0 repository (REAL) against founder intent,
+and the rebuild recommendation for the canonical Papers line (REAL2)
+
+Status
+This document is the repo decision audit required by PAPERS_PROMPTER_HANDOFF section 7.
+It is downstream of PAPERS_FOUNDER_BRIEF_V3 and does not outrank it.
+It supersedes any older salvage plans or implicit "keep what exists" assumptions.
+
+Scope and evidence base
+- Audited: the complete legacy repository at "Papers are papers\REAL" (~9,400 lines
+  of TypeScript and Rust — ~11,600 including styles and config; React/TypeScript
+  frontend, Rust/Tauri backend, separate Rust recovery launcher; 32 commits on main
+  plus three merged feature branches), its canonical PROJECT_CONTEXT.md, and its
+  git history.
+- Also examined for historical context only: "obsolete artifacts\" (original
+  canvas/Experiences design docs), "papers-are-papers-gemini-generated\" (simulated
+  UI prototype), and "sayings\" (pre-v0 architecture plans).
+- REAL2 contained only DOCS\PROMPTER\ (the four governing docs) at audit time. It is
+  not yet a git repository.
+- Method: full first-hand reading of the governing docs and the judgment-critical
+  source (PROJECT_CONTEXT.md, App.tsx, types.ts, use-agent.ts), plus complete
+  file-by-file sweeps of the Rust backend, the frontend, and the project periphery.
+  Every factual claim below names its file. Line references are to the audited
+  revision and may drift.
+
+================================================================================
+1. EXECUTIVE JUDGMENT
+================================================================================
+
+What legacy Papers v0 actually is:
+
+v0 is not Papers. It is a safety-hardened cockpit for installing and operating one
+specific agent runtime (Hermes Agent 0.18.0), wearing Papers vocabulary as a menu
+stub. That sentence is the audit.
+
+What it is optimized for, in practice:
+1) Safely installing a pinned external agent runtime (hash-verified installer,
+   private install dir, PATH filtering, loopback-only server) — runtime.rs, 1,021
+   lines, the largest file in the repo.
+2) Orchestrating LLM provider sign-in and model selection through that runtime —
+   ~2,200 lines of Rust (provider_catalog / provider_state / provider_service /
+   provider_runtime / hermes_provider_adapter) plus a 673-line SettingsWizard.tsx
+   and an isolated key-entry window. Three of the four git branches in the repo's
+   entire history are provider work.
+3) A guarded self-edit loop for the app's own source (Inspect mode -> staged git
+   worktree -> jailed builder tools -> health-checked activation -> recovery
+   launcher) — the one genuinely distinctive mechanism in the codebase.
+
+What it is not, in any implemented form: a personal layer over the machine. There is
+no world model, no Backpack structure, no Tool concept, no Data Source concept, no
+knowledge or artifact accumulation. Grep across the entire backend and frontend
+finds zero occurrences of "Backpack", "Data Source", or "world" as code entities.
+The only appearance of the world-layer in the product is a "Basic" menu
+(App.tsx:367-412) in which the Backpacks row is disabled with the caption "The
+agent will make these later" and the Tools row is disabled with the caption
+"Provided through Hermes."
+
+How far is it from the founder vision? Measured against FOUNDER_BRIEF_V3 section 11
+(the smallest real Papers), v0 fails four of the five criteria: it is a session
+tool, not a place; it has no persistent world structure; nothing is shared in a
+world (the only durable user-facing structure is a chat-history list); and it is
+interchangeable — strip the word "Papers" from the strings and this is a generic
+agent workbench that any Hermes/OpenCode/Claude-Code-style client could replicate
+by adding one panel. It passes exactly one criterion: real machine operability
+(the agent genuinely operates the computer and edits real source under guard, with
+verified end-to-end runs recorded in PROJECT_CONTEXT.md).
+
+The verdict must be stated with both halves:
+
+- The product shape is wrong. The center of gravity is engine management, which is
+  exactly the contamination pattern FOUNDER_BRIEF_V3 section 9.2 names: "any product
+  shape that became centered on Hermes, providers, runtimes, or orchestration
+  because those were the current hard problems."
+- The engineering is good. This is not slop. The code is honest, tested where it
+  matters, disciplined about truthfulness (it refuses to claim unverified state
+  anywhere), and contains real security thinking. PROJECT_CONTEXT.md is a model of
+  honest status discipline.
+
+So: the wrong center of gravity, built well. The correct response is not to burn
+everything, and not to keep working inside it. It is to rebuild the product shape
+in REAL2 around the actual Papers worldview, salvaging specific trust-boundary
+machinery, specific patterns, and the engineering culture — never the shape.
+
+One fairness note, because the audit must be honest about intent as well as code:
+the "agent-first" pivot itself was a legitimate sequencing decision, confirmed by
+the creator and consistent with FOUNDER_BRIEF_V3 section 7 (the operator foundation
+is a valid stepping stone). The contamination is not "they built an agent
+workbench first." The contamination is that "agent-first" was concretized as
+"Hermes-first": the engine became the product's visible identity, its session
+model, its vocabulary, and its largest subsystems. A foundation was supposed to
+point at the Papers world. This one points at Hermes.
+
+Salvageable by restructuring, or major replacement? Major replacement of the
+product shape, with selective salvage. Roughly 65% of the backend lines are
+technically engine-agnostic, but reuse percentage is the wrong lens: the frontend,
+the session model, the storage schema, and the product surface all encode the
+wrong center. REAL2 should be a fresh product skeleton that imports specific
+proven pieces on demand, not a refactor of REAL.
+
+================================================================================
+2. PROJECT-SHAPE DIAGNOSIS
+================================================================================
+
+What the codebase is actually building, subsystem by subsystem weight:
+
+A) A Hermes runtime manager (~1,300 lines: runtime.rs plus paths.rs,
+gateway_proxy.rs, and the lockfile machinery).
+runtime.rs owns download, SHA-256 verification, private installation, process
+lifecycle, port/token allocation, health probing, and writes Hermes' own
+config.yaml and a "papers-builder" profile directly into the Hermes home. The
+repo root carries hermes.lock.json pinning the installer hash, release tag, and a
+hash-verified "Cua Driver" computer-use binary. The first-run experience of the
+product is installing a Python agent runtime.
+
+B) A provider orchestration layer (~2,900 lines across Rust and UI).
+An 11-provider catalog, a 12-state setup state machine, OAuth device-code/PKCE
+flows with resume-after-relaunch, API-key entry in an isolated window, model
+listing, a live runtime test gated on the model echoing PAPERS_PROVIDER_TEST_OK,
+and truth-hierarchy rules (Hermes reachable -> Hermes is authority; otherwise
+file hints labeled unverified). This is the most engineered subsystem in the
+product and the primary Settings surface the creator sees.
+
+C) A generic agent chat workbench (~2,500 lines).
+Three columns: chat-history rail, conversation, collapsible Work rail. Sessions
+are rows wrapping a hermes_session_id (types.ts:182-190). The Work rail's items
+(reasoning summaries, tool steps, "artifacts", approvals) are in-memory strings
+capped at 80, cleared when you switch sessions, with "artifacts" truncated to
+360-character JSON snippets (use-agent.ts). Approval and clarify cards render
+Hermes gateway events. Resume fetches the transcript back from Hermes. There is
+also a compact companion window on Ctrl+Alt+Q.
+
+D) A guarded self-edit system (~1,400 lines).
+Inspect mode maps any rendered element back to its source location via a build
+manifest; the request spawns a staged git worktree (self_edit.rs); the agent works
+inside it through a separate jailed MCP binary (mcp.rs: canonicalized paths,
+staging-root confinement, reparse-point/symlink rejection, protected-path list);
+build/preview/keep/reject/rollback are explicit native commands; accepted versions
+are health-checked for 15 seconds before activation; a separate launcher crate
+(launcher/src/main.rs) boots the active version and falls back to the previous one
+on failure. Protected paths (the launcher, hermes.lock.json, runtime/policy/paths
+sources, capabilities) are excluded from the agent's writable surface.
+
+E) A small policy layer (policy.rs, 117 lines).
+Substring classification of actions into allow/preview/block with hard blocks for
+credentials, 2FA, payment, UAC. Directionally right, mechanically fragile.
+
+That is the whole app. The honest one-sentence diagnosis: v0 is a Hermes desktop
+shell plus a competent generic agent workbench plus one distinctive self-edit
+mechanism, and nothing else. The "personal meta-OS" of PROJECT_CONTEXT.md exists
+in that file's prose and nowhere in the software.
+
+Is there a credible foundation here? Partially, and it is important to name which
+part. The credible foundation is NOT the workbench UI and NOT the provider layer.
+It is:
+- the trust boundary (worktree jail + jailed builder tools + protected paths +
+  health-checked activation + recovery launcher), which is real, sound, and rare;
+- the truthfulness culture (never claim unverified state; redact private
+  reasoning before persistence — storage.rs; label offline hints verified:false —
+  provider_state.rs; PROJECT_CONTEXT.md's status-language rules);
+- the proven ability to drive real computer-use and real self-edits end to end.
+
+Those three things are what "the workbench is a foundation" was supposed to mean.
+They survive. The shell around them does not.
+
+================================================================================
+3. CORE / CONTINGENT / MISTAKEN CLASSIFICATION
+================================================================================
+
+Format per subsystem: what it does; why it exists; what Papers concept it serves;
+concept vs implementation verdict; disposition (keep / rewrite / demote / delete);
+and whether it should be PORTED into REAL2, REFERENCED from REAL, or LEFT BEHIND.
+
+--------------------------------------------------------------------------------
+3.1 CORE — the concept must survive (implementation judged separately)
+--------------------------------------------------------------------------------
+
+[CORE-1] The Basic shell vocabulary (Basic / Backpacks / Tools / Settings)
+- What it does: a menu (App.tsx:367-412) listing Agent, Backpacks (disabled),
+  Tools (disabled), Settings.
+- Why it exists: to reserve the world-layer vocabulary while the agent foundation
+  was built.
+- Concept served: the permanent, legible shell over the world (PROJECT_CONTEXT
+  "Basic"; FOUNDER_BRIEF_V3 sections 3-4).
+- Verdict: concept is core founder DNA; implementation is a stub of ~40 lines and
+  carries one active distortion — the Tools row caption "Provided through Hermes"
+  quietly redefines Tools (cross-world capabilities: programs, scripts, shortcuts,
+  mounts) as "the engine's tool-calls." That caption is contamination inside a
+  core concept.
+- Disposition: keep the concept, re-found it in REAL2; delete the Hermes caption
+  framing. Nothing to port — the code is trivial.
+- Port/Reference/Leave: LEAVE BEHIND (code); the vocabulary itself lives in the
+  founder docs, not the repo.
+
+[CORE-2] Truthfulness discipline
+- What it does: the codebase systematically refuses to claim what it has not
+  verified. Evidence: provider state is only "verified" when Hermes was reachable
+  (types.ts ProviderState.verified_by_hermes; provider_state.rs truth hierarchy);
+  offline credential hints are hardcoded verified:false (types.ts
+  OfflineProviderHint); private chain-of-thought events and fields are dropped and
+  recursively redacted before persistence, with tests (storage.rs); the runtime
+  status honestly distinguishes absent/stopped/starting/ready/failed; no mocked AI
+  replies exist anywhere; PROJECT_CONTEXT.md enforces status labels (Vision /
+  Confirmed / Partial / etc.) and forbids "working" without evidence.
+- Why it exists: the creator's product law that Papers must not gain apparent
+  power by faking it.
+- Concept served: FOUNDER_BRIEF_V3 section 5 (truthful layer over reality) — the
+  law the brief calls "one of the defining laws of the project."
+- Verdict: concept core; implementation genuinely good. This is v0's strongest
+  compliance with founder intent. One caution for the rebuild: v0's truthfulness
+  was cheap because the only state to be honest about was engine state. When the
+  world model exists, the same law gets harder and the v0 patterns do not cover
+  it: provenance of mixed-authorship artifacts (AI-made vs creator-made vs
+  captured from a source), references to files that have moved or changed since
+  they were gathered, and partial captures must all stay honestly labeled. The
+  pattern to port is the DISCIPLINE (never claim unverified state; mark hints as
+  hints), not the assumption that redacting engine events is the whole job.
+- Disposition: keep as engineering law and as concrete patterns.
+- Port/Reference/Leave: PORT — the redaction pattern (storage.rs), the
+  verified-only-when-checked state pattern (provider_state.rs), and
+  PROJECT_CONTEXT.md's documentation rules should be carried into REAL2's doc
+  system and coding standards immediately.
+
+[CORE-3] Guarded-operator values (exact preview, approvals, reversibility,
+pause/stop, recoverability)
+- What it does: approval cards with command preview and risk labels (App.tsx
+  approval-card; use-agent.ts approval.request handling); policy classification
+  (policy.rs); pause/stop controls; "Return to last working version" rollback.
+- Why it exists: confirmed creator decisions (PROJECT_CONTEXT decision log
+  2026-07-06): exact previews before consequential actions, visible/cancellable
+  long operations, reversible AI actions.
+- Concept served: the trustworthy machine-facing operator foundation
+  (FOUNDER_BRIEF_V3 section 7; product laws 8-10).
+- Verdict: concept core. Implementation is partial and in two places weak:
+  policy.rs classifies by substring matching over concatenated text (fragile in
+  both directions — "MyPasswordManager" blocks, novel verbs fall through), and
+  "pause" is actually an interrupt plus a canned "continue from the last verified
+  point" prompt (use-agent.ts pause/resume), which is an honest hack but not the
+  promised semantics. The interception promise ("complete preview coverage for
+  every mutating tool") is listed in PROJECT_CONTEXT as still undesigned.
+- Disposition: keep the values; rewrite the mechanisms in REAL2 (structured
+  policy over action metadata rather than string sniffing; real pause semantics
+  or an honest rename). One dependency must be respected: a policy layer for
+  Papers Tools in the founder's sense (programs, scripts, shortcuts, mounts)
+  cannot be designed until the Tool contract exists — engine tool-calls expose
+  structured metadata, arbitrary machine capabilities may not. Rewrite the
+  policy per surface as each surface is defined; do not generalize v0's
+  MCP-shaped assumptions to the whole world.
+- Port/Reference/Leave: REFERENCE (policy.rs structure and the approval-card UX
+  are good references; the code itself should not be ported as-is).
+
+[CORE-4] The guarded self-edit loop (Inspect -> staged worktree -> jailed builder
+-> experience -> keep/reject -> rollback -> recovery launcher)
+- What it does: inspect.ts + a Vite build manifest map any rendered element to its
+  source; self_edit.rs creates an isolated git worktree per change, builds it,
+  launches a preview instance with separate data home, fast-forward merges on
+  accept, preserves executables per version, health-checks the new build for 15s
+  before activation, and can roll back; mcp.rs exposes only jailed read/write/
+  search/diff/check tools inside the staging root with symlink/reparse rejection
+  and a protected-path list; launcher/ is a separate crate that boots the active
+  version and falls back to the previous healthy one.
+- Why it exists: confirmed creator decision (2026-07-06) — staged self-edits with
+  Keep/Reject/rollback; the deeper intent is that the agent will eventually build
+  and revise Backpacks from experienced requests rather than pre-design.
+- Concept served: this is the seed of "Papers is an environment that can reshape
+  itself under guard" — the mechanism by which the deferred Backpacks were
+  supposed to come into existence. It is the only implemented thing in v0 that a
+  generic agent client does not have.
+- Verdict: concept core; implementation sound and unusually careful. Residual
+  Hermes entanglement is small and localized (the builder profile YAML written
+  into the Hermes home by runtime.rs, and the MCP server registration).
+- Disposition: keep; rework the engine-facing edges when the rebuild reaches its
+  self-edit slice.
+- Port/Reference/Leave: PORT (self_edit.rs worktree lifecycle, mcp.rs jail,
+  launcher/ crate — the launcher is engine-agnostic and portable nearly as-is).
+
+--------------------------------------------------------------------------------
+3.2 CONTINGENT — useful implementation choices, replaceable
+--------------------------------------------------------------------------------
+
+[CONT-1] Tauri + Rust + React/Vite stack
+- What/why: native Windows desktop host, Rust for machine-level work, web tech for
+  flexible UI. Chosen deliberately across both the pre-v0 plans and v0.
+- Concept served: "real desktop application over the real machine" — a genuine
+  Papers need.
+- Verdict: good contingent choice; nothing about it distorts the vision.
+- Disposition: keep for the rebuild, as a FRESH scaffold in REAL2. Do not copy the
+  repo; current pinned versions (Tauri 2.11, React 19, Vite 7) should be
+  re-evaluated at scaffold time.
+- Port/Reference/Leave: REFERENCE (config files, capability settings, NSIS notes).
+
+[CONT-2] SQLite local storage with event redaction
+- What it does: storage.rs — tables for sessions, sanitized events, approvals,
+  self-edit changes, git sync queue, pending OAuth, provider tests; transactional
+  cascade deletes; reasoning redaction with tests.
+- Why it exists: durable local activity and change records (a directionally
+  correct instinct).
+- Concept served: continuity/accumulation — but only of agent-ops data. The
+  schema's first-class citizens are engine sessions and provider tests, not
+  places, things, or knowledge. A world-layer product whose only durable entities
+  are chat sessions has its persistence pointed at the wrong nouns.
+- Verdict: pattern good, schema shape contaminated by the session-centric model.
+- Disposition: port the pattern (SQLite, transactions, redaction, honest event
+  storage); design REAL2's schema world-first (places/things/artifacts first,
+  agent sessions attached to them, not the reverse).
+- Port/Reference/Leave: PORT the redaction + storage discipline; LEAVE the schema.
+
+[CONT-3] Native gateway proxy with token isolation
+- What it does: gateway_proxy.rs holds the authenticated WebSocket to the engine
+  in Rust; React receives typed frames via Tauri events and never sees the token.
+  key-entry.tsx keeps raw API keys out of the main webview's state.
+- Concept served: none directly — it is good security engineering.
+- Verdict: contingent, well built. The pattern (secrets live in the native layer,
+  UI gets sanitized frames) is worth keeping regardless of engine.
+- Port/Reference/Leave: PORT the pattern; the concrete code is small enough to
+  rewrite against whatever engine seam the rebuild defines.
+
+[CONT-4] The recovery launcher (launcher/)
+- Already covered under CORE-4's loop; called out separately because it is fully
+  engine-agnostic, tested, and portable as-is. PORT when self-edit lands.
+
+[CONT-5] The companion window (Companion.tsx, Ctrl+Alt+Q, BroadcastChannel)
+- What it does: compact always-available surface for status, pause/stop, quick
+  ask, expand.
+- Concept served: "Papers is present over the machine, not just a window you
+  maximize" — a faint but real echo of the layer idea.
+- Verdict: fine idea, trivial code (78 lines), currently just a chat remote.
+- Disposition: rebuild later, natively in the world model (the companion should
+  eventually surface the world, not just the agent).
+- Port/Reference/Leave: LEAVE BEHIND; re-create when needed.
+
+[CONT-6] Hermes as the engine
+- What it does: supplies the actual agent capabilities — sessions, streaming,
+  tools, computer use, provider/auth management.
+- Why it exists: confirmed creator decision (2026-07-06) to reuse a mature agent
+  harness rather than reinvent one. That instinct is product law 12 and it is
+  correct.
+- Concept served: the global AI's engine room.
+- Verdict: the CHOICE of Hermes is contingent (FOUNDER_BRIEF_V3 section 9
+  explicitly refuses to bind product shape to it). What is mistaken is the
+  COUPLING (see MIS-1). Note the proof inside v0 itself: the backend's
+  hermes_provider_adapter.rs opens with "the only module that knows Hermes" — the
+  right seam existed as an idea, but arrived too late and too low; the frontend,
+  session model, and product copy never got behind it.
+- Disposition: in REAL2, the engine lives behind one narrow adapter from day one
+  — where "day one" means concretely: the adapter surface is designed as part of
+  the world-model design, BEFORE any engine-specific code is written, and no
+  module outside the adapter (frontend included) may import engine vocabulary.
+  v0's failure mode was the reverse order: engine first, seam retrofitted into
+  the backend only. Hermes remains a legitimate candidate engine; so do
+  Claude-Code-class harnesses and OpenCode-class runtimes. Papers' domain model
+  must not know which one is plugged in.
+- Port/Reference/Leave: REFERENCE (the adapter's surface is a decent first draft
+  of what the seam must cover: sessions, streaming, approvals, clarifications,
+  auth state, model selection, health).
+
+[CONT-7] The Work rail concept (chat vs work separation)
+- What it does: separates conversation from work items (reasoning summaries, tool
+  steps, artifacts, approvals, self-edit cards) — App.tsx activity-rail;
+  use-agent.ts work item accumulation.
+- Concept served: visible, understandable agent work (product laws 8-10), and
+  PROJECT_CONTEXT correctly states the rail should be a permanent shell pattern
+  that future Backpacks contribute cards to rather than replace.
+- Verdict: concept good and worth keeping; implementation is a stub that betrays
+  its own promise — items are ephemeral in-memory strings, cleared on session
+  switch, with "artifacts" as 360-char JSON text rather than first-class files/
+  diffs/screenshots. See MIS-3.
+- Disposition: keep the concept; rebuild items as durable, clickable, world-
+  attached artifacts. Open design decision flagged for PAPERS_NEXT_BUILD_ORDER:
+  the attachment semantics (does a work artifact attach to the conversation, the
+  room, the real thing it touched, or several of these) must be settled in the
+  world-model design before the rail is rebuilt — durability is meaningless
+  until attachment is defined.
+- Port/Reference/Leave: REFERENCE (UX shape only).
+
+[CONT-8] The three-column shell layout (history rail / conversation / work rail)
+- What it does: the entire visual arrangement of v0 (App.tsx; styles.css).
+- Why it exists: standard agent-workbench ergonomics, matching the confirmed
+  Codex/Claude-Code-like direction.
+- Concept served: a legible, recoverable permanent shell (product law 5) — but
+  the arrangement itself is the standard shape of every generic agent client,
+  which is precisely the interchangeability the brief's section 11.5 test
+  penalizes.
+- Verdict: contingent. Competent, not distinctive, not contaminated. It must not
+  be treated as "what Papers looks like": when Backpacks land, the shell's
+  center is rooms, and conversation/work surfaces live within or beside them.
+- Disposition: demote to reference. REAL2's shell layout is a design output of
+  the world model, not an inheritance from v0.
+- Port/Reference/Leave: REFERENCE.
+
+[CONT-9] The human-AI coordination model (imperative ask -> watch -> approve)
+- What it does: all v0 work happens as single imperative chat turns — the
+  creator asks, the agent streams, approvals interrupt, the turn completes
+  (use-agent.ts send/approval/clarify flow).
+- Why it exists: it is the native shape of a chat-transcript client, and the
+  right first mode for building operator trust.
+- Concept served: the operator foundation. But the founder's world implies
+  additional coordination modes eventually: work attached to a room that
+  outlives any conversation, standing arrangements, the AI acting with room
+  context rather than per-prompt context.
+- Verdict: contingent. Correct as the FIRST mode; mistaken only if enshrined as
+  the ONLY mode. The rebuild should keep imperative turns and leave conceptual
+  space for room-scoped, longer-lived work.
+- Port/Reference/Leave: REFERENCE (interaction pattern).
+
+--------------------------------------------------------------------------------
+3.3 MISTAKEN / CONTAMINATED — should not survive into the rebuild
+--------------------------------------------------------------------------------
+
+[MIS-1] Hermes-as-product-identity (the highest-risk contamination)
+- What it is, concretely:
+  a) The product's session type embeds the engine: PapersSession.hermes_session_id
+     (types.ts:182-190; storage.rs sessions table). Conversations that "did not
+     reach Hermes" are second-class rows that cannot be opened (App.tsx session
+     rail).
+  b) The engine is user-facing copy: "Install Hermes", "Hermes is installed but
+     stopped", "Hermes does the work; Papers keeps it understandable", "Connect
+     Hermes to begin", "Resume this Hermes conversation", "Tools — Provided
+     through Hermes" (App.tsx:378-393, 504-535, 683-684; use-agent.ts status
+     labels "Installing Hermes"/"Starting Hermes").
+  c) The frontend hardcodes the engine's event vocabulary: a switch over
+     gateway.ready / message.delta / tool.start / approval.request /
+     clarify.request etc. (use-agent.ts:194-351) and Hermes RPC verbs
+     (session.create with cols/profile/source, prompt.submit, approval.respond).
+  d) The repo root carries the engine's lockfile (hermes.lock.json) as a
+     first-class product artifact, and the app's first-run flow is "download and
+     verify a Python runtime."
+- Why it exists: Hermes integration was the hard problem of 2026-07-06/07, and the
+  product formed around the hard problem — the exact mechanism FOUNDER_BRIEF_V3
+  section 9.2 warns about.
+- Concept served: none. The founder concept is a global AI inside Papers; the
+  implementation delivers Papers inside a Hermes client.
+- Verdict: mistaken. Not because Hermes is bad — because the engine became the
+  identity, which the brief explicitly forbids ("Hermes front-end with some
+  worldbuilding language" is on the brief's list of things Papers must not
+  collapse into).
+- Disposition: delete as a shape. In REAL2: engine behind one adapter; engine
+  never named in product copy; sessions belong to Papers and reference an
+  engine-session handle as an implementation detail; no engine lockfile at the
+  product root.
+- Port/Reference/Leave: LEAVE BEHIND.
+
+[MIS-2] Provider orchestration as the flagship product surface
+- What it is: the largest coherent subsystem in the product (~2,200 lines Rust +
+  673-line SettingsWizard + key-entry window + roughly half of types.ts), and the
+  bulk of the repo's branch history. The Settings destination in Basic opens
+  directly into it.
+- Why it exists: real need (the creator must be able to sign into a provider
+  without a terminal) plus technical pressure (OAuth flows, model lists, runtime
+  tests are hard, so they accreted engineering until they became the app's most
+  developed feature).
+- Concept served: at best "the AI needs a working brain." That justifies a thin,
+  mostly-invisible setup surface — not a 12-state machine mirrored 1:1 into the
+  UI type system (types.ts ProviderSetupState) and a multi-panel wizard as the
+  product's most polished experience.
+- Verdict: the need is real; the prominence and the 11-provider catalog ambition
+  are contamination. v0 spent its best engineering month making provider setup
+  excellent for a product that does not exist yet. Also note: the internal
+  engineering quality here is high (truth hierarchy, no secret leakage, honest
+  "recognized, not yet guided" states) — that quality should be salvaged as
+  patterns even though the surface is demoted.
+- Disposition: demote hard. In REAL2, provider/model setup is a small settings
+  card that leans maximally on the engine's own auth machinery; one or two
+  guided paths; no catalog of eleven.
+- Port/Reference/Leave: REFERENCE (port the truth-hierarchy state pattern
+  [CONT-2/CORE-2 adjacent] if and when a provider surface is built).
+
+[MIS-3] Session-transcript-as-the-only-world
+- What it is: the sole persistent user-facing structure is a chat-history list.
+  Work items and activities are in-memory and cleared on session switch
+  (use-agent.ts openSession/newConversation); "artifacts" are truncated JSON
+  strings (use-agent.ts artifactDetail/shortJson); reopening a conversation
+  refetches messages from Hermes and discards all work context.
+- Why it exists: chat transcripts are the path of least resistance for an agent
+  client; nobody designed a world for things to live in.
+- Concept served: none. It directly fails FOUNDER_BRIEF_V3 section 11.1 ("place,
+  not session") and 11.3 (shared world), and quietly betrays the artifact promise
+  of the workbench direction (PROJECT_CONTEXT: "first-class file, screenshot,
+  diff, preview, and generated-content artifacts" — still absent).
+- Verdict: mistaken concretization. To be precise about what is condemned:
+  conversations themselves are NOT the contamination — the brief's own smallest
+  slice includes attached work and continuing conversations. What is mistaken is
+  sessions as the product's identity and ONLY persistence, with the engine as
+  custodian of all continuity. In the rebuild, conversations persist as objects
+  attached to places and things; they stop being the top of the object graph.
+- Port/Reference/Leave: LEAVE BEHIND.
+
+[MIS-6] Engine-as-custodian orchestration
+- What it is: v0's implicit coordination model. Hermes owns sessions, memory,
+  and transcripts; Papers' UI mirrors engine events into ephemeral state; Papers'
+  own database is a thin cache (resume refetches the transcript from Hermes —
+  use-agent.ts openSession). The engine is the system of record; Papers is a
+  viewer.
+- Why it exists: honest reuse instinct (product law 12) applied one level too
+  high — reusing the engine's capabilities became deferring to the engine's
+  custody.
+- Concept served: none. The founder model is the opposite: Papers is the
+  accumulating world; the engine is a capability plugged into it.
+- Verdict: the custody direction is mistaken; the mechanical parts (Tauri
+  AppState service composition, typed events to the UI, native ownership of
+  secrets) are contingent and fine.
+- Disposition: invert custody in REAL2 — the Papers world store is the system of
+  record for places, things, artifacts, and conversation records; engine events
+  feed INTO it through the adapter; losing the engine must never lose the world.
+- Port/Reference/Leave: LEAVE BEHIND (custody model); REFERENCE (event/state
+  mechanics).
+
+[MIS-4] First-run-as-runtime-installation
+- What it is: the welcome screen's primary call to action is "Install the local
+  agent engine" with installer progress as the product's opening act (App.tsx
+  setup-card; runtime.rs install path; BOOT-PAPERS.cmd rebuilds the app from
+  source on every desktop launch).
+- Why it exists: honest sequencing of the hardest dependency, plus a dev-machine
+  boot habit that hardened into "the launch path."
+- Concept served: none for first-run-as-plumbing. (The hash-pinning and PATH-
+  filtering hardening inside it is good engineering — see salvage map.)
+- Verdict: mistaken as product shape. Papers' grand opening should be entering a
+  world; engine provisioning should be background machinery.
+- Port/Reference/Leave: REFERENCE (hardening techniques only). BOOT-PAPERS.cmd:
+  LEAVE BEHIND.
+
+[MIS-5] Tools flattened to "the engine's toolsets"
+- What it is: the Tools concept has zero implementation, and its single UI
+  appearance redefines it as "Provided through Hermes" (App.tsx:386-393); the
+  only "tools" in the codebase are Hermes toolset toggles in the builder profile
+  (runtime.rs) and MCP tool names.
+- Why it exists: vocabulary collision (agent "tools" vs Papers Tools) plus the
+  gravitational pull of the engine.
+- Concept served: it wears the name of a core concept while pointing it at the
+  engine — which makes it worse than absence, because it teaches every future
+  reader of the code the wrong meaning.
+- Verdict: contaminated. The Papers Tool concept (cross-world capabilities:
+  programs, scripts, shortcuts, mounts, utilities) remains CORE and remains
+  unbuilt.
+- Port/Reference/Leave: LEAVE BEHIND (the caption); the real Tool contract is
+  rebuild work.
+
+--------------------------------------------------------------------------------
+3.4 Legacy context items (not part of v0, classified for completeness)
+--------------------------------------------------------------------------------
+
+[HIST-1] The original canvas/"Experiences" material (obsolete artifacts\,
+sayings\ARCHITECTURE_PLAN.md, papers-are-papers-gemini-generated\)
+- What it is: the pre-v0 vision — tldraw spatial canvas, morphing blocks,
+  vault-pointed folders, AI-generated "Experiences" persisted as code files —
+  plus a simulated web prototype of a notes-app slice.
+- Status per the governing docs: the Backpack model explicitly supersedes the
+  Experience framing (PROJECT_CONTEXT "Where the project came from";
+  FOUNDER_BRIEF_V3 treats Backpacks as the surviving founder DNA). The founder
+  brief does not carry the spatial canvas forward as core.
+- Verdict: reference-only history — noting fairly that the Backpack idea is the
+  canvas vision's descendant, not its repudiation: "persistent rooms/lenses over
+  the same underlying world" is the surviving form of what the canvas material
+  called views and Experiences. Two ideas inside it remain live as taste signals
+  rather than commitments: "the magic is the layer, files stay portable and
+  inspectable" (which survives as the truthfulness law) and "the AI can generate
+  persistent views/rooms" (which survives inside the Backpack ambition: the
+  agent builds Backpacks from experienced requests).
+- Port/Reference/Leave: REFERENCE from their current locations. Do not copy into
+  REAL2; do not resurrect the canvas as an assumed requirement.
+
+================================================================================
+4. FOUNDER-INTENT MISMATCH ANALYSIS
+================================================================================
+
+This section walks FOUNDER_BRIEF_V3 section 8's non-negotiables against what v0
+actually implements. "Absent" means no code serves the ambition at all; that is a
+sequencing fact, not necessarily a betrayal. "Violated" means the code actively
+teaches the wrong product.
+
+1) "Papers is a personal layer over the computer, not merely an app inside it."
+   ABSENT-to-VIOLATED. v0 is an app among apps; its only reach over the machine
+   is the agent's computer-use and a foreground-window title injected into
+   prompts (main.rs foreground detection; App.tsx composer-context). The layer
+   idea has no structural expression.
+
+2) "The machine should feel like one coherent world."
+   ABSENT. Nothing accumulates except chat rows. Closing and reopening Papers
+   returns a blank composer and a history list — the brief's own definition of
+   the failure ("reopening a blank transcript tool").
+
+3) "Backpacks are core DNA." / 4) "Backpacks must not become silos."
+   ABSENT (a disabled menu row). To be fair to v0: deferring Backpacks was a
+   confirmed creator decision, and building NO Backpack is more honest than
+   building a fake one — silo risk was never incurred. The mismatch is that
+   nothing in the architecture even leaves a socket for them: no place/room
+   entity anywhere in the schema, no notion of context that outlives a session.
+   The deferral was allowed to become total structural absence.
+
+5) "Tools are reusable cross-world capabilities."
+   VIOLATED in vocabulary (MIS-5): the one place Tools appear, they are
+   redefined as the engine's property.
+
+6) "The AI is global across the environment."
+   PARTIALLY VIOLATED in shape. The AI is scoped to one chat session at a time;
+   its only ambient awareness is the foreground app name. There is no world for
+   it to be global across — but more subtly, the session model (one live
+   hermes_session_id, transcript fetched from the engine) makes the ENGINE the
+   custodian of all continuity, which is backwards: Papers was supposed to be
+   the accumulating environment that the engine serves.
+
+7) "Truthful about real underlying files, systems, sources."
+   HONORED — the strongest compliance in the repo, in both code and docs (see
+   CORE-2). This law survived because it was cheap to honor in an agent shell.
+   The rebuild must keep honoring it when it becomes expensive (when Backpacks
+   gather real files, pointing back instead of importing).
+
+8) "Life OS / knowledge ambitions belong inside Papers."
+   ABSENT. No capture, no retrieval, no notes, no references, no synthesis.
+   Correctly deferred by confirmed decision; noted here so the rebuild does not
+   inherit "deferred" as "forgotten."
+
+9) "The operator/workbench layer is a foundation, not the final identity."
+   HONORED IN WORDS, VIOLATED IN CODE. Every doc says "foundation"; the code
+   built the foundation as the identity: engine-named UI, engine-keyed sessions,
+   provider wizard as flagship. A foundation points at what it carries. This one
+   points at itself.
+
+10) "Papers should feel personal, accumulative, inhabitable."
+   ABSENT. Nothing is personal beyond conversation titles; nothing accumulates;
+   there is nothing to inhabit.
+
+Cross-cutting mechanism, named plainly: v0's architecture was driven by backend
+convenience and the current hard problem, exactly the pattern FOUNDER_BRIEF_V3
+section 9 de-authorizes. The clearest tell is the UI type system: the frontend's
+types.ts devotes roughly half its lines to mirroring Rust provider-orchestration
+state machines 1:1 (its own comment: "Mirrors the Rust structs... kept in
+lockstep"), while containing zero types for any Papers concept. When a product's
+type vocabulary is provider states and engine sessions, that is what the product
+is. The founder-intent violation is not that this plumbing exists — it is that
+nothing else does, and the plumbing got the polish.
+
+One more mismatch that matters for trust: PROJECT_CONTEXT.md (the legacy repo's
+own context doc) is excellent on honesty but has quietly normalized the flattened
+frame — its "product in one sentence" is still the world-layer, yet its entire
+operative content is agent-workbench mechanics. Future agents reading only that
+file would faithfully build a better Hermes cockpit. That is why the REAL2
+governing docs, not PROJECT_CONTEXT.md, must be the authority going forward.
+PROJECT_CONTEXT.md remains valuable as v0's status record and as a model of
+verification discipline.
+
+================================================================================
+5. SALVAGE MAP
+================================================================================
+
+Rule applied throughout: port on demand, per slice, when the rebuild reaches the
+need — never wholesale up front. Wholesale porting would re-import the old center
+of gravity into REAL2 on day one.
+
+--------------------------------------------------------------------------------
+A) KEEP AND PORT INTO REAL2 (proven pieces the rebuild should reuse)
+--------------------------------------------------------------------------------
+
+A1. The trust-boundary machinery (when the self-edit slice lands):
+    - self_edit.rs: staged-worktree lifecycle (create/build/preview/accept with
+      ff-only merge/reject/rollback), version registry, health-checked
+      activation.
+    - mcp.rs + papers-mcp binary: jailed builder tools — canonicalize +
+      staging-root confinement + reparse/symlink rejection + protected-path
+      list + allowlisted checks. Caveat: the DELIVERY of this jail assumes an
+      engine that consumes MCP tools. The path-validation core is engine-
+      agnostic; the tool-server wrapper is not. If the rebuild's engine exposes
+      a different extension seam, keep the jail logic and re-house it.
+    - launcher/: the recovery launcher crate, engine-agnostic, portable nearly
+      as-is.
+A2. The truthfulness patterns (immediately):
+    - storage.rs private-reasoning redaction (drop reasoning/thinking event
+      types; recursively strip reasoning fields; tests).
+    - provider_state.rs truth hierarchy (live source is authority; file hints
+      always verified:false) — as a general pattern for ANY state Papers
+      reports, not just providers.
+    - PROJECT_CONTEXT.md's documentation rules: decision-status labels, the
+      "never claim working without evidence" rule, intention-vs-evidence
+      separation, single-canonical-context discipline. These become REAL2 doc
+      law from the first document.
+A3. The secret-isolation pattern (when the engine seam is built): native layer
+    owns tokens/keys; UI receives sanitized typed events (gateway_proxy.rs,
+    key-entry window design).
+A4. Hardening techniques (when engine provisioning is built): SHA-256-pinned
+    installers with reject-then-verify behavior, private install dirs, PATH
+    filtering of package-manager shims, loopback-only servers with per-launch
+    tokens (runtime.rs) — as techniques, divorced from the Hermes specifics.
+
+--------------------------------------------------------------------------------
+B) KEEP ONLY AS REFERENCE FROM REAL (study, do not carry)
+--------------------------------------------------------------------------------
+
+B1. The provider orchestration subsystem (catalog / state machine / service /
+    wizard): reference for whatever thin settings surface the rebuild eventually
+    needs, and for its honest-state UX ("recognized, not yet guided").
+B2. App.tsx / use-agent.ts / SettingsWizard.tsx: reference for workbench UX
+    details that worked (approval cards, clarify cards, collapsible rails,
+    honest status badge) and for mistakes to avoid (god hook, ephemeral work
+    items, engine copy).
+B3. hermes_provider_adapter.rs: reference as the first draft of the engine-seam
+    surface (what operations an engine adapter must expose).
+B4. PROJECT_CONTEXT.md: reference as v0's historical record and decision log.
+    Its rules are ported (A2); its product framing is superseded by the REAL2
+    governing docs.
+B5. The pre-v0 vision material (obsolete artifacts\, sayings\, the gemini
+    prototype): reference for founder taste (portability, generated views,
+    inhabitable organization). Superseded as concretizations.
+B6. Companion window concept: re-create later; nothing to carry.
+
+--------------------------------------------------------------------------------
+C) CUT HARD / LEAVE IN LEGACY (must not survive into REAL2)
+--------------------------------------------------------------------------------
+
+C1. Hermes-as-identity, all four expressions: engine-named user-facing copy;
+    engine-keyed session model (hermes_session_id as the product's continuity);
+    frontend hardcoding of engine event vocabulary; engine lockfile as a
+    product-root artifact.
+C2. The provider wizard as flagship surface and the 11-provider catalog
+    ambition.
+C3. Session-transcript-as-world: chat history as the only persistent structure;
+    ephemeral string work items; engine as custodian of continuity.
+C4. First-run-as-runtime-installation and BOOT-PAPERS.cmd
+    (rebuild-from-source-on-every-launch as the boot path).
+C5. The "Tools — Provided through Hermes" framing.
+C6. policy.rs's substring classification mechanism (the values survive in
+    CORE-3; the mechanism does not).
+C7. Any doc habit of describing Papers primarily in engine/runtime terms.
+
+Nothing in pile C is cut because deleting it is convenient. Each item is cut
+because keeping it would keep teaching the wrong product.
+
+================================================================================
+6. REBUILD RECOMMENDATION
+================================================================================
+
+How Papers should proceed in REAL2, directly answered:
+
+1) What should be ported first from REAL, if anything?
+   Nothing wholesale, and no code at all at first. The first ports are rules,
+   not lines: REAL2's documentation law (A2 — status language, evidence
+   discipline, single canonical context) applies from the first file. Code ports
+   happen per-slice: trust-boundary machinery (A1) when the rebuild reaches
+   self-editing; hardening techniques (A4) when it reaches engine provisioning;
+   secret isolation (A3) when the engine seam is built.
+
+2) What should be ignored entirely?
+   Pile C above. Most importantly: do not start REAL2 by "getting Hermes
+   running" or "getting providers working." That is how v0 became what it is.
+   The engine is a dependency to be attached behind a seam, not a milestone to
+   be celebrated in the UI.
+
+3) What should the new center of gravity be?
+   The Papers world model. Labeling per the proxy manual: the founder-intent
+   part of this answer is only "Papers must accumulate a world and the engine
+   must not be the custodian of it" (brief sections 1-4, 11). The specific
+   move — designing the world model's entities and making persistence
+   world-first from the start of REAL2, rather than building another
+   workbench-first pass and retrofitting a world later — is this audit's
+   IMPLEMENTATION PROPOSAL, made on the evidence of v0: v0 proves that
+   "foundation now, world later" collapses into "engine cockpit, world never"
+   when nothing structural represents the world. The proposal does not demand a
+   grand data model before anything ships; it demands that the first shipped
+   slice already persists places and things, however few and however plain.
+   REAL2's first real design artifact should define the small set of
+   first-class entities the whole product hangs off:
+   - the WORLD (the creator's one environment; what persists and accumulates);
+   - PLACES (Backpacks): persistent, overlapping rooms/lenses that gather
+     references to real things — never owning or importing them;
+   - THINGS: truthful references to real files, folders, programs, sources on
+     the actual machine (pointing back, always). Concretely, a reference means
+     a pointer to the real location plus honest metadata (where it lives, when
+     it was last seen, whether it still exists) — never a private copy
+     masquerading as the original;
+   - TOOLS: cross-world capabilities (programs, scripts, shortcuts, mounts) in
+     the founder's sense;
+   - the GLOBAL AI: one intelligence present across the world, entering rooms
+     with their context, acting on real things under guard — with the engine as
+     a swappable implementation detail behind one adapter.
+   The agent workbench (chat, work rail, approvals) becomes a capability INSIDE
+   this world — the way you talk to it and watch it work — not the shell.
+   Persistence is world-first: conversations, artifacts, and work records attach
+   to places and things, not the reverse.
+
+4) What should the smallest non-generic Papers slice aim to prove?
+   Stated at vision level (sequencing detail belongs to PAPERS_NEXT_BUILD_ORDER):
+   - PLACE: closing and reopening Papers returns the creator to their world —
+     rooms, recent things, attached work — not a blank composer.
+   - ROOMS OVER REAL THINGS: one or two real Backpacks the creator actually
+     enters, gathering live references to real on-disk files/folders that
+     remain visibly authoritative (open-in-real-location always works).
+   - ONE AI ACROSS ROOMS: the same AI is present in and across rooms, can be
+     asked about the world ("where does X actually live?"), and can act on real
+     things with exact preview and reversibility.
+   - ACCUMULATION: what the AI produces (files, notes, summaries, changes)
+     lands in the world as durable, clickable artifacts attached to the room
+     that produced them.
+   The interchangeability test from FOUNDER_BRIEF_V3 section 11.5 is the
+   acceptance bar: if the slice could be replicated by adding a panel to a
+   generic coding agent, it is not done. v0's slice fails that test; this one,
+   even small and plain, does not — no generic agent client has persistent
+   overlapping rooms over the creator's real machine with one accumulating AI.
+
+5) Should any current content in REAL2 be preserved, reorganized, or thrown
+   away?
+   Preserved untouched: DOCS\PROMPTER\ (the four governing docs) — they are the
+   authority chain. This audit lands at the REAL2 root beside them. Recommended
+   additions, in order (per PAPERS_PROMPTER_HANDOFF section 7):
+   a) PAPERS_AGENT_CONSTITUTION — durable marching orders for coding agents:
+      what they may infer, what they must never ask the founder, the engine-seam
+      rule, the world-first persistence rule, the truthfulness law, and the
+      Core/Contingent/Mistaken dispositions from this audit as binding context.
+   b) PAPERS_NEXT_BUILD_ORDER — the sequenced definition of the smallest slice
+      above.
+   c) Initialize REAL2 as a git repository when the first non-doc artifact is
+      created.
+   Nothing currently in REAL2 should be thrown away.
+
+Self-test of this recommendation against FOUNDER_BRIEF_V3 section 10, as the
+brief requires of every major decision:
+- (A) Coherent personal world-layer vs bundle of tools: the recommendation
+  reorganizes everything around one world with rooms and one AI. PASS.
+- (B) Preserves Backpacks / shared Tools / global AI / truthful grounding vs
+  flattening: all four are first-class entities in the proposed center of
+  gravity, each restored to its founder meaning. PASS.
+- (C) Improves the lived experience vs mainly improving backend neatness:
+  honest answer — partially deferred. The world model IS backend work; the
+  lived-experience payoff is carried by the smallest-slice definition above
+  (returning to a world, entering rooms, watching the AI act on real things).
+  The guard against (C) failing is procedural: PAPERS_NEXT_BUILD_ORDER must
+  sequence the work so every increment is experienced by the creator as a
+  change in how Papers FEELS, and any world-model work that cannot be felt
+  within a slice is cut from that slice. Architecture that outruns experience
+  is the second failure mode the manual warns about (meta-OS sludge), and the
+  rebuild must be tested against it slice by slice.
+
+Final statement of the judgment, for the record: legacy v0 is retired as a
+product direction and retained as a parts shelf and a lesson. Its engineering
+culture — truthfulness, guarded action, recoverability — is the part of its soul
+that was always genuinely Papers, and it comes along. Its shape — an engine
+cockpit with a world painted on the menu — stays behind.
+
+End of PAPERS_REPO_DECISION_AUDIT_V1.

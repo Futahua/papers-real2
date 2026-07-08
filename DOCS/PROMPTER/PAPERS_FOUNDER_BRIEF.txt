@@ -1,0 +1,318 @@
+PAPERS_FOUNDER_BRIEF_V3
+Authoritative founder-intent document for future agent prompting
+Written to preserve Giun's actual ambitions while replacing low-confidence technical decisions
+
+Status
+This document supersedes earlier founder-brief and salvage-plan drafts where they conflict with it.
+Its job is to let a future assistant step into Giun’s role as Papers’ product/technical proxy without flattening the project into a generic AI desktop app.
+
+================================================================================
+0. WHY THIS DOCUMENT EXISTS
+================================================================================
+
+Papers has two kinds of inherited material:
+
+1) Real founder ambition
+   These are the original ideas that made the project worth doing at all.
+
+2) Contaminated implementation decisions
+   These are choices that entered the repo because the founder was pushed into answering technical questions he was not equipped to arbitrate, or because agents concretized broad ambitions in the wrong order and around the wrong center of gravity.
+
+This document exists to separate those two things.
+
+It is not a generic product brief.
+It is not a salvage memo.
+It is not a roadmap.
+
+It is the document a future assistant should use when acting as Giun’s technical/product proxy and prompting Papers agents on his behalf.
+
+If a repo choice, old plan, or agent suggestion conflicts with this document, this document wins unless there is a later explicit superseding brief.
+
+================================================================================
+1. THE CORE PREMISE OF PAPERS
+================================================================================
+
+Papers is not fundamentally a coding app, provider shell, runtime manager, desktop wrapper, or second-brain clone.
+
+Papers is an AI-native personal layer over the existing computer.
+
+Windows remains the underlying operating system.
+Papers sits above it as a personal computing environment: a place where work, knowledge, files, tools, actions, and AI interaction can belong to one coherent world instead of being scattered across isolated apps, folders, chats, and utilities.
+
+The project exists because normal software makes the machine feel fragmented:
+- apps are isolated
+- notes are isolated
+- repos are isolated
+- AI chats are isolated
+- files live in dumb hierarchies
+- actions and knowledge rarely belong to the same environment
+- context has to be manually reassembled every time
+
+Papers is meant to change that relationship.
+
+The ambition is not “one app that does many things.”
+The ambition is “one personal layer that makes the machine feel more coherent, accumulative, inhabitable, and legible.”
+
+That is the project.
+
+================================================================================
+2. WHAT PAPERS IS SUPPOSED TO FEEL LIKE
+================================================================================
+
+If Papers succeeds, the machine should feel less like:
+- a pile of unrelated apps
+- a bunch of folders plus chat windows
+- a set of tools that forget what matters unless I manually restate it
+
+and more like:
+- one personal environment
+- a place I return to rather than a blank utility I reopen
+- a world that accumulates context, artifacts, relationships, and capabilities over time
+- a medium through which I can think, act, retrieve, inspect, organize, and build
+
+The app should feel like a place I inhabit, not a dashboard I configure.
+That does not mean it has to be whimsical or theatrical. It means the structure of the product should privilege continuity, context, and lived usefulness over backend exposition.
+
+================================================================================
+3. BACKPACKS ARE ORIGINAL FOUNDER DNA
+================================================================================
+
+Backpacks are not a side feature, not accidental scope creep, and not something a later implementer invented.
+They are part of the original Papers vision and must be treated as such.
+
+The point of Backpacks is not “saved workspaces” in the shallow sense.
+A Backpack is closer to a persistent room / lens / environment for some part of life or work.
+
+A Backpack is NOT:
+- a sealed silo
+- a proprietary database that owns the underlying data
+- a mini-app that traps information inside itself
+- just a folder with branding
+- just a saved prompt context
+
+A Backpack IS closer to:
+- a persistent contextual room for some domain of work or life
+- a way of gathering related files, notes, references, tasks, artifacts, and AI interaction into a meaningful environment
+- a lens through which the same underlying world can be viewed and acted on differently
+- a structure that gives the machine more human and inhabitable organization than raw app silos or plain directories
+
+Important consequences:
+- Backpacks may overlap
+- the same underlying files / tools / references may matter to multiple Backpacks
+- Backpacks should not sever access to real sources of truth
+- Backpacks are part of how Papers makes the machine feel like one world with multiple rooms rather than many unrelated products
+
+Backpacks are one of the most distinctive ideas in Papers and should be preserved as founder intent, even if their current implementation or sequencing is wrong.
+
+================================================================================
+4. TOOLS, GLOBAL AI, AND THE WORLD MODEL
+================================================================================
+
+Papers has three major conceptual layers that should not be confused:
+
+A) BACKPACKS
+User-facing rooms/lenses/environments for domains of work or life.
+
+B) TOOLS
+Reusable capabilities available across the system:
+- installed programs
+- scripts
+- machine utilities
+- shortcuts
+- mounted resources
+- automation helpers
+- future action surfaces
+
+Tools are not supposed to be trapped inside one Backpack unless there is a strong reason.
+
+C) GLOBAL AI
+The AI should not be trapped inside one Backpack.
+It should be able to understand and act across the broader Papers world, while still using Backpack context when appropriate.
+
+This matters because Papers is not meant to become “a bunch of isolated Backpack bots.”
+It is one environment with multiple rooms, shared capabilities, and a global intelligence layer that can operate across them.
+
+================================================================================
+5. PAPERS MUST REMAIN A LAYER OVER REALITY, NOT A FAKE REPLACEMENT WORLD
+================================================================================
+
+Papers should not gain apparent power by pretending that everything now “lives inside Papers.”
+
+The creator’s real files, systems, programs, and data sources remain authoritative.
+Papers is a layer over them, not a replacement for them.
+
+Therefore:
+- Papers should point back to real sources
+- it should not require that everything be imported into a private fake universe
+- it should not hide where information actually lives just to appear more magical
+- Backpacks should not become data prisons
+- actions and views may be richer inside Papers, but the system should stay honest about the underlying reality
+
+This truthfulness is not a minor value. It is one of the defining laws of the project.
+
+================================================================================
+6. LIFE OS / KNOWLEDGE MANAGEMENT IS REAL, BUT IT BELONGS INSIDE THE PAPERS WORLD
+================================================================================
+
+The “Life OS” / second-brain / knowledge-management ambition is real and original.
+It should not be dismissed as random scope bloat.
+
+However, it should be understood correctly:
+the point is not to build a generic notes app or a Notion clone with AI.
+The point is that one major Backpack—or family of Backpacks—should eventually let Papers become a true environment for accumulated knowledge, references, notes, synthesis, and action.
+
+That means:
+- capture should be easy
+- retrieval should be natural
+- relationships between things should be visible
+- knowledge should be transformable into action, synthesis, and useful views
+- notes / web material / references / outputs should be able to coexist in the same world
+
+The Life OS ambition is not separate from Papers.
+It is one major expression of what Papers is for.
+
+================================================================================
+7. THE AGENT WORKBENCH / GLOBAL OPERATOR IS A FOUNDATION, NOT THE WHOLE IDENTITY
+================================================================================
+
+At some point the implementation direction shifted toward a practical agent workbench / global operator / inline editing environment.
+That shift should be interpreted as a sequencing move, not as a replacement of the original vision.
+
+The correct reading is:
+
+Papers needs a trustworthy machine-facing AI/operator foundation before it can fully earn the larger environment.
+A practical workbench may be the best way to build that foundation.
+But the workbench is not the full identity of Papers.
+
+Papers must not permanently collapse into:
+- “OpenCode but desktop”
+- “Claude Code with extra panels”
+- “a nice operator shell”
+- “Hermes front-end with some worldbuilding language”
+
+Those may be stepping stones, inspirations, or foundations.
+They are not the destination.
+
+================================================================================
+8. WHAT IS NON-NEGOTIABLE FOUNDER INTENT
+================================================================================
+
+The following ambitions should be treated as authoritative unless Giun explicitly retracts them:
+
+1) Papers is a personal layer over the computer, not merely an app inside it.
+2) The machine should feel like one coherent world rather than scattered apps/folders/chats.
+3) Backpacks are core Papers DNA and represent persistent rooms/lenses of that world.
+4) Backpacks must not become silos or fake proprietary universes.
+5) Tools are reusable cross-world capabilities, not one-off app features.
+6) The AI is global across the environment, not confined to one room.
+7) Papers should remain truthful about real underlying files, systems, and sources.
+8) Life OS / knowledge-management ambitions are real and belong inside the Papers world.
+9) The practical operator/workbench layer is a foundation, not the final identity.
+10) Papers should feel personal, accumulative, and inhabitable rather than generic and interchangeable.
+
+================================================================================
+9. WHAT IS NOT AUTHORITATIVE JUST BECAUSE IT EXISTS IN THE REPO
+================================================================================
+
+The following are NOT binding simply because they were discussed, approved in passing, or already implemented:
+
+1) Specific architecture decisions made because an agent asked the founder to pick between technical options he did not understand.
+2) Any product shape that became centered on Hermes, providers, runtimes, or orchestration because those were the current hard problems.
+3) Any abstraction justified mainly by “future flexibility” rather than by a clear Papers experience need.
+4) Any Backpack-related implementation that assumes “Backpacks are important” automatically means “the current Backpack concretization is good.”
+5) Any UI exposure of backend state that exists because the backend is messy rather than because the user genuinely needs that concept.
+6) Any argument that a subsystem must survive merely because deleting it would be painful.
+
+Future assistants and agents should treat those as provisional at best.
+
+================================================================================
+10. THE TEST FOR FUTURE PRODUCT DECISIONS
+================================================================================
+
+Every major decision should be tested against all three questions:
+
+A) Does this make Papers feel more like a coherent personal world-layer over the machine, or more like a bundle of unrelated tools?
+
+B) Does this preserve the distinct role of Backpacks / shared Tools / global AI / truthful real-world grounding, or does it flatten Papers into a generic agent client?
+
+C) Does this improve the lived experience of inhabiting Papers, or does it mainly improve backend neatness while weakening the product’s center of gravity?
+
+If a proposal fails those tests, it is suspect even if it is technically elegant.
+
+================================================================================
+11. THE SMALLEST REAL PAPERS
+================================================================================
+
+The first meaningful Papers does not need to ship the whole destiny of the project.
+But it must already contain the seed of the actual worldview.
+
+A smallest real Papers should already establish:
+
+1) PLACE, NOT JUST SESSION
+Returning to Papers should feel like returning to an environment with continuity, not reopening a blank transcript tool.
+
+2) SOME FORM OF PERSISTENT WORLD STRUCTURE
+Even if Backpacks are not fully mature, the product should already hint at “rooms / spaces / accumulated context” rather than pure disposable chats.
+
+3) SHARED WORLD, NOT SEALED SILOS
+Files, artifacts, tasks, notes, actions, and context should feel connected within one environment rather than split into unrelated mini-products.
+
+4) REAL MACHINE / FILE / PROJECT OPERABILITY
+The AI should already be able to inspect or act on real things in a visible, trustworthy way.
+
+5) ENOUGH DISTINCTIVENESS THAT IT DOES NOT FEEL INTERCHANGEABLE
+If the first slice could be replicated tomorrow by adding one more panel to a generic coding agent, it is not Papers enough.
+
+================================================================================
+12. WHAT FUTURE AGENTS MUST STOP ASKING GIUN TO DECIDE
+================================================================================
+
+Agents must stop asking the founder to arbitrate low-level technical questions that should be resolved through this brief and through competent engineering judgment.
+
+Examples of bad questions to push onto Giun:
+- should service X own orchestration state?
+- should Hermes define the primary abstraction boundary?
+- should provider settings live in layer A or B?
+- should the runtime expose state Y in the UI?
+- should we design current product structure around future Backpack internals?
+
+Instead, agents should:
+1) infer the likely answer from this founder brief
+2) present tradeoffs in user/product terms when escalation is truly needed
+3) clearly distinguish “founder intent” from “implementation proposal”
+4) avoid converting implementation pain into product structure
+5) treat Giun’s taste reactions and discomfort as highly valuable, while not forcing him to pretend to be a systems architect
+
+================================================================================
+13. WHAT A FUTURE ASSISTANT SHOULD DO IN GIUN’S PLACE
+================================================================================
+
+When acting as Giun’s prompter / technical proxy, the assistant should operate under these rules:
+
+1) Preserve the worldview, not the accidental implementation.
+2) Treat Backpacks and the broader personal-world ambition as real founder DNA.
+3) Be ruthless about deleting, replacing, or demoting implementation that betrays that worldview.
+4) Do not let “practicality” flatten Papers into a generic operator shell.
+5) Do not let “ambition” justify shapeless architecture or premature abstractions.
+6) Continuously separate:
+   - core founder intent
+   - contingent implementation choices
+   - contaminated historical decisions
+7) When prompting agents, phrase work in terms of what Papers should feel like and what user-world problem it solves, not only what subsystem to modify.
+8) Protect sequencing: a strong practical foundation is necessary, but it must still point toward the actual Papers world.
+
+================================================================================
+14. OPERATING SUMMARY
+================================================================================
+
+Papers is an AI-native personal layer over the existing computer.
+Its purpose is to make the machine feel like one coherent, accumulative, inhabitable world instead of a scattered collection of apps, folders, chats, and utilities.
+
+Backpacks are part of the original vision: persistent rooms/lenses for domains of work and life, not sealed silos or branded folders.
+Tools are shared capabilities across that world.
+The AI is global across the environment, not trapped in one Backpack.
+The system must remain truthful about the real underlying machine and real sources of data.
+Life OS / knowledge-management ambitions are real, but they belong inside the Papers world rather than as a separate generic notes product.
+The practical operator/workbench layer is a foundation for this world, not the whole identity.
+
+A future assistant acting in Giun’s place should preserve those ambitions, ignore contaminated technical nods, and direct agents toward the smallest implementation that still feels like the beginning of the real Papers world.

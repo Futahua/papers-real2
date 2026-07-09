@@ -328,6 +328,11 @@ textarea { resize: none; }
 .note-surface .note-footer { color: var(--ink-soft); font-size: 12px; }
 .note-made-from { margin-top: 20px; margin-bottom: 16px; }
 
+/* Revise-this-note: the creator's direction + the guarded revise action */
+.note-revise { margin-top: 20px; margin-bottom: 16px; }
+.note-revise textarea { margin-top: 6px; }
+.note-revise .empty-hint { margin-top: 8px; font-size: 12px; }
+
 /* Room history — the room's life as a readable, navigable timeline */
 .timeline-day {
   font-size: 12px;

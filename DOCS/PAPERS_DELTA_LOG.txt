@@ -3,6 +3,105 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-10 (eighth pass) — Backpack openness correction; note revision becomes
+a Backpack capability
+================================================================================
+
+Creator correction internalized this pass: Backpacks are open-ended Papers
+units — whatever the creator needs them to be — and the Desk is one current
+work-surface affordance, NOT what a Backpack is. The Desk slice's real value
+(persistent active-work context, narrower grounding, one evolving artifact)
+is kept; its accidental ontology hardening is softened. Explicit amendment
+added to DOCS/PAPERS_BACKPACK_DESK_V1.txt (its status clause requires
+supersession to be explicit). NOTE ON REPO STATE: the Desk slice itself was
+found NOT yet merged to main — it lives on branch backpack-desk; this pass
+is stacked on it (branch backpack-note-revision).
+
+A. DESK NORMALIZATION (copy/prompt level; no schema, IPC, or identifier churn)
+1. AI-facing context (engine/prompts.js): the Desk block no longer says
+   "Treat it as your default working context". It now reads: "one work
+   surface inside the Backpack, not the Backpack itself... Give this
+   material first attention; the rest of the Backpack still counts."
+   The assistant is Backpack-grounded; the Desk is weighted, not enthroned.
+2. UI: an empty Desk renders as one quiet line instead of a full prime-slot
+   section; empty-state copy no longer implies the AI needs a Desk ("the AI
+   already sees everything in this Backpack"); tooltips say "flag it as
+   active work".
+3. Docs/READMEs corrected where they overstated Desk as universal law
+   ("Each Backpack has a Desk", "the Desk-grounded AI", "default working
+   context"): app/README.md, root README.md, DOCS/README.md index line.
+4. Historical delta-log entries and persisted events left untouched — they
+   are a truthful record of the first form.
+
+B. NEW SLICE: REVISE A BACKPACK NOTE IN PLACE (a Backpack capability, not
+   Desk furniture)
+1. Any AI-made Backpack note can now be revised in place under the
+   creator's direction: open note → "Revise this note" (direction in the
+   creator's own words, optional) → exact guarded preview (note text, the
+   direction, each recorded source RE-READ from reality with honest
+   truncation/missing markers; preview and action share one gathering
+   path, so the preview is exact by construction) → approval → the same
+   durable artifact is updated.
+2. Provenance hardened for ALL in-place revision (generic and Desk
+   synthesis): each revision entry now also preserves previousTitle and
+   previousBody — revising in place never silently destroys text. Each
+   generic revision records engine, requestedBy, direction, and the
+   re-read sourceThings; artifact-level sources reflect the current text.
+   Backpack event text distinguishes 'revised the note' from 'revised the
+   working note'.
+3. Engine seam: prompts.reviseNotePrompt + engine.reviseNote (runtime-
+   neutral, TITLE contract, evolve-not-restart, honest markers). Honest
+   failure appends note-failed to Backpack history with refs.
+4. IPC: note:revisePreview / note:revise (new channels, Backpack-named per
+   the ontology tolerance rule).
+
+C. STORAGE CHECKPOINT (bounded, per standing constraint)
+Verdict: the file-backed JSON store is fine for now — in-place revision
+needed no contortions (updateArtifact already fit). Two small protective
+cleanups landed with the slice:
+1. main.js takes app.requestSingleInstanceLock(): a second Papers instance
+   over the same world exits with an honest message instead of silently
+   clobbering JSON writes.
+2. store.readJson quarantines damaged JSON (renamed *.corrupt-<timestamp>,
+   logged) instead of silently reading it as empty and letting the next
+   append rewrite history.
+Known pressure points, noted for later, not urgent at human scale:
+appendActivity/appendConversation rewrite whole files per event;
+listArtifacts reads all artifact bodies on every view; provenance.revisions
+grows unbounded inside the artifact file (now including previous bodies).
+
+VERIFIED
+- 30/30 unit tests (new: reviseNotePrompt honesty with and without a
+  direction; engine-seam failure propagation for revision; generic in-place
+  revision trail with direction + previousBody + "revised the note" event
+  text; corrupt-file quarantine. Updated: Desk context test asserts "first
+  attention" and rejects "default working context").
+- scripts/verify-note-revision.js LIVE end-to-end on ollama (llama3.1:8b):
+  fixture note in a Backpack with NO Desk (desk.json never created) →
+  guarded revision with direction → same artifact, direction + replaced
+  text in trail → reality changed → second revision, same artifact,
+  2-entry trail, still one note → restart continuity → vanished source
+  re-read as missing/unreadable, honestly.
+- Regression LIVE all-pass: verify-desk.js (Desk synthesis unaffected by
+  the prompt rewording) and verify-slice1.js; npm run smoke OK (the
+  single-instance lock does not break smoke); headed render clean for both
+  Desk states (quiet empty-Desk line + full in-use section).
+
+ACCEPTED LIMITATIONS / DEFERRED
+- No concrete first Backpack domain exists in the REAL2 authority docs
+  (checked this pass; strongest signal is founder brief §6's knowledge /
+  Life-OS Backpack family, explicitly "eventually"). This slice therefore
+  stayed domain-neutral on purpose. The next Backpack-shaping move should
+  start from the creator naming a first real Backpack they want to live
+  in, not from more invented structure.
+- Revision is creator-initiated only (no autonomous revision), one note at
+  a time. Conversation→note distillation was considered and deliberately
+  not built this pass.
+- A note larger than MAX_TEXT_BYTES is revised from its visible head, with
+  the truncation stated honestly in preview and prompt. A decision, not an
+  accident.
+
+================================================================================
 2026-07-09 (seventh pass) — the Desk: first inhabited Backpack slice
 ================================================================================
 

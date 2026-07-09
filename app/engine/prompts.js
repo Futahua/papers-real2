@@ -19,7 +19,9 @@ function roomContextBlock({ world, room, things, artifacts, conversation, desk }
   );
   lines.push('');
   if (desk && (desk.brief || desk.items.length || desk.workingNote)) {
-    lines.push("THE DESK — this Backpack's active work right now. Treat it as your default working context:");
+    lines.push(
+      "THE DESK — what the creator is actively working on in this Backpack right now. It is one work surface inside the Backpack, not the Backpack itself. Give this material first attention; the rest of the Backpack still counts:"
+    );
     if (desk.brief) {
       lines.push(`Current brief (the creator's own words): ${desk.brief}`);
     }
@@ -156,4 +158,45 @@ function deskSynthesisPrompt(context, { readings, deskNotes, previousNote }) {
   return parts.join('\n');
 }
 
-module.exports = { roomContextBlock, replyPrompt, notePrompt, deskSynthesisPrompt, parseNoteResponse };
+// The Backpack-native revision action: evolve an existing Backpack note in
+// place. Works for any AI-made note — the Desk's working note is one note
+// this serves, not the owner of the capability. `readings` re-reads the
+// note's real sources as they are right now; `direction` is the creator's
+// own instruction, if they gave one.
+function reviseNotePrompt(context, { note, direction, readings }) {
+  const parts = [roomContextBlock(context)];
+  parts.push('');
+  parts.push(
+    `The creator asked you to revise the Backpack note "${note.title}" in place. ` +
+      'It stays the same durable note — evolve it, do not start from scratch. ' +
+      'Below is exactly what was read just now; truncation and unreadable content are marked honestly.'
+  );
+  if (direction) {
+    parts.push('');
+    parts.push("=== The creator's direction, in their words ===");
+    parts.push(direction);
+  }
+  parts.push('');
+  parts.push(`=== The note as it stands now: "${note.title}" ===`);
+  parts.push(note.body);
+  for (const { thing, content } of readings) {
+    parts.push('');
+    parts.push(
+      `=== A source of this note, re-read from reality: ${thing.displayName} (${thing.type}, ${thing.status}, at ${thing.path}) ===`
+    );
+    parts.push(content.text);
+  }
+  parts.push('');
+  parts.push(
+    'Write the revised note now. First line must be exactly "TITLE: " followed by a short title — keep the current title unless the content has genuinely outgrown it. ' +
+      'Then a blank line, then the note body in plain text. ' +
+      (direction
+        ? "Follow the creator's direction. Carry forward what is still true and revise what the direction or the re-read sources change. "
+        : 'No specific direction was given: bring the note up to date with its re-read sources, carrying forward what is still true. ') +
+      'If content was truncated, binary, unreadable, or missing, reflect that honestly rather than pretending to know more. ' +
+      'Output only the note itself — no reasoning steps, no preamble, no meta-commentary.'
+  );
+  return parts.join('\n');
+}
+
+module.exports = { roomContextBlock, replyPrompt, notePrompt, deskSynthesisPrompt, reviseNotePrompt, parseNoteResponse };

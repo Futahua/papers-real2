@@ -28,9 +28,26 @@ const { newId } = require('./ids');
 const { createThingReference, checkThing } = require('./things');
 
 function readJson(file, fallback) {
+  let raw;
   try {
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
+    raw = fs.readFileSync(file, 'utf8');
   } catch {
+    // Absent is normal (e.g. a pre-Desk Backpack simply has no desk.json).
+    return fallback;
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // A damaged record must never be silently replaced by an empty one on
+    // the next write. Keep the evidence and say so, instead of quietly
+    // pretending the history never existed.
+    const quarantine = `${file}.corrupt-${Date.now()}`;
+    try {
+      fs.renameSync(file, quarantine);
+      console.error(`[papers-world] ${file} was unreadable JSON — preserved at ${quarantine}`);
+    } catch {
+      console.error(`[papers-world] ${file} is unreadable JSON and could not be quarantined`);
+    }
     return fallback;
   }
 }
@@ -410,20 +427,25 @@ class WorldStore {
     return desk;
   }
 
-  // Revise an artifact in place — same object, new text, honest trail. Used
-  // for the Desk's working note so active work accumulates in one durable
-  // place instead of scattering into ever more one-shot notes.
+  // Revise an artifact in place — same object, new text, honest trail. A
+  // Backpack capability: any AI-made note can evolve in one durable place
+  // instead of scattering into ever more one-shot notes. The Desk's working
+  // note is one note this serves, not the owner of the capability.
   updateArtifact(roomId, artifactId, { title, body, revision }) {
     const file = path.join(this.artifactsDir(roomId), `${artifactId}.json`);
     const artifact = readJson(file, null);
     if (!artifact) throw new Error(`No such note in this Backpack: ${artifactId}`);
+    const previousTitle = artifact.title;
+    const previousBody = artifact.body;
     if (title) artifact.title = title;
     artifact.body = body;
     artifact.updatedAt = new Date().toISOString();
     artifact.provenance = artifact.provenance || {};
     if (revision) {
       artifact.provenance.revisions = artifact.provenance.revisions || [];
-      artifact.provenance.revisions.push({ at: artifact.updatedAt, ...revision });
+      // The text a revision replaced stays in the trail — revising in place
+      // never silently destroys what came before.
+      artifact.provenance.revisions.push({ at: artifact.updatedAt, previousTitle, previousBody, ...revision });
       // The artifact-level source list reflects what the CURRENT text was
       // made from; the revisions trail keeps the full history.
       if (revision.sourceThings) artifact.provenance.sourceThings = revision.sourceThings;
@@ -431,10 +453,15 @@ class WorldStore {
       if (revision.engine) artifact.provenance.engine = revision.engine;
     }
     writeJson(file, artifact);
-    this.appendActivity(roomId, 'note-updated', `The AI revised the working note "${artifact.title}"`, {
-      noteId: artifact.id,
-      title: artifact.title,
-    });
+    this.appendActivity(
+      roomId,
+      'note-updated',
+      `The AI revised the ${artifact.kind === 'working-note' ? 'working note' : 'note'} "${artifact.title}"`,
+      {
+        noteId: artifact.id,
+        title: artifact.title,
+      }
+    );
     return artifact;
   }
 

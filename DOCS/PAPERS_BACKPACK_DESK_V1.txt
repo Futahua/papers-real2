@@ -9,6 +9,29 @@ Status
 - Documents a shipped product concept and its deliberate limits. If a later
   document supersedes the Desk's first form, it must say so explicitly.
 
+AMENDMENT 2026-07-10 — creator correction; supersedes the first form on two
+points, explicitly, per the rule above:
+
+1. FRAMING. The Desk is one current work-surface AFFORDANCE a Backpack
+   offers, not what a Backpack is, and not a required organ of every future
+   Backpack. Backpacks are open-ended Papers places — they are whatever the
+   creator needs them to be. §2's "default working context" language is
+   corrected: the assistant is grounded in the BACKPACK; when the Desk is in
+   use, the assistant gives that material first attention. A Backpack with
+   an empty Desk is fully inhabitable, and the assistant is just as present
+   in it.
+
+2. REVISION IS A BACKPACK CAPABILITY. In-place artifact revision, first
+   built for the working note, is a general Backpack note capability as of
+   the backpack-note-revision slice: any AI-made Backpack note can be
+   revised in place under the creator's direction, guarded the same way
+   (exact preview generated from the same gathering code, explicit
+   approval, durable attributable result, honest recorded failure). Each
+   revision records the direction used and preserves the replaced
+   title/text in the artifact's provenance trail. §4's "one working note
+   per Backpack" limit still governs the Desk's own synthesis action; it no
+   longer implies that revising in place is Desk-only.
+
 ================================================================================
 1. WHAT THE DESK IS
 ================================================================================

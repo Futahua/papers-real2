@@ -10,7 +10,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const { WorldStore } = require('./world/store');
-const { readThingContent, MAX_TEXT_BYTES } = require('./world/things');
+const { checkThing, readThingContent, MAX_TEXT_BYTES } = require('./world/things');
 const engine = require('./engine');
 
 const worldDir =
@@ -225,6 +225,99 @@ function registerHandlers(getWindow) {
     return { ok: true, artifact, view: store.getRoomView(roomId) };
   });
 
+  // --- Revising a Backpack note in place -----------------------------------
+  // A Backpack capability, not Desk furniture: any AI-made note can be
+  // revised in place under the creator's direction, with the same guard
+  // shape as every Papers AI action.
+
+  // Everything a note revision would share with the AI, gathered in one
+  // place so the guard preview and the actual action are exactly the same
+  // material. The note's recorded sources are re-read from reality as they
+  // are NOW — missing or unreadable sources are shown honestly.
+  function gatherNoteRevisionMaterial(roomId, artifactId) {
+    const note = store.listArtifacts(roomId).find((a) => a.id === artifactId);
+    if (!note) return { error: 'That note is not in this Backpack.' };
+    const readings = (note.provenance?.sourceThings || []).map((s) => {
+      const thing = checkThing({ path: s.path, displayName: s.displayName, type: s.type });
+      return { thing, content: readThingContent(thing) };
+    });
+    const capped = note.body.length > MAX_TEXT_BYTES;
+    const noteForPrompt = {
+      title: note.title,
+      body: capped
+        ? note.body.slice(0, MAX_TEXT_BYTES) +
+          `\n… (truncated: showing first ${MAX_TEXT_BYTES} of ${note.body.length} characters)`
+        : note.body,
+    };
+    return { note, noteForPrompt, capped, readings };
+  }
+
+  // Guarded note revision, step 1 of 2: an exact preview of what would be
+  // shared with the AI.
+  ipcMain.handle('note:revisePreview', (_e, roomId, artifactId, direction) => {
+    const gathered = gatherNoteRevisionMaterial(roomId, artifactId);
+    if (gathered.error) return { ok: false, error: gathered.error };
+    const { note, capped, readings } = gathered;
+    const dir = (direction || '').trim();
+    const items = [];
+    items.push({
+      label: `The note "${note.title}" as it stands`,
+      detail: `${capped ? `first ${MAX_TEXT_BYTES} of ` : ''}${note.body.length} characters will be shared`,
+    });
+    if (dir) {
+      items.push({ label: 'Your direction (your words)', detail: `${dir.length} characters will be shared with the AI` });
+    }
+    for (const { thing, content } of readings) {
+      items.push({
+        label: `Source re-read from reality: ${thing.displayName} — ${thing.type}, ${thing.status}`,
+        path: thing.path,
+        detail:
+          content.kind === 'text'
+            ? `${content.shownBytes} of ${content.totalBytes} bytes will be shared${content.truncated ? ' (truncated)' : ''}`
+            : content.kind === 'folder-listing'
+              ? `a listing of ${content.shownEntries} of ${content.totalEntries} entries will be shared`
+              : content.kind === 'binary'
+                ? 'binary file — only its name and size will be shared'
+                : 'unreadable or missing — only its name and the error will be shared',
+      });
+    }
+    return { ok: true, items };
+  });
+
+  // Guarded note revision, step 2 of 2: run it and keep the result as the
+  // same durable note — revised in place, previous text preserved in the
+  // provenance trail.
+  ipcMain.handle('note:revise', async (_e, roomId, artifactId, direction) => {
+    const gathered = gatherNoteRevisionMaterial(roomId, artifactId);
+    if (gathered.error) return { ok: false, error: gathered.error };
+    const { note, noteForPrompt, readings } = gathered;
+    const dir = (direction || '').trim();
+    const result = await engine.reviseNote(roomContext(roomId), {
+      note: noteForPrompt,
+      direction: dir || null,
+      readings,
+    });
+    if (!result.ok) {
+      store.appendActivity(roomId, 'note-failed', `The note "${note.title}" could not be revised: ${result.error}`, {
+        noteId: note.id,
+        title: note.title,
+      });
+      return { ok: false, error: result.error, view: store.getRoomView(roomId) };
+    }
+    const revision = {
+      engine: result.engineLabel,
+      requestedBy: 'creator',
+      direction: dir || null,
+      sourceThings: readings.map(({ thing }) => ({ displayName: thing.displayName, path: thing.path, type: thing.type })),
+    };
+    const artifact = store.updateArtifact(roomId, artifactId, {
+      title: result.title || note.title,
+      body: result.body,
+      revision,
+    });
+    return { ok: true, artifact, view: store.getRoomView(roomId) };
+  });
+
   // The real state, right now, of the sources a note was made from. A note
   // stays honestly connected to reality: each source is re-checked against
   // the filesystem and against the room's current things.
@@ -377,6 +470,14 @@ function createWindow() {
     openRoom ? { hash: `open-room=${openRoom}` } : undefined
   );
   return win;
+}
+
+// One instance owns the world at a time. Two Papers instances over the same
+// world directory would silently clobber each other's JSON writes — the
+// second instance says so and leaves, rather than corrupting continuity.
+if (!app.requestSingleInstanceLock()) {
+  console.error('[papers] Another Papers instance already has this world open. Exiting instead of writing over it.');
+  app.quit();
 }
 
 app.whenReady().then(async () => {

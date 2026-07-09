@@ -51,7 +51,7 @@ test('room context is serialized in Papers terms, truthfully', () => {
   assert.ok(!block.includes('engine hiccup'), 'status entries are not conversation');
 });
 
-test('the Desk is the assistant\'s default working context, serialized truthfully', () => {
+test('the Desk appears in the assistant\'s Backpack context when in use, serialized truthfully', () => {
   const withDesk = {
     ...context,
     desk: {
@@ -65,7 +65,10 @@ test('the Desk is the assistant\'s default working context, serialized truthfull
   };
   const block = prompts.roomContextBlock(withDesk);
   assert.match(block, /THE DESK/);
-  assert.match(block, /default working context/);
+  // The Desk is weighted, not enthroned: first attention, Backpack-grounded.
+  assert.match(block, /first attention/);
+  assert.match(block, /not the Backpack itself/);
+  assert.ok(!block.includes('default working context'));
   assert.match(block, /Ship the gate plan by Friday\./);
   assert.match(block, /plan\.txt — file, missing/); // desk does not hide missing reality
   assert.match(block, /the note "Gate measurements"/);
@@ -93,6 +96,52 @@ test('desk synthesis prompt shares material honestly and evolves the previous no
   assert.match(prompt, /PREVIOUS-SYNTHESIS/);
   assert.match(prompt, /evolve it, do not start from scratch/);
   assert.match(prompt, /TITLE: /);
+});
+
+test('note revision prompt shares the direction, current text, and re-read sources honestly', () => {
+  const prompt = prompts.reviseNotePrompt(context, {
+    note: { title: 'Hinge notes', body: 'CURRENT-NOTE-BODY' },
+    direction: 'Fold in the new measurements and drop the paint question.',
+    readings: [
+      {
+        thing: { displayName: 'plan.txt', type: 'file', status: 'missing', path: 'C:\\real\\plan.txt' },
+        content: { text: '(could not read: ENOENT)' },
+      },
+    ],
+  });
+  assert.match(prompt, /revise the Backpack note "Hinge notes" in place/);
+  assert.match(prompt, /evolve it, do not start from scratch/);
+  assert.match(prompt, /The creator's direction, in their words/);
+  assert.match(prompt, /Fold in the new measurements and drop the paint question\./);
+  assert.match(prompt, /CURRENT-NOTE-BODY/);
+  assert.match(prompt, /plan\.txt \(file, missing, at C:\\real\\plan\.txt\)/); // reality re-read, not remembered
+  assert.match(prompt, /could not read: ENOENT/);
+  assert.match(prompt, /Follow the creator's direction\./);
+  assert.match(prompt, /TITLE: /);
+});
+
+test('note revision without a direction asks for an honest update, not an invention', () => {
+  const prompt = prompts.reviseNotePrompt(context, {
+    note: { title: 'Hinge notes', body: 'CURRENT-NOTE-BODY' },
+    direction: null,
+    readings: [],
+  });
+  assert.match(prompt, /No specific direction was given/);
+  assert.match(prompt, /carrying forward what is still true/);
+  assert.ok(!prompt.includes("The creator's direction"));
+});
+
+test('note revision propagates runtime failure instead of inventing a revision', async () => {
+  await withEnv({ PAPERS_ENGINE: 'imaginary-runtime' }, async () => {
+    const result = await engine.reviseNote(context, {
+      note: { title: 'T', body: 'B' },
+      direction: 'shorter',
+      readings: [],
+    });
+    assert.equal(result.ok, false);
+    assert.match(result.error, /imaginary-runtime/);
+    assert.equal(result.body, undefined);
+  });
 });
 
 test('note responses parse the TITLE line, and fall back honestly', () => {

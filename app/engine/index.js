@@ -70,4 +70,14 @@ async function synthesizeDesk(context, material) {
   return { ok: true, title, body, engineLabel: result.engineLabel };
 }
 
-module.exports = { roomReply, generateRoomNote, synthesizeDesk, activeRuntimeId };
+// The Backpack-native action: revise an existing Backpack note in place,
+// under the creator's direction. Any AI-made note qualifies — the Desk's
+// working note is one note this serves, not the owner of the capability.
+async function reviseNote(context, material) {
+  const result = await complete(prompts.reviseNotePrompt(context, material));
+  if (!result.ok) return result;
+  const { title, body } = prompts.parseNoteResponse(result.text);
+  return { ok: true, title, body, engineLabel: result.engineLabel };
+}
+
+module.exports = { roomReply, generateRoomNote, synthesizeDesk, reviseNote, activeRuntimeId };

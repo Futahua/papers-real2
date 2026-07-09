@@ -20,9 +20,10 @@ const state = {
   selectedThings: new Set(),
   editingDescription: false,
   editingBrief: false,
+  reviseDirection: '', // creator's direction for revising the open note
   historyExpanded: false,
   thinking: false,
-  guard: null, // { kind: 'note', items, thingIds } | { kind: 'desk', items, updating }
+  guard: null, // { kind: 'note', items, thingIds } | { kind: 'desk', items, updating } | { kind: 'revise', items, artifactId, direction }
   inlineError: null, // { scope: 'things' | 'notes', text }
   talkOpen: localStorage.getItem('papers-ui:talk-open') !== 'no',
 };
@@ -154,7 +155,7 @@ function thingRow(t) {
         <span class="thing-path" title="${esc(t.path)}">${esc(t.path)}</span>
         ${missing}
       </span>
-      ${onDesk('thing', t.id) ? '<span class="ev-gone">on the Desk</span>' : `<button class="quiet" data-desk-add="thing:${esc(t.id)}" title="Put it on the Desk — the Backpack’s active work">Put on the Desk</button>`}
+      ${onDesk('thing', t.id) ? '<span class="ev-gone">on the Desk</span>' : `<button class="quiet" data-desk-add="thing:${esc(t.id)}" title="Put it on the Desk — flag it as active work">Put on the Desk</button>`}
       <button class="quiet" data-open-thing="${esc(t.id)}" ${t.status !== 'present' ? 'disabled title="The real item is missing"' : 'title="Open the real location on this machine"'}>Open real location</button>
       <button class="quiet" data-detach-thing="${esc(t.id)}" title="Remove the reference from this Backpack (the real item is not touched)">Remove</button>
     </div>`;
@@ -179,7 +180,7 @@ function noteCard(a) {
         <h3>${esc(a.title)}</h3>
         <span class="note-card-tags">
           ${isNewSinceLastVisit(a) ? '<span class="new-badge">new since your last visit</span>' : ''}
-          ${onDesk('note', a.id) ? '<span class="ev-gone">on the Desk</span>' : `<button class="quiet" data-desk-add="note:${esc(a.id)}" title="Put it on the Desk — the Backpack’s active work">Desk</button>`}
+          ${onDesk('note', a.id) ? '<span class="ev-gone">on the Desk</span>' : `<button class="quiet" data-desk-add="note:${esc(a.id)}" title="Put it on the Desk — flag it as active work">Desk</button>`}
           <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}" title="${a.pinned ? 'Unpin from the Backpack landing' : 'Pin to the Backpack landing'}">${a.pinned ? 'Unpin' : 'Pin'}</button>
         </span>
       </div>
@@ -409,6 +410,16 @@ function workingNoteCard(a) {
 
 function deskSectionHtml() {
   const { desk } = state.room;
+  const inUse = Boolean(desk.brief || desk.items.length || desk.workingNote);
+  // A Backpack without active Desk work is still fully a Backpack — the
+  // empty Desk is one quiet line, not a demand.
+  if (!inUse && !state.editingBrief) {
+    return `
+    <div class="section desk-section">
+      <h2 class="section-title">The Desk</h2>
+      <div class="empty-hint">Nothing is on the Desk. Put things or notes on it — or <button class="quiet" id="brief-edit">write a brief</button> — when you want your active work given first attention. The AI already sees everything in this Backpack.</div>
+    </div>`;
+  }
   let brief;
   if (state.editingBrief) {
     brief = `
@@ -436,7 +447,7 @@ function deskSectionHtml() {
       <h2 class="section-title">The Desk — active work</h2>
       ${brief}
       ${itemRows.join('')}
-      ${!desk.items.length ? '<div class="empty-hint">Nothing on the Desk yet. Use “Put on the Desk” on things and notes below — the Desk is what the AI treats as your active work.</div>' : ''}
+      ${!desk.items.length ? '<div class="empty-hint">Nothing on the Desk yet. Use “Put on the Desk” on things and notes below to flag them as active work — the AI already sees everything in this Backpack.</div>' : ''}
       ${desk.workingNote ? workingNoteCard(desk.workingNote) : ''}
       ${inlineError('desk')}
       <div class="section-actions">
@@ -509,6 +520,7 @@ function noteSourcesHtml(a) {
 }
 
 function noteSurfaceHtml(a) {
+  const revisions = a.provenance?.revisions?.length || 0;
   return `
     <div class="note-surface">
       <button class="quiet" id="close-note">← Back to the Backpack</button>
@@ -516,13 +528,32 @@ function noteSurfaceHtml(a) {
       <div class="note-provenance">
         <span class="provenance-chip">Papers AI</span>
         ${a.kind === 'working-note'
-          ? `${esc(`working note · begun ${fmtDate(a.createdAt)} · last revised ${fmtDate(a.updatedAt || a.createdAt)}${(a.provenance?.revisions?.length || 0) > 1 ? ` · ${a.provenance.revisions.length} revisions` : ''}`)}`
-          : `Written ${fmtDate(a.createdAt)}`}${a.provenance?.engine ? ` · via ${esc(a.provenance.engine)}` : ''}
+          ? `${esc(`working note · begun ${fmtDate(a.createdAt)} · last revised ${fmtDate(a.updatedAt || a.createdAt)}${revisions > 1 ? ` · ${revisions} revisions` : ''}`)}`
+          : a.updatedAt
+            ? `${esc(`Written ${fmtDate(a.createdAt)} · revised ${fmtDate(a.updatedAt)}${revisions ? ` · ${revisions} revision${revisions === 1 ? '' : 's'}` : ''}`)}`
+            : `Written ${fmtDate(a.createdAt)}`}${a.provenance?.engine ? ` · via ${esc(a.provenance.engine)}` : ''}
         ${a.kind === 'working-note' ? '· <span class="ev-gone">lives on the Desk</span>' : `· <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}">${a.pinned ? 'Unpin from the Backpack landing' : 'Pin to the Backpack landing'}</button>`}
       </div>
       <div class="note-body">${esc(a.body)}</div>
       ${noteSourcesHtml(a)}
+      ${noteReviseHtml(a)}
       <div class="note-footer">This note is a Papers artifact kept in this Backpack — not a file on your machine.</div>
+    </div>`;
+}
+
+// Any AI-made Backpack note can be revised in place — a Backpack capability,
+// with the same guard shape as every Papers AI action. The previous text
+// stays in the note's revision trail; nothing is silently destroyed.
+function noteReviseHtml() {
+  return `
+    <div class="section note-revise">
+      <h2 class="section-title">Revise this note</h2>
+      <textarea id="revise-direction" rows="2" placeholder="Your direction, in your words — or leave empty to bring the note up to date with its real sources.">${esc(state.reviseDirection || '')}</textarea>
+      <div class="section-actions">
+        <button class="primary" id="revise-note">Ask the AI to revise this note…</button>
+      </div>
+      <div class="empty-hint">Same durable note, revised in place — the text it replaces stays in the note's revision trail.</div>
+      ${inlineError('revise')}
     </div>`;
 }
 
@@ -534,6 +565,7 @@ async function loadNoteSources(artifactId) {
 }
 
 function openNoteSurface(artifactId) {
+  if (state.openNoteId !== artifactId) state.reviseDirection = '';
   state.openNoteId = artifactId;
   state.noteSources = null;
   render();
@@ -615,6 +647,21 @@ function renderRoom() {
         render();
       });
     });
+    const reviseBtn = document.getElementById('revise-note');
+    if (reviseBtn) {
+      reviseBtn.addEventListener('click', async () => {
+        const direction = (document.getElementById('revise-direction')?.value || '').trim();
+        state.reviseDirection = direction;
+        const preview = await window.papers.noteRevisePreview(state.roomId, openNote.id, direction);
+        if (!preview.ok) {
+          state.inlineError = { scope: 'revise', text: preview.error };
+          render();
+          return;
+        }
+        state.guard = { kind: 'revise', items: preview.items, artifactId: openNote.id, direction };
+        render();
+      });
+    }
   } else {
     wireContents(room);
   }
@@ -879,10 +926,16 @@ function renderGuard() {
   let intro;
   let confirmLabel;
   let items;
-  if (g.kind === 'desk') {
-    title = g.updating ? 'Revise the working note?' : 'Write the working note?';
-    intro = `This will share exactly the following with the AI, which will ${g.updating ? 'revise' : 'write'} this Backpack's working note:`;
-    confirmLabel = g.updating ? 'Share these and revise the note' : 'Share these and write the note';
+  if (g.kind === 'desk' || g.kind === 'revise') {
+    if (g.kind === 'revise') {
+      title = 'Revise this note?';
+      intro = 'This will share exactly the following with the AI, which will revise this note in place — same note, and the text it replaces stays in its revision trail:';
+      confirmLabel = 'Share these and revise the note';
+    } else {
+      title = g.updating ? 'Revise the working note?' : 'Write the working note?';
+      intro = `This will share exactly the following with the AI, which will ${g.updating ? 'revise' : 'write'} this Backpack's working note:`;
+      confirmLabel = g.updating ? 'Share these and revise the note' : 'Share these and write the note';
+    }
     items = g.items
       .map(
         (i) => `
@@ -951,6 +1004,20 @@ function wireGuard() {
         return;
       }
       state.inlineError = { scope: 'desk', text: result.error };
+      render();
+      return;
+    }
+    if (guard.kind === 'revise') {
+      const result = await window.papers.noteRevise(state.roomId, guard.artifactId, guard.direction);
+      state.thinking = false;
+      if (result.view) state.room = result.view;
+      if (result.ok) {
+        state.inlineError = null;
+        state.reviseDirection = '';
+        openNoteSurface(guard.artifactId);
+        return;
+      }
+      state.inlineError = { scope: 'revise', text: result.error };
       render();
       return;
     }

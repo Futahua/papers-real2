@@ -430,6 +430,61 @@ test('the working note is revised in place with an honest revision trail', () =>
   assert.equal(reopened.getActivity(room.id).at(-1).kind, 'note-updated');
 });
 
+test('any Backpack note can be revised in place — not just the working note', () => {
+  const dir = tempDir('revise');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Revisable');
+  const note = store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'Hinge notes',
+    body: 'The old hinges are rusted through.',
+    provenance: { createdBy: 'papers-ai', engine: 'test', sourceThings: [{ displayName: 'a.txt', path: 'C:\\a.txt', type: 'file' }] },
+  });
+  const revised = store.updateArtifact(room.id, note.id, {
+    title: 'Hinge notes',
+    body: 'Replacements bought: 4-inch, stainless.',
+    revision: {
+      engine: 'test-2',
+      requestedBy: 'creator',
+      direction: 'Fold in the purchase.',
+      sourceThings: [{ displayName: 'a.txt', path: 'C:\\a.txt', type: 'file' }],
+    },
+  });
+  assert.equal(revised.id, note.id, 'same durable note');
+  assert.equal(revised.kind, 'room-note', 'revision does not change what kind of note it is');
+  assert.equal(revised.provenance.revisions.length, 1);
+  const trail = revised.provenance.revisions[0];
+  assert.equal(trail.direction, 'Fold in the purchase.', "the creator's direction is honest provenance");
+  assert.equal(trail.previousBody, 'The old hinges are rusted through.', 'the replaced text stays in the trail');
+  assert.equal(trail.previousTitle, 'Hinge notes');
+  // The Backpack event says "note", not "working note" — this is a Backpack
+  // capability, not Desk furniture.
+  const last = store.getActivity(room.id).at(-1);
+  assert.equal(last.kind, 'note-updated');
+  assert.match(last.text, /revised the note "Hinge notes"/);
+  assert.equal(last.refs.noteId, note.id);
+  // Restart: the revision is durable.
+  const reopened = new WorldStore(dir).listArtifacts(room.id)[0];
+  assert.equal(reopened.body, 'Replacements bought: 4-inch, stainless.');
+  assert.equal(reopened.provenance.revisions[0].previousBody, 'The old hinges are rusted through.');
+});
+
+test('a damaged world file is quarantined loudly, never silently replaced', () => {
+  const dir = tempDir('corrupt');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Fragile');
+  store.appendActivity(room.id, 'room-renamed', 'a real event');
+  const activityFile = path.join(dir, 'rooms', room.id, 'activity.json');
+  fs.writeFileSync(activityFile, '{ not json at all');
+  const activity = store.getActivity(room.id);
+  assert.deepEqual(activity, [], 'unreadable history reads as empty, not invented');
+  assert.ok(!fs.existsSync(activityFile), 'the damaged file is moved aside, not left to be overwritten');
+  const quarantined = fs.readdirSync(path.dirname(activityFile)).filter((n) => n.startsWith('activity.json.corrupt-'));
+  assert.equal(quarantined.length, 1, 'the evidence is preserved');
+});
+
 test('artifact provenance records the real sources it was made from', () => {
   const dir = tempDir('prov');
   const store = new WorldStore(dir);

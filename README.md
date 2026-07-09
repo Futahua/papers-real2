@@ -123,7 +123,7 @@ REAL2/
 
 ## Current REAL2 status
 
-REAL2 is at the **end of the documentation stage** — the full governing document set now exists, and the project is ready for implementation to be authorized.
+REAL2 is in **implementation — Slice 1 (one world, one room, real things)**, following `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`, world-first.
 
 Present in the repository now:
 
@@ -132,9 +132,9 @@ Present in the repository now:
 * **Agent constitution** — present
 * **Build order (`PAPERS_NEXT_BUILD_ORDER_V1`)** — present
 * **Prompter / proxy / closeout docs** — present
-* **Application code** — intentionally absent
+* **Application code** — present in [`app/`](app/), Slice 1 in progress
 
-The governing document set is now complete. No application code is present yet, by design. When the creator authorizes implementation, it follows `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt` — beginning with **Slice 1 (one world, one room, real things)** — and it must do so **world-first**.
+Slice 1 state (see `app/README.md` and `DOCS/PAPERS_DELTA_LOG.txt` for detail): the persistent world store, minimal Backpack room, truthful file/folder thing references, room-note artifacts with provenance, room-scoped conversation, restart continuity, and the thin engine seam are implemented and tested. Live AI output awaits a one-time engine sign-in (`claude /login`) on the machine; until then the AI reports its absence honestly instead of faking replies.
 
 ---
 

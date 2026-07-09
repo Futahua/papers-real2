@@ -1,0 +1,163 @@
+PAPERS_DELTA_LOG
+Lightweight cumulative record of material changes to the REAL2 rebuild.
+Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
+
+================================================================================
+2026-07-09 (third pass) — engine seam de-Claude-locked; Slice 1 verified LIVE
+================================================================================
+
+1. ENGINE REFACTOR (creator-directed). The AI layer is no longer structurally
+   "Claude = Papers AI". New shape:
+   - app/engine/index.js — the Papers-facing contract (reply in room, write
+     room note from room things) and runtime selection. The only door.
+   - app/engine/prompts.js — runtime-neutral Papers→text serialization.
+   - app/engine/runtimes/claude-cli.js — Claude Code CLI is now ONE backend;
+     its binary, sign-in, and error vocabulary are contained there.
+   - app/engine/runtimes/ollama.js — second backend: local Ollama server.
+   Runtime selection is dev-level env config, no product surface:
+   PAPERS_ENGINE = claude-cli (default) | ollama, plus PAPERS_ENGINE_URL /
+   PAPERS_ENGINE_MODEL for ollama. Default stays claude-cli (most capable
+   path once signed in). Provenance now records the runtime that actually
+   generated each note/reply (e.g. "ollama (qwen-unsloth:latest)").
+
+2. SLICE 1 VERIFIED LIVE END-TO-END. New headless acceptance harness
+   (app/scripts/verify-slice1.js) walks build order §9 minus native UI steps.
+   Results on this machine, 2026-07-09:
+   - PAPERS_ENGINE=ollama (local qwen-unsloth model): ALL checks passed with
+     the AI path LIVE — real room reply + real AI-written room note with
+     truthful provenance, surviving restart. Slice 1's AI leg is no longer
+     unverified.
+   - default claude-cli: all Papers-owned checks passed; AI path reported an
+     honest failure (still not signed in). Sign-in detection fixed (the CLI
+     prints "Not logged in" to stdout, not stderr).
+   - Unit tests 13/13 (new: unknown-runtime and unreachable-runtime honesty,
+     Papers-native prompt serialization, TITLE parsing fallback).
+
+3. ROOM-FIRST MILESTONE: note sources are now live references. An open room
+   note shows a "Made from" section where each source is re-checked against
+   reality at view time: present/missing status, open-real-location, and an
+   honest "no longer attached to this room" tag when the room moved on. The
+   note surface also names the runtime that wrote it. Artifacts stay
+   truthfully connected to the world they came from.
+
+4. Prompt discipline (runtime-neutral): local models leaked reasoning
+   preambles into replies; prompts now demand output-only. Known limitation:
+   small local models may still ignore the TITLE format — the honest
+   fallback title covers that.
+
+KNOWN STATE: claude-cli remains unsigned on this machine; ollama path is the
+live one. No runtime UI exists anywhere, deliberately.
+
+================================================================================
+2026-07-09 (second pass) — Slice 1 audit: room rebalanced away from chat
+================================================================================
+
+A hard audit of the first Slice 1 commit found early chat-drift seeds and
+truthfulness flaws. Fixed before building further:
+
+1. LAYOUT: the conversation was a fixed always-open panel at ~45% of the
+   room — workbench geometry. Now the room contents (things, notes, history)
+   are the primary full-width surface; the conversation is a fixed 340px,
+   visually quieter, tuckable region. Its collapsed/open state is remembered.
+
+2. TRUTHFULNESS: the renderer used to inject unpersisted "status" entries
+   (e.g. open-a-missing-thing errors) into the conversation view, which
+   presents itself as the persistent room record. Transient errors now render
+   inline, visibly outside the record.
+
+3. ROOM EVENTS BELONG TO THE ROOM: "note created" / "note failed" no longer
+   post into the conversation. New Papers-owned room activity record
+   (rooms/<id>/activity.json, append-only): room created/renamed, thing
+   attached/detached, note created/failed. Displayed as a "Room history"
+   section — the room visibly accumulates a life. (This pulls a small piece
+   of Slice 2A forward; scoped to a plain record + quiet list, no cards or
+   status machinery.)
+
+4. NOTES ARE ROOM OBJECTS: notes now open as an in-room surface (breadcrumb
+   back to room contents), not a modal popup. Note cards show body snippets.
+   The guard/approval dialog remains a modal (appropriate for approval).
+
+5. ROOM IDENTITY: header now carries "A room in this world since <date> ·
+   N things · N notes" under the title.
+
+6. BUGFIX: Escape while renaming a room committed the rename anyway; now it
+   cancels.
+
+Verified: 9/9 tests (new: room history survives restart, no-op renames log
+nothing), smoke boot, headed render clean. The smoke world created in the
+first pass reloaded with the same world id — live cross-restart continuity
+observed, not just unit-tested. Live AI output still awaits `claude /login`.
+
+KNOWN ACCEPTED GAP: the guarded note action reads thing content twice
+(preview, then create) — if a file changes in between, the note reflects
+reality at create time, which is the more truthful of the two; noted here so
+it is a decision, not an accident.
+
+================================================================================
+2026-07-09 — Slice 1 implementation began (first code in REAL2)
+================================================================================
+
+WHAT CHANGED
+
+1. Implementation was started under the creator's takeover directive, following
+   PAPERS_NEXT_BUILD_ORDER_V1, Slice 1 ("one world, one room, real things"),
+   world-first. All code lives in app/ on branch slice1-world-room-things.
+   No governing doc changed meaning; this entry records implementation facts.
+
+2. Build-order steps 1–4 and 6–7 of Slice 1's internal order are implemented
+   and verified by tests (node --test, 8/8 passing on 2026-07-09):
+   - Papers-owned world store: human-legible JSON under %APPDATA%\Papers\world
+     (override: PAPERS_WORLD_DIR). Layout: world.json, rooms/<id>/room.json,
+     things.json, conversation.json, artifacts/<id>.json. The store is the
+     system of record; no engine transcript holds continuity.
+   - Minimal Backpack room: create / rename / enter / persist, with things,
+     room notes, and room-scoped conversation surfaces.
+   - Truthful thing references: id, real path, display name, file/folder type,
+     origin ("external"), attachedAt / lastCheckedAt, status present/missing —
+     re-verified against the real filesystem at read time and persisted.
+     "Open real location" opens reality; missing items are reported honestly
+     and the button refuses rather than pretending.
+   - Room-note artifacts: durable, provenance-carrying (createdBy: papers-ai,
+     engine id, requestedBy, source things with real paths), visibly Papers-
+     made in the UI ("This note is a Papers artifact, not a file on your
+     machine").
+   - Restart continuity: verified by tests that re-open the same world dir
+     with a fresh store instance.
+
+3. Step 5 (the AI) is implemented but not yet verified live on this machine:
+   - One engine seam: app/engine/adapter.js, calling the locally installed
+     Claude Code CLI in print mode over stdin. Engine vocabulary stops at this
+     file. Papers stores no engine credentials, sessions, or provider state.
+   - Two operations only: room-scoped reply, and the guarded "summarize
+     selected room things into a room note" action (exact-preview + approval
+     before any file content is read and shared; honest truncation/binary/
+     unreadable markers in what the AI is shown).
+   - The engine is NOT signed in on this machine, so the live path today is
+     the honest-failure path (a status line in the room conversation telling
+     the creator to run `claude /login` once). The adapter never fabricates
+     replies. Live AI note generation remains UNVERIFIED until sign-in.
+
+IMPLEMENTATION DECISIONS TAKEN (constitution §5 authority, reversible)
+
+- Electron + plain Node modules, not Tauri. Reasons: one language, no long
+  native first-build in the takeover run, world core testable headless.
+  Not a product commitment; the world store and engine seam are framework-
+  independent plain Node and would survive a shell swap.
+- File-backed JSON world store, not SQLite. The world is deliberately
+  inspectable on the real machine. Revisit only if scale demands it.
+- Engine = local Claude Code CLI print mode. Thinnest possible engine
+  configuration (build order §6.1): sign-in belongs to the engine's own
+  tooling, not to any Papers surface. No provider UI exists anywhere.
+
+WHAT SLICE 1 STILL NEEDS
+
+1. One-time `claude /login` on the machine, then live verification of:
+   room chat replies and the guarded room-note action end-to-end (acceptance
+   flow steps 6–8 of build order §9).
+2. A pass of the full 14-step acceptance flow (§9) by the creator, including
+   the subjective §10.3 "feels like Papers" judgment.
+3. Small hardening as needed after first real use (e.g., world.json write
+   conflicts if two instances run at once — currently unguarded).
+
+FILES: see app/ tree and app/README.md. Root README status section updated
+to "implementation — Slice 1 in progress". Commits on slice1-world-room-things.

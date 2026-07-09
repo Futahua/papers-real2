@@ -1,0 +1,16 @@
+{
+  "name": "papers",
+  "productName": "Papers",
+  "version": "0.1.0-slice1",
+  "description": "Papers — an AI-native personal layer over the computer. Canonical rebuild (REAL2), Slice 1: one world, one room, real things.",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "smoke": "electron . --papers-smoke",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "electron": "^43.1.0"
+  }
+}

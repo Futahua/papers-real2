@@ -56,7 +56,7 @@ Full statement: `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`.
 
 1. **`DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`** — what Papers fundamentally is.
 2. Later explicit correction documents that say they supersede the founder brief on a point.
-3. Operational rebuild documents — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and `PAPERS_NEXT_BUILD_ORDER` once it exists.
+3. Operational rebuild documents — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`.
 4. The creator’s live direction in-session.
 5. Legacy repo history, old plans, and legacy implementation details — **weak evidence, often contaminated**.
 
@@ -76,12 +76,15 @@ These do not outrank the founder brief. They exist to keep future sessions, agen
 
 That minimum set is:
 
-1. `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`
-2. `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`
-3. `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`
-4. `PAPERS_NEXT_BUILD_ORDER` (or its final filename under `DOCS/` once written)
+1. `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt` — present
+2. `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt` — present
+3. `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt` — present
+4. `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt` — present
 
-Until then, REAL2 is **documentation-only by design**.
+The full set now exists. Implementation may begin **once the creator accepts these
+documents as the active authority**, and it must follow
+`DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt` — starting from **Slice 1 (one world, one
+room, real things)**, world-first, never from the legacy app shell.
 
 ---
 
@@ -94,6 +97,7 @@ REAL2/
 └── DOCS/
     ├── README.md
     ├── PAPERS_REPO_DECISION_AUDIT_V1.txt
+    ├── PAPERS_NEXT_BUILD_ORDER_V1.txt
     └── PROMPTER/
         ├── PAPERS_FOUNDER_BRIEF.txt
         ├── PAPERS_PROMPTER_HANDOFF.txt
@@ -105,7 +109,7 @@ REAL2/
 ### What belongs here
 
 * Governing founder / proxy / rebuild documentation
-* The eventual REAL2 implementation, once `PAPERS_NEXT_BUILD_ORDER` exists and implementation is authorized
+* The eventual REAL2 implementation, following `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt` once implementation is authorized
 * Narrow, explicitly justified salvage from REAL, only when a specific REAL2 slice calls for it
 
 ### What does **not** belong here
@@ -119,21 +123,18 @@ REAL2/
 
 ## Current REAL2 status
 
-REAL2 is currently in **vision / setup stage**.
+REAL2 is at the **end of the documentation stage** — the full governing document set now exists, and the project is ready for implementation to be authorized.
 
 Present in the repository now:
 
 * **Founder brief** — present
 * **Repo decision audit** — present
 * **Agent constitution** — present
+* **Build order (`PAPERS_NEXT_BUILD_ORDER_V1`)** — present
 * **Prompter / proxy / closeout docs** — present
 * **Application code** — intentionally absent
 
-Still expected before implementation begins:
-
-* **`PAPERS_NEXT_BUILD_ORDER`** — the build-order document that defines the first real implementation slice and sequencing
-
-No application code is present yet, by design. REAL2 begins as documentation and scaffolding only. Implementation follows the build-order document, and it must do so **world-first**.
+The governing document set is now complete. No application code is present yet, by design. When the creator authorizes implementation, it follows `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt` — beginning with **Slice 1 (one world, one room, real things)** — and it must do so **world-first**.
 
 ---
 

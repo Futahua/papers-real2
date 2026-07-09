@@ -1,0 +1,749 @@
+# PAPERS_NEXT_BUILD_ORDER_V1
+
+Build-order document for the canonical Papers rebuild (REAL2)
+
+---
+
+# Status
+
+This document is an operational sequencing document for REAL2. It is downstream of:
+
+* `PAPERS_FOUNDER_BRIEF.txt`
+* `PAPERS_REPO_DECISION_AUDIT_V1.txt`
+* `PAPERS_AGENT_CONSTITUTION_V1.txt`
+
+It does **not** outrank the founder brief. Its job is to decide **what gets built first, in what order, and what each slice must prove before the rebuild moves on**.
+
+This document exists because legacy v0 already demonstrated the central failure mode: if Papers begins by building the most convenient agent plumbing, it does **not** gradually become Papers later. It calcifies into an engine cockpit with Papers language painted on top. REAL2 therefore needs a build order that forces the world model, lived experience, and product identity to appear **immediately**, even in the smallest slice.
+
+---
+
+# 1. Purpose of this document
+
+This document answers six questions:
+
+1. **What is the first real Papers slice?**
+2. **What must that slice prove to count as Papers rather than generic scaffolding?**
+3. **What order should implementation proceed in after that?**
+4. **What is intentionally out of scope at each stage, even if it sounds useful?**
+5. **What may be salvaged from legacy v0, and when?**
+6. **What conditions must be met before advancing from one slice to the next?**
+
+The answer is deliberately conservative. The goal of the first REAL2 implementation is **not** to “get a working app as quickly as possible” in the abstract. It is to produce the **smallest non-generic Papers slice** — the smallest thing that already has the right center of gravity.
+
+---
+
+# 2. Non-negotiable sequencing rule
+
+## REAL2 must privilege **world shape and lived experience** over backend convenience.
+
+In practice, that means REAL2 does **not** begin with:
+
+* provider setup
+* engine management
+* a generic chat shell
+* a generic “agent session” model
+* a polished settings wizard
+* “foundation first, world later” in the legacy v0 sense
+
+Instead, REAL2 begins by making **one small but real Papers world** exist on disk and in the product.
+
+The first slice must already satisfy this test:
+
+> **If the result could reasonably be described as “a coding/agent desktop app with some Papers terminology added,” the slice is not done and the build order has been violated.**
+
+---
+
+# 3. The first implementation slice
+
+The first implementation slice is:
+
+# **Slice 1 — One world, one room, real things**
+
+This is the first slice because it is the smallest implementation that can prove the REAL2 line is building **Papers** rather than “another agent app.”
+
+The creator should be able to launch REAL2 and experience the following:
+
+1. **Papers opens into a persistent world, not a blank chat tool.**
+2. **There is at least one Backpack-like room they can enter.**
+3. **That room contains truthful references to real things on the machine** — not copied placeholders, not fake demo content.
+4. **The same AI is present inside that room and can talk about those things in context.**
+5. **The AI can perform at least one guarded action that produces a durable artifact attached to that room.**
+6. **Closing and reopening REAL2 returns to that world and its room/artifacts, not to an empty session surface.**
+
+If Slice 1 does not achieve those six things, it is not a valid first slice.
+
+---
+
+# 4. What Slice 1 is proving
+
+Slice 1 is not trying to prove all of Papers. It is proving five narrower things.
+
+## 4.1 Papers is a place, not a session
+
+Closing and reopening the app should return the creator to a persistent environment with structure and memory. The primary noun must be the **world / room / thing**, not the **session**.
+
+## 4.2 A Backpack is a room over reality, not a silo
+
+The first room does not need advanced Backpack behavior, but it must already behave as a room that gathers references to real machine things rather than owning imported copies.
+
+## 4.3 The AI belongs to the world, not to an engine transcript
+
+The creator should feel that the AI is present in the room, aware of the room’s contents, and speaking from the Papers world — not from an opaque engine session that Papers merely mirrors.
+
+## 4.4 Papers accumulates artifacts in place
+
+If the AI does something useful, the result must land as a durable object in the room/world, not disappear into transient chat output.
+
+## 4.5 Truthfulness survives contact with the real machine
+
+References must point back to actual files, folders, and locations. The product must not lie about where something lives, whether it still exists, or whether an artifact came from the AI versus from the creator’s real filesystem.
+
+---
+
+# 5. Slice 1 — precise scope
+
+Slice 1 is intentionally small. It should be understood as **the smallest inhabitable room with one useful AI action**.
+
+## 5.1 Slice 1 includes exactly these product capabilities
+
+### A. A persistent world root
+
+REAL2 must have a world-level local store. When the app opens, it loads a persistent Papers world rather than creating an empty temporary session.
+
+This world root must be the system of record for:
+
+* rooms
+* references to real things
+* conversation records for those rooms
+* room-attached artifacts created during use
+
+The engine, if one exists underneath, is **not** the system of record.
+
+---
+
+### B. One room type: a minimal Backpack room
+
+REAL2 must support **one minimal room type**. It does not need the full Backpack concept yet, but it must be structurally compatible with it.
+
+This room must have:
+
+* an identity
+* a title
+* a persistent record in the world store
+* a visible room surface in the UI
+* a collection of attached “things” (references to real machine items)
+* a conversation surface scoped to the room
+* an artifact list / work list scoped to the room
+
+For Slice 1, one room type is enough. Multiple room types are out of scope.
+
+---
+
+### C. Truthful references to real things
+
+The room must be able to contain references to real machine things. For Slice 1, **local folders and files** are sufficient.
+
+A “thing reference” in Slice 1 must include at minimum:
+
+* a stable internal Papers ID
+* the real filesystem path
+* a display name
+* a type (`file` / `folder`)
+* last-seen / last-checked metadata
+* existence status (`present`, `missing`, `unknown`)
+* origin metadata sufficient to distinguish a real external item from a Papers-generated artifact
+
+The key rule is:
+
+> Slice 1 references must point back to reality. Papers may cache metadata, but it must not present imported copies as though they are the canonical originals.
+
+---
+
+### D. One room-aware AI conversation surface
+
+There must be a conversation surface inside the room, but it is **not** the product shell. It is one part of the room.
+
+The AI must receive room context in a structured way. At minimum, it should know:
+
+* which room it is in
+* which things are attached to that room
+* which room artifacts already exist
+* recent room conversation history
+
+The user experience target is that the creator can ask things like:
+
+* “summarize what’s in this room”
+* “what are these files”
+* “write me a note about this folder”
+* “make a short overview of these documents”
+
+and the AI is clearly speaking from room context, not from an ungrounded blank chat.
+
+---
+
+### E. One guarded action that creates a durable room artifact
+
+Slice 1 must include **at least one real AI action** that produces a durable artifact in the room.
+
+The recommended first action is:
+
+## **Create room note / summary from selected room things**
+
+That action should:
+
+1. operate on one or more attached thing references
+2. produce a textual artifact (summary / note / overview / room memo)
+3. save it in the Papers world as a room artifact
+4. make it visible and reopenable from the room after restart
+5. preserve provenance — the artifact should be visibly a Papers-created artifact, not a real external file unless explicitly exported
+
+This is the minimum viable action because it proves:
+
+* the AI can operate on room context
+* the room can accumulate useful artifacts
+* Papers can preserve provenance honestly
+* the product is more than a static browser over references
+
+---
+
+### F. Reopenability and continuity
+
+After the creator closes and reopens REAL2, the following must still exist:
+
+* the world
+* the room
+* the room’s attached things
+* the room’s conversation record
+* the room’s generated artifacts
+
+If any of those vanish because the engine transcript was lost or because the UI only held them in memory, Slice 1 has failed.
+
+---
+
+# 6. What Slice 1 explicitly does **not** include
+
+The easiest way to keep REAL2 honest is to be explicit about what is forbidden in Slice 1.
+
+## 6.1 No provider setup wizard
+
+No multi-provider catalog, no OAuth wizard, no engine-branded setup journey. If an engine requires configuration, it should be handled in the thinnest possible way necessary to power the slice. It is not a product surface yet.
+
+## 6.2 No engine-first shell
+
+No “install Hermes / start runtime / connect provider” front page. The app should open into Papers, not into plumbing.
+
+## 6.3 No generic three-column chat-workbench scaffold as the product shell
+
+A room may contain conversation and artifacts, but the top-level app must not be structured as “session rail + chat + work rail” with a room tab bolted on later.
+
+## 6.4 No generalized Tool system yet
+
+The founder’s Tool concept is core, but Slice 1 does not implement it broadly. The only action surface allowed is the narrow room-note / summary capability plus whatever invisible plumbing is required to make it work.
+
+## 6.5 No self-editing
+
+Legacy v0’s guarded self-edit loop is valuable, but it is **not** a first-slice feature. It should not appear until the product already has a world worth editing.
+
+## 6.6 No broad knowledge system
+
+No life-OS vault, no giant ingestion pipeline, no cross-world semantic search layer, no omniscient memory graph. Those may matter later, but Slice 1 is not the place.
+
+## 6.7 No multiple room types
+
+One room type only. Prove the room/world relationship before multiplying it.
+
+## 6.8 No provider identity or engine identity in user-facing copy
+
+The creator should not feel that they are using a branded engine shell. The engine remains an implementation detail.
+
+---
+
+# 7. Required implementation shape of Slice 1
+
+This section binds the architecture without dictating every file.
+
+## 7.1 The system of record must be Papers-owned
+
+REAL2 must have a **Papers-owned world store**. It may be SQLite-backed, file-backed, or hybrid, but the rule is:
+
+* rooms live in Papers storage
+* thing references live in Papers storage
+* room artifacts live in Papers storage
+* room conversations live in Papers storage
+* engine session handles, if any, are subordinate implementation details
+
+The app must not depend on an external engine transcript as the sole custodian of continuity.
+
+---
+
+## 7.2 The UI shell must be world-first
+
+The top-level UI for Slice 1 should feel like “entering Papers” and then “entering a room,” not like “opening an agent client.”
+
+The UI should conceptually center on:
+
+* the world / room list or room entry surface
+* the current room
+* the room’s things
+* the room’s artifacts / notes
+* the room conversation
+
+The exact visual layout can be simple, but the **object graph and navigation model** must be room-first.
+
+---
+
+## 7.3 The engine seam must exist from day one, but be thin
+
+REAL2 is allowed to use an existing agent engine. It probably should. But Slice 1 must introduce it behind a narrow adapter rather than letting its vocabulary leak everywhere.
+
+The engine adapter for Slice 1 only needs to support what Slice 1 actually uses. At minimum:
+
+* submit a room-scoped prompt/request
+* stream or return the AI response
+* optionally process attached file/folder context
+* report failure honestly
+
+It does **not** need to expose the engine’s full session model, provider catalog, approval protocol, or tool inventory.
+
+The rule is:
+
+> The adapter surface should be defined by what Papers needs for Slice 1, not by mirroring everything the chosen engine already knows how to do.
+
+---
+
+## 7.4 Thing references must be first-class, not pasted strings in chat
+
+A room’s attached files/folders must exist as structured world objects. The AI may receive serialized descriptions of them, but the app must not treat them as ad-hoc prompt text with no persistent representation.
+
+---
+
+## 7.5 Artifacts must be first-class, not transient chat output
+
+The room summary / note generated by the AI must be stored and displayed as a room artifact object with provenance, timestamps, and room attachment. It must not merely be “the assistant said some text in the transcript.”
+
+---
+
+# 8. Recommended concrete scope for Slice 1
+
+To keep the slice small enough to actually ship, the recommended concrete implementation is:
+
+## 8.1 Room type
+
+One room type: **General Backpack room** (minimal form)
+
+Capabilities:
+
+* create room
+* rename room
+* open room
+* persist room
+
+## 8.2 Things
+
+Support only:
+
+* attach local folder
+* attach local file
+
+Do **not** support web URLs, cloud sources, apps, or programs yet.
+
+## 8.3 AI action
+
+Support only one action class:
+
+## **Summarize selected room things into a room note**
+
+Inputs:
+
+* one or more room thing references
+
+Output:
+
+* one room note artifact stored in the world
+
+Optional extension within the same slice, if it does not bloat architecture:
+
+* “Summarize the whole room” when no specific items are selected
+
+## 8.4 Artifacts
+
+Support only one artifact type:
+
+* **room note**
+
+No screenshots, diffs, plans, generated code files, or exports yet.
+
+## 8.5 Conversation
+
+One room-scoped conversation stream with persistence. It does not need branching, approvals, or complex work cards in Slice 1.
+
+---
+
+# 9. Acceptance criteria for Slice 1
+
+Slice 1 is complete only if the creator can perform this exact flow:
+
+1. Open Papers.
+2. See an existing Papers world rather than a blank generic chat tool.
+3. Create or enter a room.
+4. Attach a real local folder and/or file to that room.
+5. See those attached things represented as room contents.
+6. Ask the AI to summarize one or more of those things.
+7. Receive the result.
+8. Observe the result as a durable room note artifact.
+9. Close Papers completely.
+10. Reopen Papers.
+11. Re-enter the same room.
+12. Still see:
+
+* the room
+* the attached things
+* the conversation record
+* the room note artifact
+
+13. Open the real attached file/folder from Papers and confirm the reference still points to reality.
+14. See honest status if the referenced thing has moved or gone missing.
+
+If this full flow does not work, Slice 1 is not complete.
+
+---
+
+# 10. Exit criteria before moving to Slice 2
+
+Before beginning Slice 2, the following must be true.
+
+## 10.1 The world store is stable enough to carry forward
+
+The room / thing / artifact / conversation model should exist in a form that does not need immediate replacement.
+
+## 10.2 The engine is not the custodian of continuity
+
+A failure or reset in the engine layer must not erase the room world.
+
+## 10.3 The app already feels like Papers more than like a generic agent shell
+
+This is subjective, but binding. If the creator’s honest reaction is still “this is basically an AI chat app with some folders attached,” Slice 1 needs another pass before expansion.
+
+## 10.4 Provenance and truthfulness are intact
+
+The app must not misrepresent generated artifacts as originals, or stale references as current facts.
+
+---
+
+# 11. Slice 2 — room work becomes a real room surface
+
+Slice 2 should **not** be “make the agent smarter” or “support more providers.” It should deepen the Papers world established by Slice 1.
+
+# **Slice 2 — Room work becomes a real room surface**
+
+The goal of Slice 2 is to turn the minimal room from “room + things + note generation” into a more inhabited room without exploding scope.
+
+## Slice 2 should add
+
+### A. A proper room activity / artifacts surface
+
+The room should visibly accumulate:
+
+* notes
+* summaries
+* task/work records
+* basic status cards for room actions, if needed
+
+This is where a small, room-scoped descendant of the old “work rail” can begin to exist — **inside the room**, not as the product shell.
+
+### B. Better room context handling
+
+The AI should be able to reason over:
+
+* room notes it previously created
+* existing room things
+* recent room activity
+
+### C. Better thing handling
+
+Add richer thing metadata and refresh behavior:
+
+* re-check existence
+* detect rename / move when possible
+* better folder introspection summaries
+
+### D. Optional second artifact type
+
+If Slice 1 is stable, Slice 2 may add one more artifact type beyond room notes — but only if it strengthens the room/world model rather than introducing generic agent clutter.
+
+A plausible candidate is:
+
+* **task memo / room plan** tied to the room and generated from room context
+
+## Slice 2 still should not add
+
+* broad provider surfaces
+* full Tool system
+* self-editing
+* complex engine orchestration UI
+* multiple room classes unless Slice 1 clearly proved the room model
+
+---
+
+# 12. Slice 3 — multiple rooms and cross-room continuity
+
+If Slice 1 proves “one world, one room, real things” and Slice 2 proves “room work accumulates properly,” then Slice 3 can begin expanding the actual Papers identity.
+
+# **Slice 3 — Multiple rooms and cross-room continuity**
+
+This is the first slice where REAL2 should begin to feel like a true Backpack system rather than a single-room prototype.
+
+## Slice 3 goals
+
+### A. Multiple rooms
+
+The creator can have more than one room, and each room remains a lens over the same underlying world rather than an isolated project silo.
+
+### B. Shared thing references across rooms
+
+A real thing may appear in multiple rooms without becoming duplicated private copies.
+
+### C. AI continuity across rooms
+
+The same AI is present across rooms and can speak about the creator’s world beyond the current room, while still respecting room-local context.
+
+### D. Room-to-room navigation and comparison
+
+Not advanced visualization — just enough structure for the creator to feel the world is one coherent place with multiple rooms.
+
+This is the slice where Papers begins to prove its “overlapping rooms over one world” identity.
+
+---
+
+# 13. Later layers, in order of permission rather than exact schedule
+
+These are not immediate next steps. They are later layers that should only be attempted once the earlier slices are stable and genuinely Papers-shaped.
+
+## Later layer A — Real Tool model
+
+The founder’s Tool concept becomes first-class:
+
+* programs
+* scripts
+* shortcuts
+* utilities
+* mounts / reusable capabilities across rooms
+
+This should only happen after the room/world model is already real. Otherwise the project risks turning back into “agent tools management.”
+
+## Later layer B — Stronger guarded action model
+
+This includes:
+
+* richer approvals
+* exact previews for consequential actions
+* policy layers for real machine actions
+* reversible operations
+* clearer action history
+
+This is where some lessons from v0’s operator foundation can return.
+
+## Later layer C — Self-editing / self-revision
+
+Only after Papers has a world worth preserving should it regain the ability to revise itself under guard.
+
+At that point, the v0 salvage candidates become relevant:
+
+* staged worktree lifecycle
+* jailed builder tools
+* protected paths
+* recovery launcher
+
+## Later layer D — Broader data sources and richer world grounding
+
+Only after local file/folder grounding is solid:
+
+* web sources
+* external knowledge inputs
+* richer ingestion/capture mechanisms
+* additional thing classes
+
+## Later layer E — Deeper life-OS / knowledge ambitions
+
+Only after the world, rooms, artifacts, and tools already feel like a coherent personal layer.
+
+---
+
+# 14. What may be salvaged from legacy v0, and when
+
+This section binds the audit’s salvage map to the build order.
+
+## 14.1 Allowed to salvage during Slice 1
+
+Very little code should be ported in Slice 1. The first slice should be mostly fresh implementation.
+
+Allowed salvage in Slice 1 is limited to **patterns**, not wholesale modules:
+
+* truthfulness discipline from v0 docs and storage conventions
+* native-layer secret isolation patterns if an engine requires credentials
+* SQLite persistence discipline if it genuinely helps the world store
+
+The room/world model, UI shell, and object graph should be fresh.
+
+## 14.2 Allowed to salvage during Slice 2
+
+Still mostly patterns, not bulk code.
+
+Potential references:
+
+* work / approval UX ideas from the v0 workbench, but only if they are room-scoped
+* event sanitization / persistence ideas
+* selective adapter concepts from the Hermes integration, but never the Hermes identity shape
+
+## 14.3 Allowed to salvage in later operator / self-edit slices
+
+This is where real code salvage becomes appropriate:
+
+* staged self-edit worktree flow
+* jailed builder tools
+* recovery launcher
+* protected-path ideas
+* hardening patterns around risky actions
+
+These are valuable, but only once REAL2 already has a stable world and is no longer in danger of becoming v0 again.
+
+---
+
+# 15. Anti-drift rules for implementation
+
+These rules exist because Slice 1 can still fail even with a good high-level plan if implementation drifts toward convenience.
+
+## 15.1 If a new abstraction is named after the engine rather than Papers, stop
+
+The world model should talk about rooms, things, artifacts, and conversations — not Hermes sessions, provider states, or engine-native event names.
+
+## 15.2 If a persistence decision makes the engine transcript the easiest place to store continuity, reject it
+
+Papers owns the world. The engine is a capability, not the custodian.
+
+## 15.3 If a UI decision makes the room feel like a tab inside a chat app, reject it
+
+The room is the primary surface. Conversation is a capability within it.
+
+## 15.4 If a feature proposal sounds useful but does not strengthen the room/world model, defer it
+
+Useful is not enough. Early REAL2 work must earn its place by making Papers more like Papers.
+
+## 15.5 If a v0 salvage proposal saves time but imports v0’s center of gravity, reject it
+
+A fast wrong shape is still the wrong shape.
+
+---
+
+# 16. Concrete implementation order inside Slice 1
+
+This is the recommended sub-order for building Slice 1 itself.
+
+## Step 1 — Create the REAL2 app scaffold and Papers world-store skeleton
+
+Build only enough shell to launch the app and load/save a Papers world store. No engine integration yet unless required to avoid rework.
+
+**Output of this step:**
+
+* app launches
+* world store exists
+* world can persist at least one room record
+
+## Step 2 — Implement room model and room UI shell
+
+Add:
+
+* room creation / opening
+* room persistence
+* room view with placeholders for things, artifacts, and conversation
+
+**Output of this step:**
+
+* creator can create/open a room and see it survive restart
+
+## Step 3 — Implement thing references for local files/folders
+
+Add:
+
+* attach local file/folder to room
+* display them in room
+* open real location from room
+* persist reference metadata
+
+**Output of this step:**
+
+* room contains truthful references to real things
+
+## Step 4 — Implement room artifact model
+
+Add:
+
+* room note artifact type
+* persistence and display of artifacts in room
+
+**Output of this step:**
+
+* room can hold durable artifacts even before AI generation is wired
+
+## Step 5 — Add the thinnest possible AI adapter for one room-scoped action
+
+Integrate the chosen engine or AI path only enough to support:
+
+* summarizing selected room things into a room note
+
+**Output of this step:**
+
+* AI can operate on room context and produce a room note artifact
+
+## Step 6 — Persist room conversation and artifact history cleanly
+
+Make sure restart continuity is real and Papers-owned.
+
+**Output of this step:**
+
+* the full Slice 1 flow survives restart
+
+## Step 7 — Harden truthfulness / missing-reference behavior
+
+If a referenced file is missing or moved, the UI should say so honestly.
+
+**Output of this step:**
+
+* Papers behaves like a truthful layer rather than a fantasy copy of reality
+
+That is the entire first slice.
+
+---
+
+# 17. What the creator should be able to say after Slice 1
+
+The creator should be able to truthfully describe REAL2 like this:
+
+> “Papers is now a real place I can open. It has a room that contains real things from my machine, the AI can work inside that room with awareness of those things, and what it produces stays there when I come back.”
+
+If the honest summary is instead:
+
+> “It’s a desktop AI chat app that can also look at some files,”
+
+then the slice is not finished, regardless of how much code was written.
+
+---
+
+# 18. Final instruction to future agents
+
+Do not optimize this build order for architectural elegance, generic extensibility, or the shortest path to a flashy demo. Optimize it for one thing only:
+
+# **Make the first shipped REAL2 slice unmistakably Papers-shaped.**
+
+That means the first creator experience must already communicate:
+
+* **this is a world**
+* **this room persists**
+* **these things are real**
+* **the AI belongs here**
+* **what it makes stays here**
+
+Everything else can wait.
+
+End of `PAPERS_NEXT_BUILD_ORDER_V1`.

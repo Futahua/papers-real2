@@ -83,16 +83,17 @@ Read when ending a session or preparing to switch chats. This is the continuity-
 
 It exists to make sure that when a conversation ends, the important decisions do not die with it. It should be used to produce closeout notes and doc updates before context is lost.
 
-### 7) `PAPERS_NEXT_BUILD_ORDER`
+### 7) `PAPERS_NEXT_BUILD_ORDER_V1.txt`
 
-This is the missing document that should be written next. Once it exists, it becomes the operational sequencing document for the rebuild.
+Present. This is the operational sequencing document for the rebuild.
 
-Its job is to answer:
+It answers:
 
-* what the first real REAL2 slice is
+* what the first real REAL2 slice is (**Slice 1 — one world, one room, real things**)
 * what order implementation should happen in
-* what is intentionally deferred
+* what is intentionally deferred at each stage
 * what must be proven before moving to the next slice
+* what may be salvaged from legacy v0, and when
 
 This document should be read before any implementation work begins.
 
@@ -112,7 +113,7 @@ Not all docs have equal weight.
 
 3. `PAPERS_REPO_DECISION_AUDIT_V1.txt`
 4. `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`
-5. `PAPERS_NEXT_BUILD_ORDER` once written
+5. `PAPERS_NEXT_BUILD_ORDER_V1.txt`
 
 These documents do not redefine Papers from scratch; they operationalize the founder brief and turn it into a rebuild program.
 
@@ -129,6 +130,7 @@ These are behavioral and continuity docs. They matter a lot, but they do not out
 **Present now**
 
 * `PAPERS_REPO_DECISION_AUDIT_V1.txt`
+* `PAPERS_NEXT_BUILD_ORDER_V1.txt`
 * `PROMPTER/PAPERS_FOUNDER_BRIEF.txt`
 * `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt`
 * `PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt`
@@ -137,9 +139,9 @@ These are behavioral and continuity docs. They matter a lot, but they do not out
 
 **Still expected**
 
-* `PAPERS_NEXT_BUILD_ORDER`
+* None. The governing document set is complete.
 
-Until `PAPERS_NEXT_BUILD_ORDER` exists, REAL2 should still be treated as documentation-first and implementation-gated.
+The full governing set now exists. REAL2 remains documentation-only until the creator authorizes implementation; once authorized, work follows `PAPERS_NEXT_BUILD_ORDER_V1.txt` starting from Slice 1.
 
 ## How these docs should be used during the rebuild
 
@@ -161,7 +163,7 @@ Read, at minimum:
 1. `PROMPTER/PAPERS_FOUNDER_BRIEF.txt`
 2. `PAPERS_REPO_DECISION_AUDIT_V1.txt`
 3. `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`
-4. `PAPERS_NEXT_BUILD_ORDER` once it exists
+4. `PAPERS_NEXT_BUILD_ORDER_V1.txt`
 
 Do not start implementation from the legacy repo shape, and do not infer the product from generic agent-app conventions.
 
@@ -189,6 +191,7 @@ But the legacy repo is not an authority source for what Papers should become. If
 DOCS/
 ├── README.md
 ├── PAPERS_REPO_DECISION_AUDIT_V1.txt
+├── PAPERS_NEXT_BUILD_ORDER_V1.txt
 └── PROMPTER/
     ├── PAPERS_FOUNDER_BRIEF.txt
     ├── PAPERS_PROMPTER_HANDOFF.txt
@@ -197,7 +200,7 @@ DOCS/
     └── PAPERS_AGENT_CONSTITUTION_V1.txt
 ```
 
-Once `PAPERS_NEXT_BUILD_ORDER` exists, it should live in this directory as well and be added to this index immediately.
+Any future governing doc (e.g. a build-order V2, or a correction memo) should live in this directory as well and be added to this index immediately.
 
 ## Practical rule
 

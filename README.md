@@ -94,10 +94,13 @@ room, real things)**, world-first, never from the legacy app shell.
 REAL2/
 ├── README.md
 ├── .gitignore
+├── app/                       (the Papers application — see app/README.md)
 └── DOCS/
     ├── README.md
     ├── PAPERS_REPO_DECISION_AUDIT_V1.txt
     ├── PAPERS_NEXT_BUILD_ORDER_V1.txt
+    ├── PAPERS_ONTOLOGY_CLARIFICATION_V1.txt
+    ├── PAPERS_DELTA_LOG.txt
     └── PROMPTER/
         ├── PAPERS_FOUNDER_BRIEF.txt
         ├── PAPERS_PROMPTER_HANDOFF.txt
@@ -135,7 +138,9 @@ Present in the repository now:
 * **Delta log (`PAPERS_DELTA_LOG`)** — present, the running record of implementation state
 * **Application code** — present in [`app/`](app/)
 
-Current app state (see `app/README.md` and `DOCS/PAPERS_DELTA_LOG.txt` for the full record): persistent world store; Backpack rooms with truthful file/folder references, durable AI-written room notes with provenance, room-scoped conversation, and a Papers-owned room history; a room landing that greets the creator with the room's own state (description, honest snapshot, missing-reality callout, since-your-last-visit, pinned work). The AI speaks through one Papers-native engine seam with interchangeable runtime backends (Claude Code CLI by default; a local Ollama server as a verified-live alternative). The engine is never the custodian of continuity, and unavailability is reported honestly, never faked.
+**Vocabulary:** per `DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt`, the world is the real machine-and-life substrate Papers lives over; **Backpacks** are the core Papers-native places within it; "room" survives only as an internal implementation label for the first Backpack surface.
+
+Current app state (see `app/README.md` and `DOCS/PAPERS_DELTA_LOG.txt` for the full record): persistent world store; **Backpacks** with truthful file/folder references, durable AI-written Backpack notes with provenance, a Backpack-scoped conversation, and a Papers-owned Backpack history rendered as a navigable timeline; a Backpack landing that greets the creator with the Backpack's own state (description, honest snapshot, missing-reality callout, since-your-last-visit, pinned work). The AI speaks through one Papers-native engine seam with interchangeable runtime backends (Claude Code CLI by default; a local Ollama server as a verified-live alternative). The engine is never the custodian of continuity, and unavailability is reported honestly, never faked.
 
 ---
 

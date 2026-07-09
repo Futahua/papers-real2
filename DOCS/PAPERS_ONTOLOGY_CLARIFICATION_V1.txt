@@ -1,0 +1,128 @@
+PAPERS_ONTOLOGY_CLARIFICATION_V1
+
+Canonical vocabulary correction for REAL2: WORLD vs BACKPACK vs ROOM.
+Issued by the creator on 2026-07-09. Binding on implementation, docs, and
+milestone framing from this date forward unless the creator explicitly
+overturns it.
+
+Status
+- This is a clarification consistent with PAPERS_FOUNDER_BRIEF_V3, not a
+  supersession of it. The founder brief already names Backpacks as original
+  founder DNA; this document corrects a vocabulary drift in the early REAL2
+  implementation, where "room" was becoming the de facto product noun.
+- Authority: below the founder brief; binding on all operational docs,
+  implementation vocabulary, and future milestone framing.
+
+================================================================================
+1. THE CORRECTION
+================================================================================
+
+Backpacks are what make Papers into Papers. The implementation must not
+quietly flatten the product into generic "rooms" as if Backpack were flavor
+text. The early Slice 1 / Slice 2A work used "room" as the primary noun in
+UI copy, docs, and event text. That drift is real and is corrected as of
+this document.
+
+================================================================================
+2. CANONICAL ONTOLOGY
+================================================================================
+
+A. WORLD
+The world is the real machine and its surrounding reality as Papers
+understands it: the creator's actual computer, filesystem, and local
+environment; the real things Papers can truthfully reference inside it; and
+the persistent Papers-owned layer that lives over it. The world is not a
+room, not a workspace, not a provider session. "Papers opens into a world"
+means: Papers opens into my persistent AI layer over my real computer and
+life-material.
+
+B. BACKPACKS
+Backpacks are the core Papers-native organizing unit — persistent Papers
+places / lenses / life-spaces where real things, artifacts, memory,
+activity, and AI presence accumulate. A Backpack shapes the same underlying
+world around a particular context, purpose, domain, or mode of living and
+working. Backpacks belong to the world and remain part of it over time;
+they are not disposable sessions and not sealed project silos. "Papers"
+should evoke "world + Backpacks" before it evokes "chat + files + notes".
+
+C. ROOMS
+"Room" is, for now, only a provisional implementation / surface word — the
+visible Backpack surface, or a sub-surface inside a Backpack — and must not
+replace Backpack as the primary product concept. The currently implemented
+"room" is to be read as the first implemented Backpack slice, not as a
+replacement ontology.
+
+THE HIERARCHY:
+  World → Backpacks → Backpack contents / surfaces / activity / artifacts /
+  AI context
+NOT: World → Rooms → maybe Backpack later.
+NOT: chat app → rooms with Papers branding.
+
+One-line summary:
+  The world is the real machine-and-life substrate Papers lives over;
+  Backpacks are the core Papers-native places that make that world
+  inhabitable; "room" is, for now, only a provisional implementation word
+  for the first Backpack surface, not the product's true center of gravity.
+
+================================================================================
+3. WHAT THIS MEANS FOR THE CURRENT BUILD
+================================================================================
+
+- The persistent world store is correct and remains Papers-owned.
+- The implemented "room" is the first Backpack slice. Its attached things,
+  notes/artifacts, timeline/history, AI context, revisitation state, and
+  landing surface are Backpack capabilities, not generic room mechanics.
+- The current slice proves the Papers substrate; it does not define the
+  ceiling of what a Backpack can become. Backpacks may later be far richer
+  and more domain-shaped than this first form.
+- Backpack identity matters more than room furniture: the test is not
+  "does every Backpack have files + notes + timeline + chat" but "does a
+  Backpack feel like a persistent Papers-native place that can hold a mode
+  of life/work/thought inside the world."
+- The world is shared; Backpacks are overlapping lenses over the same real
+  world, never sealed copies of it.
+
+================================================================================
+4. NAMING RULES
+================================================================================
+
+PRODUCT LANGUAGE (UI copy, docs, milestone framing, AI-facing context):
+Bias toward: world, Backpack, Backpack things, Backpack artifacts/notes,
+Backpack history / activity, Backpack AI presence, Backpack landing /
+overview. Not generalized room vocabulary.
+
+IMPLEMENTATION TOLERANCE (accepted as of this document):
+No ceremonial mass-rename of working code. The following remain "room"-
+named as internal implementation labels, documented here so the tolerance
+is a decision rather than drift:
+- code identifiers and module internals (roomId, WorldStore room methods)
+- IPC channel names (room:get, room:say, ...)
+- persisted schema labels (rooms/ directory, room.json, artifact kind
+  "room-note", activity kinds room-created / room-renamed / room-described)
+- CSS class names
+These may be migrated opportunistically if the surface is being rewritten
+anyway. New persisted labels, new channels, and new modules should prefer
+Backpack-native naming where it does not create schema churn.
+
+USER-FACING AND AI-FACING LANGUAGE must say Backpack. The creator reading
+the product, and the AI receiving its context, are both being taught the
+ontology — they must be taught the right one. Historical activity events
+persisted with old "room" wording are a truthful record and are not
+rewritten.
+
+================================================================================
+5. OPERATIONAL RULES FOR AGENTS
+================================================================================
+
+1. Treat the implemented room as the first Backpack slice unless there is a
+   compelling, surfaced reason not to.
+2. Do not let generic room language erase Backpack from the product's
+   center of gravity.
+3. Phrase proposed milestones in Backpack terms where possible.
+4. If code or UI starts reinforcing "Papers is fundamentally a room app,"
+   call it out as drift.
+5. Preserve the world-first model: the world is the real machine / real
+   environment layer; Backpacks are the Papers-native inhabitable units
+   within it.
+
+End of PAPERS_ONTOLOGY_CLARIFICATION_V1.

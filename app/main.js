@@ -60,7 +60,7 @@ function registerHandlers(getWindow) {
   // is always something that actually exists on the machine right now.
   ipcMain.handle('room:attachThings', async (_e, roomId, kind) => {
     const result = await dialog.showOpenDialog(getWindow(), {
-      title: kind === 'folder' ? 'Attach folders to this room' : 'Attach files to this room',
+      title: kind === 'folder' ? 'Attach folders to this Backpack' : 'Attach files to this Backpack',
       properties:
         kind === 'folder'
           ? ['openDirectory', 'multiSelections']
@@ -81,7 +81,7 @@ function registerHandlers(getWindow) {
   ipcMain.handle('room:openThing', async (_e, roomId, thingId) => {
     const things = store.refreshThings(roomId);
     const thing = things.find((t) => t.id === thingId);
-    if (!thing) return { ok: false, error: 'That thing is no longer in this room.' };
+    if (!thing) return { ok: false, error: 'That thing is no longer in this Backpack.' };
     if (thing.status !== 'present') {
       return {
         ok: false,
@@ -102,7 +102,7 @@ function registerHandlers(getWindow) {
   // the filesystem and against the room's current things.
   ipcMain.handle('room:noteSources', (_e, roomId, artifactId) => {
     const artifact = store.listArtifacts(roomId).find((a) => a.id === artifactId);
-    if (!artifact) return { ok: false, error: 'That note is not in this room.' };
+    if (!artifact) return { ok: false, error: 'That note is not in this Backpack.' };
     const things = store.listThings(roomId);
     const sources = (artifact.provenance?.sourceThings || []).map((s) => {
       let status = 'missing';

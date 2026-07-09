@@ -19,6 +19,7 @@ const state = {
   noteSources: null, // { artifactId, rows } — live reality-check of an open note's sources
   selectedThings: new Set(),
   editingDescription: false,
+  historyExpanded: false,
   thinking: false,
   guard: null, // { items, thingIds }
   inlineError: null, // { scope: 'things' | 'notes', text }
@@ -65,6 +66,7 @@ async function enterRoom(roomId) {
   state.openNoteId = null;
   state.selectedThings = new Set();
   state.inlineError = null;
+  state.historyExpanded = false;
   render();
   scrollTalk();
   const { room, things, artifacts, activity } = state.room;
@@ -110,11 +112,11 @@ function renderWorld() {
       <div class="world-meta">This world has existed since ${fmtDate(w.createdAt)}. It stays when Papers closes.</div>
       <div class="room-grid">
         ${cards}
-        <div class="room-card new-room" id="new-room-card">+ New room</div>
+        <div class="room-card new-room" id="new-room-card">+ New Backpack</div>
       </div>
       <form class="new-room-form" id="new-room-form" hidden>
-        <input type="text" id="new-room-title" placeholder="Name this room…" maxlength="80" />
-        <button class="primary" type="submit">Create room</button>
+        <input type="text" id="new-room-title" placeholder="Name this Backpack…" maxlength="80" />
+        <button class="primary" type="submit">Create Backpack</button>
       </form>
     </div>`;
 
@@ -144,7 +146,7 @@ function thingRow(t) {
       : '';
   return `
     <div class="thing-row">
-      <input type="checkbox" data-select-thing="${esc(t.id)}" ${state.selectedThings.has(t.id) ? 'checked' : ''} title="Select for a room note" />
+      <input type="checkbox" data-select-thing="${esc(t.id)}" ${state.selectedThings.has(t.id) ? 'checked' : ''} title="Select for a Backpack note" />
       <span class="status-dot ${esc(t.status)}" title="${esc(t.status)}"></span>
       <span class="thing-main">
         <span class="thing-name">${esc(t.displayName)} <span class="preview-detail">· ${esc(t.type)}</span></span>
@@ -152,7 +154,7 @@ function thingRow(t) {
         ${missing}
       </span>
       <button class="quiet" data-open-thing="${esc(t.id)}" ${t.status !== 'present' ? 'disabled title="The real item is missing"' : 'title="Open the real location on this machine"'}>Open real location</button>
-      <button class="quiet" data-detach-thing="${esc(t.id)}" title="Remove the reference from this room (the real item is not touched)">Remove</button>
+      <button class="quiet" data-detach-thing="${esc(t.id)}" title="Remove the reference from this Backpack (the real item is not touched)">Remove</button>
     </div>`;
 }
 
@@ -171,7 +173,7 @@ function noteCard(a) {
         <h3>${esc(a.title)}</h3>
         <span class="note-card-tags">
           ${isNewSinceLastVisit(a) ? '<span class="new-badge">new since your last visit</span>' : ''}
-          <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}" title="${a.pinned ? 'Unpin from the room landing' : 'Pin to the room landing'}">${a.pinned ? 'Unpin' : 'Pin'}</button>
+          <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}" title="${a.pinned ? 'Unpin from the Backpack landing' : 'Pin to the Backpack landing'}">${a.pinned ? 'Unpin' : 'Pin'}</button>
         </span>
       </div>
       <div class="note-snippet">${esc(snippet)}${a.body && a.body.length > 150 ? '…' : ''}</div>
@@ -182,8 +184,88 @@ function noteCard(a) {
     </div>`;
 }
 
-function activityLine(e) {
-  return `<div class="activity-line ${e.kind === 'note-failed' ? 'failed' : ''}"><span class="activity-when">${fmtDate(e.at)}</span> ${esc(e.text)}</div>`;
+// ---- Room events: navigable, honest rows -----------------------------------
+
+const EVENT_KIND_CLASS = {
+  'thing-missing': 'ev-missing',
+  'note-failed': 'ev-missing',
+  'thing-recovered': 'ev-good',
+  'note-created': 'ev-note',
+  'note-pinned': 'ev-note',
+  'note-unpinned': 'ev-note',
+};
+
+function fmtTime(iso) {
+  return iso ? iso.slice(11, 16) : '';
+}
+
+// One room event. If the event carries refs, it becomes a path back into
+// the work it describes — and stays honest when that work has since moved
+// on. Events written before refs existed render as plain lines.
+function eventRow(e) {
+  const actions = [];
+  if (e.refs?.noteId) {
+    const exists = state.room.artifacts.some((a) => a.id === e.refs.noteId);
+    actions.push(
+      exists
+        ? `<button class="quiet" data-ev-note="${esc(e.refs.noteId)}">open note</button>`
+        : '<span class="ev-gone">note no longer in this Backpack</span>'
+    );
+  }
+  if (e.refs?.path) {
+    const attached = state.room.things.some((t) => t.path === e.refs.path);
+    if (!attached && e.kind !== 'thing-detached') {
+      actions.push('<span class="ev-gone">no longer in this Backpack</span>');
+    }
+    if (e.kind !== 'thing-missing') {
+      actions.push(`<button class="quiet" data-ev-path="${esc(e.refs.path)}">open real location</button>`);
+    }
+  }
+  return `
+    <div class="event-row ${EVENT_KIND_CLASS[e.kind] || ''}">
+      <span class="activity-when">${fmtTime(e.at)}</span>
+      <span class="event-text">${esc(e.text)}</span>
+      ${actions.length ? `<span class="event-actions">${actions.join(' ')}</span>` : ''}
+    </div>`;
+}
+
+function dayLabel(dayIso) {
+  const today = new Date();
+  const t = today.toISOString().slice(0, 10);
+  const y = new Date(today.getTime() - 86400000).toISOString().slice(0, 10);
+  return dayIso === t ? 'Today' : dayIso === y ? 'Yesterday' : dayIso;
+}
+
+// The room's life as a readable timeline: newest first, grouped by day,
+// with an honest marker where the creator's last visit falls.
+function roomTimelineHtml() {
+  const { room, activity } = state.room;
+  if (!activity.length) return '<div class="empty-hint">Nothing has happened here yet.</div>';
+  const events = [...activity].reverse();
+  const shown = state.historyExpanded ? events : events.slice(0, 12);
+  const prev = room.previousEnteredAt;
+  const hasNewer = prev ? shown.some((e) => e.at > prev) : false;
+  let html = '';
+  let currentDay = null;
+  let dividerDone = false;
+  for (const e of shown) {
+    if (hasNewer && !dividerDone && e.at <= prev) {
+      html += `<div class="visit-divider">— your last visit · ${fmtDate(prev)} —</div>`;
+      dividerDone = true;
+    }
+    const day = e.at.slice(0, 10);
+    if (day !== currentDay) {
+      currentDay = day;
+      html += `<div class="timeline-day">${dayLabel(day)}</div>`;
+    }
+    html += eventRow(e);
+  }
+  if (events.length > shown.length) {
+    html += `<button class="quiet" id="history-toggle">Show all ${events.length} events</button>`;
+  } else if (state.historyExpanded && events.length > 12) {
+    html += '<button class="quiet" id="history-toggle">Show fewer</button>';
+  }
+  return html;
 }
 
 function talkEntry(e) {
@@ -217,7 +299,7 @@ function roomOverviewHtml() {
   if (state.editingDescription) {
     desc = `
       <div class="room-desc editing">
-        <textarea id="desc-input" rows="3" placeholder="What is this room for? What lives here?">${esc(room.description || '')}</textarea>
+        <textarea id="desc-input" rows="3" placeholder="What is this Backpack for? What lives here?">${esc(room.description || '')}</textarea>
         <div class="section-actions">
           <button class="primary" id="desc-save">Save</button>
           <button id="desc-cancel">Cancel</button>
@@ -227,28 +309,28 @@ function roomOverviewHtml() {
     desc = `
       <div class="room-desc">
         <div class="room-desc-text">${esc(room.description)}</div>
-        <div class="room-desc-meta">room description, yours · updated ${fmtDate(room.descriptionUpdatedAt)} · <button class="quiet" id="desc-edit">edit</button></div>
+        <div class="room-desc-meta">Backpack description, yours · updated ${fmtDate(room.descriptionUpdatedAt)} · <button class="quiet" id="desc-edit">edit</button></div>
       </div>`;
   } else {
-    desc = `<div class="room-desc empty"><button class="quiet" id="desc-edit">Describe what this room is for…</button></div>`;
+    desc = `<div class="room-desc empty"><button class="quiet" id="desc-edit">Describe what this Backpack is for…</button></div>`;
   }
 
   const snapshot = `
-    <div class="room-snapshot">${things.length} thing${things.length === 1 ? '' : 's'}${missing.length ? ` <span class="warn">(${missing.length} missing)</span>` : ''} · ${artifacts.length} note${artifacts.length === 1 ? '' : 's'} · ${activity.length} room event${activity.length === 1 ? '' : 's'}${conversation.length ? ` · ${conversation.length} conversation entr${conversation.length === 1 ? 'y' : 'ies'}` : ''}</div>`;
+    <div class="room-snapshot">${things.length} thing${things.length === 1 ? '' : 's'}${missing.length ? ` <span class="warn">(${missing.length} missing)</span>` : ''} · ${artifacts.length} note${artifacts.length === 1 ? '' : 's'} · ${activity.length} Backpack event${activity.length === 1 ? '' : 's'}${conversation.length ? ` · ${conversation.length} conversation entr${conversation.length === 1 ? 'y' : 'ies'}` : ''}</div>`;
 
   const missingBlock = missing.length
-    ? `<div class="missing-callout">This room has lost contact with ${missing.length} real thing${missing.length === 1 ? '' : 's'}: ${missing.map((t) => esc(t.displayName)).join(', ')}. Details under Things.</div>`
+    ? `<div class="missing-callout">This Backpack has lost contact with ${missing.length} real thing${missing.length === 1 ? '' : 's'}: ${missing.map((t) => esc(t.displayName)).join(', ')}. Details under Things.</div>`
     : '';
 
   let sinceBlock = '';
   if (prev) {
     if (sinceEvents.length) {
-      const shown = sinceEvents.slice(-5);
+      const shown = sinceEvents.slice(-5).reverse(); // newest first, like the timeline
       sinceBlock = `
         <div class="since-visit">
           <div class="since-title">Since your last visit (${fmtDate(prev)}):</div>
-          ${shown.map(activityLine).join('')}
-          ${sinceEvents.length > shown.length ? `<div class="activity-line earlier">… and ${sinceEvents.length - shown.length} more, in Room history below.</div>` : ''}
+          ${shown.map(eventRow).join('')}
+          ${sinceEvents.length > shown.length ? `<div class="event-row earlier">… and ${sinceEvents.length - shown.length} more, in Backpack history below.</div>` : ''}
         </div>`;
     } else {
       sinceBlock = `<div class="since-visit quiet-line">Nothing new since your last visit (${fmtDate(prev)}).</div>`;
@@ -256,7 +338,7 @@ function roomOverviewHtml() {
   }
 
   const pinnedBlock = pinned.length
-    ? `<h2 class="section-title pinned-title">Pinned to this room</h2>${pinned.map(noteCard).join('')}`
+    ? `<h2 class="section-title pinned-title">Pinned to this Backpack</h2>${pinned.map(noteCard).join('')}`
     : '';
 
   return `
@@ -272,34 +354,32 @@ function roomOverviewHtml() {
 // The room's contents: overview, things, notes, history. This is the
 // primary surface.
 function roomContentsHtml() {
-  const { things, artifacts, activity } = state.room;
+  const { things, artifacts } = state.room;
   const selCount = state.selectedThings.size;
-  const recentActivity = activity.slice(-8);
-  const earlier = activity.length - recentActivity.length;
   // Unpinned notes, newest first — revisitation order. Pinned ones live in
   // the room overview above.
   const shelfNotes = artifacts.filter((a) => !a.pinned).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   return `
     ${roomOverviewHtml()}
     <div class="section">
-      <h2 class="section-title">Things in this room</h2>
-      ${things.length ? things.map(thingRow).join('') : '<div class="empty-hint">Nothing here yet. Attach real files or folders from this machine — Papers keeps references, the originals stay where they are.</div>'}
+      <h2 class="section-title">Things in this Backpack</h2>
+      ${things.length ? things.map(thingRow).join('') : '<div class="empty-hint">Nothing here yet. Attach real files or folders from this machine — the Backpack keeps references, the originals stay where they are.</div>'}
       ${inlineError('things')}
       <div class="section-actions">
         <button id="attach-file">+ Attach files</button>
         <button id="attach-folder">+ Attach folder</button>
-        <button class="primary" id="make-note" ${selCount ? '' : 'disabled'}>Write a room note from ${selCount || 'selected'} thing${selCount === 1 ? '' : 's'}</button>
+        <button class="primary" id="make-note" ${selCount ? '' : 'disabled'}>Write a Backpack note from ${selCount || 'selected'} thing${selCount === 1 ? '' : 's'}</button>
       </div>
     </div>
     <div class="section">
-      <h2 class="section-title">Room notes</h2>
-      ${shelfNotes.length ? shelfNotes.map(noteCard).join('') : artifacts.length ? '<div class="empty-hint">All of this room’s notes are pinned above.</div>' : '<div class="empty-hint">No notes yet. Select things above and ask for a room note — what the AI writes stays here.</div>'}
+      <h2 class="section-title">Backpack notes</h2>
+      ${shelfNotes.length ? shelfNotes.map(noteCard).join('') : artifacts.length ? '<div class="empty-hint">All of this Backpack’s notes are pinned above.</div>' : '<div class="empty-hint">No notes yet. Select things above and ask for a Backpack note — what the AI writes stays here.</div>'}
       ${inlineError('notes')}
     </div>
     <div class="section">
-      <h2 class="section-title">Room history</h2>
-      ${recentActivity.length ? recentActivity.map(activityLine).join('') : '<div class="empty-hint">Nothing has happened here yet.</div>'}
-      ${earlier > 0 ? `<div class="activity-line earlier">… and ${earlier} earlier event${earlier === 1 ? '' : 's'}, kept by Papers.</div>` : ''}
+      <h2 class="section-title">Backpack history</h2>
+      ${roomTimelineHtml()}
+      ${inlineError('history')}
     </div>`;
 }
 
@@ -311,7 +391,7 @@ function noteSourceRow(s) {
     <div class="thing-row">
       <span class="status-dot ${esc(s.status)}" title="${esc(s.status)}"></span>
       <span class="thing-main">
-        <span class="thing-name">${esc(s.displayName)} <span class="preview-detail">· ${esc(s.type)}${s.attached ? '' : ' · no longer attached to this room'}</span></span>
+        <span class="thing-name">${esc(s.displayName)} <span class="preview-detail">· ${esc(s.type)}${s.attached ? '' : ' · no longer attached to this Backpack'}</span></span>
         <span class="thing-path" title="${esc(s.path)}">${esc(s.path)}</span>
         ${s.status === 'missing' ? '<span class="thing-missing-note">missing — nothing exists at this path right now</span>' : ''}
       </span>
@@ -333,16 +413,16 @@ function noteSourcesHtml(a) {
 function noteSurfaceHtml(a) {
   return `
     <div class="note-surface">
-      <button class="quiet" id="close-note">← Back to room contents</button>
+      <button class="quiet" id="close-note">← Back to the Backpack</button>
       <h2 class="note-title">${esc(a.title)}</h2>
       <div class="note-provenance">
         <span class="provenance-chip">Papers AI</span>
         Written ${fmtDate(a.createdAt)}${a.provenance?.engine ? ` · via ${esc(a.provenance.engine)}` : ''}
-        · <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}">${a.pinned ? 'Unpin from the room landing' : 'Pin to the room landing'}</button>
+        · <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}">${a.pinned ? 'Unpin from the Backpack landing' : 'Pin to the Backpack landing'}</button>
       </div>
       <div class="note-body">${esc(a.body)}</div>
       ${noteSourcesHtml(a)}
-      <div class="note-footer">This note is a Papers artifact kept in this room — not a file on your machine.</div>
+      <div class="note-footer">This note is a Papers artifact kept in this Backpack — not a file on your machine.</div>
     </div>`;
 }
 
@@ -371,15 +451,15 @@ function talkPanelHtml() {
   return `
     <div class="room-talk">
       <div class="talk-head">
-        <h2 class="section-title">Room conversation</h2>
+        <h2 class="section-title">Backpack conversation</h2>
         <button class="quiet" id="talk-toggle" title="Tuck the conversation away">▸</button>
       </div>
       <div class="talk-scroll" id="talk-scroll">
-        ${conversation.length ? conversation.map(talkEntry).join('') : '<div class="empty-hint">The AI is present in this room and knows what it holds.</div>'}
+        ${conversation.length ? conversation.map(talkEntry).join('') : '<div class="empty-hint">The AI is present in this Backpack and knows what it holds.</div>'}
       </div>
       ${state.thinking ? '<div class="thinking">The AI is thinking…</div>' : ''}
       <form class="talk-input" id="talk-form">
-        <textarea id="talk-text" placeholder="Say something in this room…"></textarea>
+        <textarea id="talk-text" placeholder="Say something in this Backpack…"></textarea>
         <button class="primary" type="submit" ${state.thinking ? 'disabled' : ''}>Send</button>
       </form>
     </div>`;
@@ -396,7 +476,7 @@ function renderRoom() {
         <button class="quiet back" id="back-to-world">← ${esc(state.world.name)}</button>
         <div class="room-head-main">
           <h1 class="room-title" id="room-title" title="Click to rename">${esc(room.title)}</h1>
-          <div class="room-identity">A room in this world since ${fmtDay(room.createdAt)}</div>
+          <div class="room-identity">A Backpack in this world since ${fmtDay(room.createdAt)}</div>
         </div>
       </div>
       <div class="room-body">
@@ -511,6 +591,29 @@ function wireContents(room) {
   document.getElementById('attach-file').addEventListener('click', () => attach('file'));
   document.getElementById('attach-folder').addEventListener('click', () => attach('folder'));
 
+  // Room events as paths back into work: open the note an event is about,
+  // or the real location it refers to (with honest refusal if reality
+  // moved on).
+  appEl.querySelectorAll('[data-ev-note]').forEach((el) => {
+    el.addEventListener('click', () => openNoteSurface(el.dataset.evNote));
+  });
+  appEl.querySelectorAll('[data-ev-path]').forEach((el) => {
+    el.addEventListener('click', async () => {
+      const result = await window.papers.openRealPath(el.dataset.evPath);
+      if (!result.ok) {
+        state.inlineError = { scope: 'history', text: result.error };
+        render();
+      }
+    });
+  });
+  const historyToggle = document.getElementById('history-toggle');
+  if (historyToggle) {
+    historyToggle.addEventListener('click', () => {
+      state.historyExpanded = !state.historyExpanded;
+      render();
+    });
+  }
+
   appEl.querySelectorAll('[data-select-thing]').forEach((el) => {
     el.addEventListener('change', () => {
       const id = el.dataset.selectThing;
@@ -622,10 +725,10 @@ function renderGuard() {
     <div class="modal-backdrop" id="modal-backdrop">
       <div class="modal">
         <div class="modal-head">
-          <h2>Write a room note?</h2>
+          <h2>Write a Backpack note?</h2>
           <button class="quiet" id="modal-close">Cancel</button>
         </div>
-        <div class="modal-body">This will read the following real items and share exactly this much with the AI, which will write one note into this room:
+        <div class="modal-body">This will read the following real items and share exactly this much with the AI, which will write one note into this Backpack:
 ${items}</div>
         <div class="modal-foot">
           <span class="note-origin">Nothing on your machine is changed. The note will be kept by Papers, marked as AI-made.</span>

@@ -2,7 +2,11 @@
 
 // The Papers world store — the system of record for the Papers world.
 //
-// Rooms, thing references, room artifacts, and room conversations live here,
+// Vocabulary note: what this module calls a "room" is a Backpack — the
+// Papers-native place. "room" persists here only as an implementation and
+// schema label (see DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt).
+//
+// Backpacks, thing references, artifacts, and conversations live here,
 // in Papers-owned storage on disk. The AI engine underneath, whatever it is,
 // is never the custodian of this continuity: losing or swapping the engine
 // must not lose the world.
@@ -95,7 +99,7 @@ class WorldStore {
     const room = {
       id: newId('room'),
       type: 'backpack',
-      title: (title || '').trim() || 'New room',
+      title: (title || '').trim() || 'New Backpack',
       createdAt: now,
       lastEnteredAt: now,
     };
@@ -103,7 +107,7 @@ class WorldStore {
     writeJson(path.join(this.roomDir(room.id), 'things.json'), []);
     writeJson(path.join(this.roomDir(room.id), 'conversation.json'), []);
     writeJson(path.join(this.roomDir(room.id), 'activity.json'), []);
-    this.appendActivity(room.id, 'room-created', `Room "${room.title}" was created`);
+    this.appendActivity(room.id, 'room-created', `Backpack "${room.title}" was created`);
     return room;
   }
 
@@ -117,7 +121,7 @@ class WorldStore {
     const room = this.getRoomRecord(roomId);
     const next = (title || '').trim();
     if (next && next !== room.title) {
-      this.appendActivity(roomId, 'room-renamed', `Room renamed from "${room.title}" to "${next}"`);
+      this.appendActivity(roomId, 'room-renamed', `Backpack renamed from "${room.title}" to "${next}"`);
       room.title = next;
       writeJson(path.join(this.roomDir(roomId), 'room.json'), room);
     }
@@ -147,7 +151,7 @@ class WorldStore {
     this.appendActivity(
       roomId,
       'room-described',
-      next ? 'The room description was updated' : 'The room description was cleared'
+      next ? 'The Backpack description was updated' : 'The Backpack description was cleared'
     );
     return room;
   }
@@ -171,7 +175,11 @@ class WorldStore {
     const thing = createThingReference(resolved);
     things.push(thing);
     this.saveThings(roomId, things);
-    this.appendActivity(roomId, 'thing-attached', `Attached ${thing.type} "${thing.displayName}" (${thing.path})`);
+    this.appendActivity(roomId, 'thing-attached', `Attached ${thing.type} "${thing.displayName}" (${thing.path})`, {
+      thingId: thing.id,
+      path: thing.path,
+      displayName: thing.displayName,
+    });
     return thing;
   }
 
@@ -180,15 +188,33 @@ class WorldStore {
     const thing = things.find((t) => t.id === thingId);
     this.saveThings(roomId, things.filter((t) => t.id !== thingId));
     if (thing) {
-      this.appendActivity(roomId, 'thing-detached', `Removed the reference to "${thing.displayName}" (the real ${thing.type} was not touched)`);
+      this.appendActivity(roomId, 'thing-detached', `Removed the reference to "${thing.displayName}" (the real ${thing.type} was not touched)`, {
+        thingId: thing.id,
+        path: thing.path,
+        displayName: thing.displayName,
+      });
     }
   }
 
   // Re-verify every reference in the room against reality and persist what
-  // was actually observed.
+  // was actually observed. Losing contact with a real thing — or regaining
+  // it — is part of the room's life, so those transitions become room
+  // events, not silent state flips.
   refreshThings(roomId) {
-    const things = this.listThings(roomId).map(checkThing);
+    const before = this.listThings(roomId);
+    const things = before.map(checkThing);
     this.saveThings(roomId, things);
+    for (let i = 0; i < things.length; i++) {
+      const was = before[i].status;
+      const now = things[i].status;
+      if (was === now) continue;
+      const refs = { thingId: things[i].id, path: things[i].path, displayName: things[i].displayName };
+      if (now === 'missing' && was === 'present') {
+        this.appendActivity(roomId, 'thing-missing', `Lost contact with "${things[i].displayName}" — nothing at ${things[i].path}`, refs);
+      } else if (now === 'present' && was === 'missing') {
+        this.appendActivity(roomId, 'thing-recovered', `"${things[i].displayName}" is back at ${things[i].path}`, refs);
+      }
+    }
     return things;
   }
 
@@ -231,7 +257,8 @@ class WorldStore {
     this.appendActivity(
       roomId,
       'note-created',
-      `The AI wrote the room note "${artifact.title}"${sources ? ` from ${sources}` : ''}`
+      `The AI wrote the Backpack note "${artifact.title}"${sources ? ` from ${sources}` : ''}`,
+      { noteId: artifact.id, title: artifact.title }
     );
     return artifact;
   }
@@ -249,7 +276,8 @@ class WorldStore {
     this.appendActivity(
       roomId,
       pinned ? 'note-pinned' : 'note-unpinned',
-      pinned ? `The note "${artifact.title}" was pinned to the room` : `The note "${artifact.title}" was unpinned`
+      pinned ? `The note "${artifact.title}" was pinned to the Backpack` : `The note "${artifact.title}" was unpinned`,
+      { noteId: artifact.id, title: artifact.title }
     );
     return artifact;
   }
@@ -264,9 +292,19 @@ class WorldStore {
     return readJson(path.join(this.roomDir(roomId), 'activity.json'), []);
   }
 
-  appendActivity(roomId, kind, text) {
+  // `refs` optionally ties an event to the room objects it is about
+  // ({ noteId, title } and/or { thingId, path, displayName }), so history
+  // stays navigable — and stays honest if the object later changes or
+  // leaves the room. Events written before refs existed simply have none.
+  appendActivity(roomId, kind, text, refs) {
     const activity = this.getActivity(roomId);
-    const event = { id: newId('event'), kind, text, at: new Date().toISOString() };
+    const event = {
+      id: newId('event'),
+      kind,
+      text,
+      at: new Date().toISOString(),
+      ...(refs ? { refs } : {}),
+    };
     activity.push(event);
     writeJson(path.join(this.roomDir(roomId), 'activity.json'), activity);
     return event;

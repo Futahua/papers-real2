@@ -1,8 +1,10 @@
 'use strict';
 
 // Papers → text serialization for the AI, and parsing of what comes back.
-// This file is runtime-neutral: it speaks only Papers nouns (world, room,
-// thing, note, conversation) and plain text. No vendor vocabulary.
+// This file is runtime-neutral: it speaks only Papers nouns (world,
+// Backpack, thing, note, conversation) and plain text. No vendor
+// vocabulary. ("room" appears only as an internal identifier — see
+// DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt.)
 
 // Serialize room context truthfully. Statuses come from the world store's
 // freshly checked references — the AI is told what is present and what is
@@ -13,20 +15,20 @@ function roomContextBlock({ world, room, things, artifacts, conversation }) {
     "You are the AI presence inside Papers, the creator's personal world layer over their computer."
   );
   lines.push(
-    `You are currently in the room "${room.title}" of the world "${world.name}".`
+    `You are currently inside the Backpack "${room.title}" — a persistent Papers place in the world "${world.name}".`
   );
   lines.push('');
   if (things.length) {
-    lines.push("Things attached to this room (references to real items on the creator's machine):");
+    lines.push("Things attached to this Backpack (references to real items on the creator's machine):");
     for (const t of things) {
       lines.push(`- ${t.displayName} — ${t.type}, ${t.status}, at ${t.path}`);
     }
   } else {
-    lines.push('This room has no things attached yet.');
+    lines.push('This Backpack has no things attached yet.');
   }
   lines.push('');
   if (artifacts.length) {
-    lines.push('Room notes already in this room (made by you, kept by Papers):');
+    lines.push('Notes already in this Backpack (made by you, kept by Papers):');
     for (const a of artifacts) {
       lines.push(`- "${a.title}" (created ${a.createdAt.slice(0, 10)})`);
     }
@@ -34,7 +36,7 @@ function roomContextBlock({ world, room, things, artifacts, conversation }) {
   }
   const recent = conversation.slice(-12).filter((e) => e.role !== 'status');
   if (recent.length) {
-    lines.push('Recent room conversation:');
+    lines.push('Recent Backpack conversation:');
     for (const e of recent) {
       lines.push(`${e.role === 'creator' ? 'Creator' : 'You'}: ${e.text}`);
     }
@@ -51,7 +53,7 @@ function replyPrompt(context, message) {
     roomContextBlock(context) +
     '\n\nThe creator says:\n' +
     message +
-    '\n\nReply as the AI presence in this room. Be concrete and grounded in the room context. Plain text only. Output only the reply itself — no reasoning steps, no preamble, no meta-commentary.'
+    '\n\nReply as the AI presence in this Backpack. Be concrete and grounded in the Backpack context. Plain text only. Output only the reply itself — no reasoning steps, no preamble, no meta-commentary.'
   );
 }
 
@@ -62,7 +64,7 @@ function notePrompt(context, readings) {
   const parts = [roomContextBlock(context)];
   parts.push('');
   parts.push(
-    'The creator asked you to write a room note summarizing the following things. ' +
+    'The creator asked you to write a Backpack note summarizing the following things. ' +
       'Below is what was actually read from each real item just now — truncation and unreadable content are marked honestly.'
   );
   for (const { thing, content } of readings) {
@@ -72,7 +74,7 @@ function notePrompt(context, readings) {
   }
   parts.push('');
   parts.push(
-    'Write the room note now. First line must be exactly "TITLE: " followed by a short descriptive title. ' +
+    'Write the Backpack note now. First line must be exactly "TITLE: " followed by a short descriptive title. ' +
       'Then a blank line, then the note body in plain text. Summarize what these things are and what matters about them. ' +
       'If content was truncated, binary, or unreadable, reflect that honestly rather than pretending to know more. ' +
       'Output only the note itself — no reasoning steps, no preamble, no meta-commentary.'

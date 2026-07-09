@@ -3,6 +3,101 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-09 (sixth pass) — ontology correction adopted: WORLD / BACKPACK / ROOM
+================================================================================
+
+The creator issued a binding vocabulary correction: Backpacks are the core
+Papers-native organizing unit; the world is the real machine-and-life
+substrate Papers lives over; "room" is only a provisional implementation
+word for the first Backpack surface. Canonical text:
+DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt (new, indexed in DOCS/README.md
+under correction/clarification docs).
+
+DRIFT ACKNOWLEDGED: the Slice 1 / Slice 2A implementation had made "room"
+the de facto product noun in UI copy, AI-facing context, activity text, and
+docs. That drift was real and is corrected in this pass.
+
+WHAT CHANGED (branch backpack-ontology, stacked on slice2a-room-timeline)
+1. New governing doc PAPERS_ONTOLOGY_CLARIFICATION_V1.txt.
+2. All user-facing UI copy now says Backpack (creation flow, landing,
+   sections "Things in this Backpack" / "Backpack notes" / "Backpack
+   history" / "Backpack conversation", identity line, pin labels, guard
+   dialog, honest-status strings, note surface).
+3. AI-facing context (engine/prompts.js) now teaches the AI the correct
+   ontology: it is inside a Backpack, a persistent Papers place in the
+   world.
+4. Newly written activity events use Backpack wording ("Backpack renamed",
+   "The AI wrote the Backpack note …", "pinned to the Backpack").
+   Historical events persisted with old "room" wording are a truthful
+   record and were NOT rewritten.
+5. READMEs (root + app) reframed Backpack-first, with the room-as-
+   implementation-label tolerance stated explicitly.
+
+DELIBERATELY NOT RENAMED (implementation tolerance per the clarification,
+so this is a decision, not drift): code identifiers (roomId, WorldStore
+methods), IPC channel names (room:*), persisted schema labels (rooms/
+directory, room.json, artifact kind "room-note", activity kinds
+room-created/renamed/described), CSS class names. New modules/channels/
+labels should prefer Backpack naming where it avoids schema churn.
+
+================================================================================
+2026-07-09 (fifth pass) — room history becomes a navigable room timeline
+================================================================================
+
+PR #2 merged. This pass deepens the room's accumulated life: room history
+goes from a flat 8-line tail of prose to a navigable, honest timeline, and
+the room's event record itself gets richer. Branch slice2a-room-timeline.
+
+AUDIT FINDINGS THAT DROVE IT (from the merged code)
+- Events were lossy prose: {kind, text, at} only — nothing connected an
+  event to the note or thing it was about.
+- WORST: refreshThings silently flipped things between present and missing
+  with NO activity record. The room's most important truth — losing contact
+  with reality — never entered the room's narrative.
+- Only the last 8 events were visible; older history was persisted but
+  unreachable in the UI.
+- previousEnteredAt existed but history had no visit boundary.
+- No path from an event back into the work it described.
+
+WHAT WAS BUILT
+1. EVENT REFS (data): activity events now optionally carry refs
+   ({noteId, title} and/or {thingId, path, displayName}). All writers
+   updated: attach/detach, note created, pin/unpin. Events without objects
+   (room-created, renamed, described) carry none. Old pre-refs events are
+   rendered as plain lines — no pretense of context that does not exist.
+2. REALITY-TRANSITION EVENTS (truthfulness): refreshThings now logs
+   'thing-missing' ("Lost contact with X — nothing at <path>") and
+   'thing-recovered' ("X is back at <path>") when a thing's status actually
+   changes — once per transition, never per refresh. Reality drift is now
+   part of the room's story.
+3. ROOM TIMELINE (UI): the history section renders newest-first, grouped by
+   day (Today / Yesterday / date), with a "your last visit" divider placed
+   where it truthfully falls, kind-coloring (lost contact red, recovered
+   green, note-work accent), and a show-all/show-fewer toggle over the full
+   persisted record (previously capped at 8 forever).
+4. EVENTS AS PATHS BACK INTO WORK: an event about a note offers "open note"
+   (or says honestly that the note is gone); an event about a real thing
+   offers "open real location" (honest refusal if reality moved on) and
+   says when the thing is no longer attached to the room. The
+   since-your-last-visit landing block uses the same navigable rows.
+
+CONSIDERED AND REJECTED: logging note *views* as activity (surveillance-ish
+feed theater — activity records work, not attention); any separate "feed"
+store (refs live on the same activity.json events).
+
+VERIFIED: 19/19 unit tests (refs durability across restart; missing/
+recovered logged exactly once; no refs on object-less events); live ollama
+acceptance walk re-passed with a new check that losing contact produces a
+refs-carrying room event; headed render of an aged real room (3 things,
+1 genuinely missing, pinned note, 2 since-visit events) clean.
+
+ACCEPTED LIMITATIONS
+- Pre-refs events from earlier worlds render as plain text lines (honest).
+- Timeline day-grouping uses the machine's local sense of "today" against
+  UTC-stored timestamps; day labels can be off near midnight. Cosmetic.
+- 'unknown'-status transitions are not evented (only present<->missing).
+
+================================================================================
 2026-07-09 (fourth pass) — Slice 2A begins: the room greets you with its state
 ================================================================================
 

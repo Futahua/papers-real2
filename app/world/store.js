@@ -76,10 +76,14 @@ class WorldStore {
       const room = readJson(path.join(this.roomDir(roomId), 'room.json'), null);
       if (!room) continue;
       const things = readJson(path.join(this.roomDir(roomId), 'things.json'), []);
+      const activity = readJson(path.join(this.roomDir(roomId), 'activity.json'), []);
+      const last = activity[activity.length - 1];
       rooms.push({
         ...room,
         thingCount: things.length,
+        missingCount: things.filter((t) => t.status === 'missing').length,
         artifactCount: this.listArtifacts(roomId).length,
+        lastActivity: last ? { text: last.text, at: last.at } : null,
       });
     }
     rooms.sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
@@ -120,10 +124,31 @@ class WorldStore {
     return room;
   }
 
+  // Entering a room shifts the visit history: the room remembers when you
+  // were last here, so it can honestly tell you what happened in between.
   markRoomEntered(roomId) {
     const room = this.getRoomRecord(roomId);
+    room.previousEnteredAt = room.lastEnteredAt || null;
     room.lastEnteredAt = new Date().toISOString();
     writeJson(path.join(this.roomDir(roomId), 'room.json'), room);
+    return room;
+  }
+
+  // The room's own description — creator-owned durable room state, part of
+  // the room record, not a chat answer pasted into the UI.
+  setRoomDescription(roomId, text) {
+    const room = this.getRoomRecord(roomId);
+    const next = (text || '').trim();
+    const current = room.description || '';
+    if (next === current) return room;
+    room.description = next;
+    room.descriptionUpdatedAt = new Date().toISOString();
+    writeJson(path.join(this.roomDir(roomId), 'room.json'), room);
+    this.appendActivity(
+      roomId,
+      'room-described',
+      next ? 'The room description was updated' : 'The room description was cleared'
+    );
     return room;
   }
 
@@ -207,6 +232,24 @@ class WorldStore {
       roomId,
       'note-created',
       `The AI wrote the room note "${artifact.title}"${sources ? ` from ${sources}` : ''}`
+    );
+    return artifact;
+  }
+
+  // Pin or unpin a note to the room. Pinned work belongs to the room's
+  // landing, not just its list — the pin lives on the artifact record.
+  setArtifactPinned(roomId, artifactId, pinned) {
+    const file = path.join(this.artifactsDir(roomId), `${artifactId}.json`);
+    const artifact = readJson(file, null);
+    if (!artifact) throw new Error(`No such note in this room: ${artifactId}`);
+    if (Boolean(artifact.pinned) === Boolean(pinned)) return artifact;
+    artifact.pinned = Boolean(pinned);
+    artifact.pinnedAt = pinned ? new Date().toISOString() : null;
+    writeJson(file, artifact);
+    this.appendActivity(
+      roomId,
+      pinned ? 'note-pinned' : 'note-unpinned',
+      pinned ? `The note "${artifact.title}" was pinned to the room` : `The note "${artifact.title}" was unpinned`
     );
     return artifact;
   }

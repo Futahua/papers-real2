@@ -3,6 +3,66 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-09 (fourth pass) — Slice 2A begins: the room greets you with its state
+================================================================================
+
+Slice 1 was merged to main (PR #1). This pass is the first Slice 2A room-work
+milestone, creator-directed: make entering a room feel like arriving in a
+place with accumulated work, before any message is sent.
+
+WHAT WAS BUILT (branch slice2a-room-landing)
+
+1. ROOM OVERVIEW (landing block, top of room contents). Derived entirely from
+   persisted world data at render time — never an ephemeral AI claim:
+   - creator-owned room description (see 2)
+   - honest snapshot line: N things (M missing) · N notes · N room events
+   - missing-reality callout naming the things the room has lost contact with
+   - "Since your last visit (<date>)" — real room events that happened
+     between the previous visit and now, or an honest "nothing new"
+   - notes pinned to the room, shown as cards on the landing
+
+2. ROOM DESCRIPTION — durable creator-owned room state on the room record
+   (room.json: description, descriptionUpdatedAt), edited inline, labeled
+   "room description, yours · updated <date>". Changes are room events.
+   Deliberately creator-written, NOT AI-synthesized: an AI-written room
+   state block was considered and deferred — it would be a new guarded
+   action class and needs its own staleness/provenance treatment.
+
+3. VISIT MEMORY — room.json now keeps previousEnteredAt (shifted on every
+   entry), which is what makes "since your last visit" honest rather than
+   decorative.
+
+4. NOTE PINNING — pinned/pinnedAt live on the artifact record. Pin/unpin
+   from cards or the open note; pinning is a room event. Pinned notes live
+   on the room landing; the shelf below lists the rest newest-first
+   (previously oldest-first — revisitation was backwards). Notes created
+   since the previous visit carry a "new since your last visit" badge.
+
+5. WORLD VIEW CARDS carry more room life: description snippet, missing-thing
+   warning, and the room's latest activity line.
+
+6. DEV/TEST AFFORDANCE (not a product surface): PAPERS_OPEN_ROOM=<id|first>
+   opens straight into a room; renderer logs room-render facts for headless
+   verification.
+
+DATA SHAPE: all new state lives in existing Papers records (room.json fields,
+artifact fields, activity events). No new stores, no migration needed —
+missing fields on old records read as absent and render honestly.
+
+VERIFIED: 17/17 unit tests (visit memory, description trail, pin durability/
+idempotence, world-card surfacing); live acceptance walk re-passed end-to-end
+on ollama after all changes; headed render of a seeded real room (real repo
+files, genuine AI note via ollama, pinned) rendered clean.
+
+ACCEPTED LIMITATIONS / DEFERRED
+- The "since your last visit" populated variant is unit-covered but was
+  rendered with zero events in the headed check (truthful quiet variant).
+- AI-written room-state synthesis deferred (see 2).
+- "Reopen into the last room you were in" (app-level continuity) was noted
+  as a real product question and deliberately not decided this run.
+- Room history section itself unchanged (still last 8 quiet lines).
+
+================================================================================
 2026-07-09 (third pass) — engine seam de-Claude-locked; Slice 1 verified LIVE
 ================================================================================
 

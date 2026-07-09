@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('papers', {
   getRoom: (roomId) => ipcRenderer.invoke('room:get', roomId),
   refreshRoom: (roomId) => ipcRenderer.invoke('room:refresh', roomId),
   renameRoom: (roomId, title) => ipcRenderer.invoke('room:rename', roomId, title),
+  setRoomDescription: (roomId, text) => ipcRenderer.invoke('room:setDescription', roomId, text),
+  pinNote: (roomId, artifactId, pinned) => ipcRenderer.invoke('room:pinNote', roomId, artifactId, pinned),
   attachThings: (roomId, kind) => ipcRenderer.invoke('room:attachThings', roomId, kind),
   detachThing: (roomId, thingId) => ipcRenderer.invoke('room:detachThing', roomId, thingId),
   openThing: (roomId, thingId) => ipcRenderer.invoke('room:openThing', roomId, thingId),

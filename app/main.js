@@ -48,6 +48,14 @@ function registerHandlers(getWindow) {
     store.renameRoom(roomId, title)
   );
 
+  ipcMain.handle('room:setDescription', (_e, roomId, text) =>
+    store.setRoomDescription(roomId, text)
+  );
+
+  ipcMain.handle('room:pinNote', (_e, roomId, artifactId, pinned) =>
+    store.setArtifactPinned(roomId, artifactId, pinned)
+  );
+
   // Attach real files/folders via the native picker, so what enters the room
   // is always something that actually exists on the machine right now.
   ipcMain.handle('room:attachThings', async (_e, roomId, kind) => {
@@ -233,7 +241,13 @@ function createWindow() {
     },
   });
   win.setMenuBarVisibility(false);
-  win.loadFile(path.join(__dirname, 'ui', 'index.html'));
+  // Dev/test affordance only: PAPERS_OPEN_ROOM=<roomId|first> opens straight
+  // into a room. Not a product surface.
+  const openRoom = (process.env.PAPERS_OPEN_ROOM || '').trim();
+  win.loadFile(
+    path.join(__dirname, 'ui', 'index.html'),
+    openRoom ? { hash: `open-room=${openRoom}` } : undefined
+  );
   return win;
 }
 

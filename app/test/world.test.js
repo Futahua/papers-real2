@@ -194,6 +194,80 @@ test('the room keeps its own history of what happened, and it survives restart',
   }
 });
 
+test('a room remembers the previous visit so "since your last visit" is honest', () => {
+  const dir = tempDir('visits');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Revisited');
+  const firstEntry = store.markRoomEntered(room.id);
+  const secondEntry = store.markRoomEntered(room.id);
+  assert.equal(secondEntry.previousEnteredAt, firstEntry.lastEnteredAt);
+  // Persisted, not just in memory.
+  const reloaded = new WorldStore(dir).getRoomRecord(room.id);
+  assert.equal(reloaded.previousEnteredAt, firstEntry.lastEnteredAt);
+});
+
+test('the room description is durable room state with an honest trail', () => {
+  const dir = tempDir('desc');
+  {
+    const store = new WorldStore(dir);
+    store.loadWorld();
+    const room = store.createRoom('Described');
+    store.setRoomDescription(room.id, 'Where the garden plans live.');
+    store.setRoomDescription(room.id, 'Where the garden plans live.'); // no-op: no event
+  }
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.listRooms()[0];
+  assert.equal(room.description, 'Where the garden plans live.');
+  assert.ok(room.descriptionUpdatedAt);
+  const described = store.getActivity(room.id).filter((e) => e.kind === 'room-described');
+  assert.equal(described.length, 1, 'a no-op description save logs nothing');
+  store.setRoomDescription(room.id, '');
+  assert.equal(store.getRoomRecord(room.id).description, '');
+  assert.match(store.getActivity(room.id).at(-1).text, /cleared/);
+});
+
+test('pinning a note is durable, event-logged, and idempotent', () => {
+  const dir = tempDir('pin');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Pinboard');
+  const a = store.addArtifact(room.id, { kind: 'room-note', title: 'Keep me', body: '…', provenance: {} });
+  store.setArtifactPinned(room.id, a.id, true);
+  store.setArtifactPinned(room.id, a.id, true); // idempotent: no second event
+  const pinned = new WorldStore(dir).listArtifacts(room.id)[0];
+  assert.equal(pinned.pinned, true);
+  assert.ok(pinned.pinnedAt);
+  const pinEvents = store.getActivity(room.id).filter((e) => e.kind === 'note-pinned');
+  assert.equal(pinEvents.length, 1);
+  store.setArtifactPinned(room.id, a.id, false);
+  const unpinned = store.listArtifacts(room.id)[0];
+  assert.equal(unpinned.pinned, false);
+  assert.equal(unpinned.pinnedAt, null);
+  assert.match(store.getActivity(room.id).at(-1).text, /unpinned/);
+});
+
+test('the world view surfaces each room\'s last activity and missing count', () => {
+  const dir = tempDir('worldcards');
+  const realDir = tempDir('real5');
+  const realFile = path.join(realDir, 'gone-soon.txt');
+  fs.writeFileSync(realFile, 'x');
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Surfaced');
+  store.attachThing(room.id, realFile);
+  fs.rmSync(realFile);
+  store.refreshThings(room.id);
+
+  const card = store.listRooms()[0];
+  assert.equal(card.missingCount, 1);
+  assert.ok(card.lastActivity);
+  assert.match(card.lastActivity.text, /gone-soon\.txt/);
+  assert.ok(card.lastActivity.at);
+});
+
 test('artifact provenance records the real sources it was made from', () => {
   const dir = tempDir('prov');
   const store = new WorldStore(dir);

@@ -123,7 +123,7 @@ REAL2/
 
 ## Current REAL2 status
 
-REAL2 is in **implementation — Slice 1 (one world, one room, real things)**, following `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`, world-first.
+REAL2 is in **implementation — Slice 2A (room work becomes a real room surface)**, following `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`, world-first. **Slice 1 is implemented and merged** (PR #1), with its full flow verified live end-to-end.
 
 Present in the repository now:
 
@@ -132,9 +132,10 @@ Present in the repository now:
 * **Agent constitution** — present
 * **Build order (`PAPERS_NEXT_BUILD_ORDER_V1`)** — present
 * **Prompter / proxy / closeout docs** — present
-* **Application code** — present in [`app/`](app/), Slice 1 in progress
+* **Delta log (`PAPERS_DELTA_LOG`)** — present, the running record of implementation state
+* **Application code** — present in [`app/`](app/)
 
-Slice 1 state (see `app/README.md` and `DOCS/PAPERS_DELTA_LOG.txt` for detail): the persistent world store, minimal Backpack room, truthful file/folder thing references, room-note artifacts with provenance, room-scoped conversation, restart continuity, and the thin engine seam are implemented and tested. Live AI output awaits a one-time engine sign-in (`claude /login`) on the machine; until then the AI reports its absence honestly instead of faking replies.
+Current app state (see `app/README.md` and `DOCS/PAPERS_DELTA_LOG.txt` for the full record): persistent world store; Backpack rooms with truthful file/folder references, durable AI-written room notes with provenance, room-scoped conversation, and a Papers-owned room history; a room landing that greets the creator with the room's own state (description, honest snapshot, missing-reality callout, since-your-last-visit, pinned work). The AI speaks through one Papers-native engine seam with interchangeable runtime backends (Claude Code CLI by default; a local Ollama server as a verified-live alternative). The engine is never the custodian of continuity, and unavailability is reported honestly, never faked.
 
 ---
 

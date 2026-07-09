@@ -3,6 +3,51 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-09 (second pass) — Slice 1 audit: room rebalanced away from chat
+================================================================================
+
+A hard audit of the first Slice 1 commit found early chat-drift seeds and
+truthfulness flaws. Fixed before building further:
+
+1. LAYOUT: the conversation was a fixed always-open panel at ~45% of the
+   room — workbench geometry. Now the room contents (things, notes, history)
+   are the primary full-width surface; the conversation is a fixed 340px,
+   visually quieter, tuckable region. Its collapsed/open state is remembered.
+
+2. TRUTHFULNESS: the renderer used to inject unpersisted "status" entries
+   (e.g. open-a-missing-thing errors) into the conversation view, which
+   presents itself as the persistent room record. Transient errors now render
+   inline, visibly outside the record.
+
+3. ROOM EVENTS BELONG TO THE ROOM: "note created" / "note failed" no longer
+   post into the conversation. New Papers-owned room activity record
+   (rooms/<id>/activity.json, append-only): room created/renamed, thing
+   attached/detached, note created/failed. Displayed as a "Room history"
+   section — the room visibly accumulates a life. (This pulls a small piece
+   of Slice 2A forward; scoped to a plain record + quiet list, no cards or
+   status machinery.)
+
+4. NOTES ARE ROOM OBJECTS: notes now open as an in-room surface (breadcrumb
+   back to room contents), not a modal popup. Note cards show body snippets.
+   The guard/approval dialog remains a modal (appropriate for approval).
+
+5. ROOM IDENTITY: header now carries "A room in this world since <date> ·
+   N things · N notes" under the title.
+
+6. BUGFIX: Escape while renaming a room committed the rename anyway; now it
+   cancels.
+
+Verified: 9/9 tests (new: room history survives restart, no-op renames log
+nothing), smoke boot, headed render clean. The smoke world created in the
+first pass reloaded with the same world id — live cross-restart continuity
+observed, not just unit-tested. Live AI output still awaits `claude /login`.
+
+KNOWN ACCEPTED GAP: the guarded note action reads thing content twice
+(preview, then create) — if a file changes in between, the note reflects
+reality at create time, which is the more truthful of the two; noted here so
+it is a decision, not an accident.
+
+================================================================================
 2026-07-09 — Slice 1 implementation began (first code in REAL2)
 ================================================================================
 

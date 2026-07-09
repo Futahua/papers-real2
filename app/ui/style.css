@@ -122,6 +122,7 @@ textarea { resize: none; }
   gap: 16px;
 }
 .room-header .back { white-space: nowrap; }
+.room-head-main { min-width: 0; }
 .room-title {
   font-size: 24px;
   margin: 0;
@@ -129,26 +130,51 @@ textarea { resize: none; }
   cursor: text;
 }
 .room-title input { font-size: 24px; padding: 0 6px; }
+.room-identity {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin-top: 2px;
+}
 .room-body {
   flex: 1;
   display: flex;
   min-height: 0;
 }
+/* The room's contents are the primary surface… */
 .room-contents {
-  flex: 1.25;
-  overflow-y: auto;
-  padding: 22px 28px;
-  min-width: 0;
-}
-.room-talk {
   flex: 1;
+  overflow-y: auto;
+  padding: 22px 32px;
+  min-width: 0;
+  max-width: 860px;
+}
+/* …and the conversation is one region of the room: fixed-width, quieter,
+   and tuckable. It must never grow into the shell. */
+.room-talk {
+  flex: none;
+  width: 340px;
   border-left: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  min-width: 320px;
-  max-width: 520px;
-  background: var(--card);
+  background: var(--paper-deep);
+  font-size: 14px;
 }
+.room-talk.closed {
+  width: auto;
+  padding: 14px 6px;
+  background: none;
+}
+.room-talk.closed .talk-toggle {
+  writing-mode: vertical-rl;
+  letter-spacing: 0.08em;
+}
+.talk-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 16px 16px 0;
+}
+.talk-head .section-title { margin: 0; }
 
 .section-title {
   font-size: 13px;
@@ -203,7 +229,42 @@ textarea { resize: none; }
 }
 .note-card:hover { border-color: var(--accent); }
 .note-card h3 { margin: 0 0 4px; font-size: 16px; font-weight: normal; }
+.note-snippet { color: var(--ink-soft); font-size: 13px; margin-bottom: 6px; }
 .note-provenance { color: var(--ink-soft); font-size: 12px; }
+
+/* A note opened in the room */
+.note-surface .note-title { font-size: 24px; font-weight: normal; margin: 14px 0 4px; }
+.note-surface .note-body {
+  white-space: pre-wrap;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin: 14px 0 10px;
+}
+.note-surface .note-footer { color: var(--ink-soft); font-size: 12px; }
+
+/* Room history */
+.activity-line {
+  color: var(--ink-soft);
+  font-size: 13px;
+  padding: 3px 0;
+  border-bottom: 1px dotted var(--line);
+}
+.activity-line.failed { color: var(--missing); }
+.activity-line.earlier { border-bottom: none; font-style: italic; }
+.activity-when { color: var(--ink-faint); margin-right: 8px; font-size: 12px; }
+
+/* Transient, visibly-not-part-of-the-record errors */
+.inline-error {
+  color: var(--missing);
+  background: var(--card);
+  border: 1px solid var(--missing);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-top: 8px;
+  font-size: 13px;
+}
 .provenance-chip {
   display: inline-block;
   background: var(--accent-soft);

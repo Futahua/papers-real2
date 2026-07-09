@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('papers', {
   getWorld: () => ipcRenderer.invoke('world:get'),
   createRoom: (title) => ipcRenderer.invoke('world:createRoom', title),
   getRoom: (roomId) => ipcRenderer.invoke('room:get', roomId),
+  refreshRoom: (roomId) => ipcRenderer.invoke('room:refresh', roomId),
   renameRoom: (roomId, title) => ipcRenderer.invoke('room:rename', roomId, title),
   attachThings: (roomId, kind) => ipcRenderer.invoke('room:attachThings', roomId, kind),
   detachThing: (roomId, thingId) => ipcRenderer.invoke('room:detachThing', roomId, thingId),

@@ -151,6 +151,49 @@ test('reading thing content is truthful about truncation and binary data', () =>
   assert.ok(folder.totalEntries >= 2);
 });
 
+test('the room keeps its own history of what happened, and it survives restart', () => {
+  const dir = tempDir('activity');
+  const realDir = tempDir('real4');
+  const realFile = path.join(realDir, 'seen.txt');
+  fs.writeFileSync(realFile, 'seen');
+
+  {
+    const store = new WorldStore(dir);
+    store.loadWorld();
+    const room = store.createRoom('Lived-in');
+    const thing = store.attachThing(room.id, realFile);
+    store.renameRoom(room.id, 'Lived-in properly');
+    store.renameRoom(room.id, 'Lived-in properly'); // no-op rename: no event
+    store.detachThing(room.id, thing.id);
+    store.addArtifact(room.id, {
+      kind: 'room-note',
+      title: 'History note',
+      body: '…',
+      provenance: { createdBy: 'papers-ai', sourceThings: [{ displayName: 'seen.txt' }] },
+    });
+  }
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const roomId = store.listRooms()[0].id;
+  const activity = store.getActivity(roomId);
+  const kinds = activity.map((e) => e.kind);
+  assert.deepEqual(kinds, [
+    'room-created',
+    'thing-attached',
+    'room-renamed',
+    'thing-detached',
+    'note-created',
+  ]);
+  assert.match(activity[1].text, /seen\.txt/);
+  assert.match(activity[3].text, /not touched/);
+  assert.match(activity[4].text, /History note/);
+  for (const e of activity) {
+    assert.ok(e.at, 'every event is timestamped');
+    assert.ok(e.id.startsWith('event_'));
+  }
+});
+
 test('artifact provenance records the real sources it was made from', () => {
   const dir = tempDir('prov');
   const store = new WorldStore(dir);

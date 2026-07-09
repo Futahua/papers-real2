@@ -40,6 +40,9 @@ function registerHandlers(getWindow) {
     return store.getRoomView(roomId);
   });
 
+  // Same view without counting as "entering" — used after in-room actions.
+  ipcMain.handle('room:refresh', (_e, roomId) => store.getRoomView(roomId));
+
   ipcMain.handle('room:rename', (_e, roomId, title) =>
     store.renameRoom(roomId, title)
   );
@@ -137,8 +140,9 @@ function registerHandlers(getWindow) {
     const readings = things.map((thing) => ({ thing, content: readThingContent(thing) }));
     const result = await engine.generateRoomNote(roomContext(roomId), readings);
     if (!result.ok) {
-      store.appendConversation(roomId, { role: 'status', text: result.error });
-      return { ok: false, error: result.error, conversation: store.getConversation(roomId) };
+      // A room event, honestly recorded in the room's own history.
+      store.appendActivity(roomId, 'note-failed', `A room note could not be written: ${result.error}`);
+      return { ok: false, error: result.error, activity: store.getActivity(roomId) };
     }
     const artifact = store.addArtifact(roomId, {
       kind: 'room-note',
@@ -152,15 +156,11 @@ function registerHandlers(getWindow) {
         sourceThings: things.map((t) => ({ displayName: t.displayName, path: t.path, type: t.type })),
       },
     });
-    store.appendConversation(roomId, {
-      role: 'status',
-      text: `Room note created: "${artifact.title}" (from ${things.map((t) => t.displayName).join(', ')}).`,
-    });
     return {
       ok: true,
       artifact,
       artifacts: store.listArtifacts(roomId),
-      conversation: store.getConversation(roomId),
+      activity: store.getActivity(roomId),
     };
   });
 }
@@ -175,7 +175,7 @@ async function smokeCheck() {
   for (const r of rooms) {
     const view = store.getRoomView(r.id);
     console.log(
-      `[papers-smoke] room "${r.title}": ${view.things.length} things, ${view.artifacts.length} artifacts, ${view.conversation.length} conversation entries`
+      `[papers-smoke] room "${r.title}": ${view.things.length} things, ${view.artifacts.length} artifacts, ${view.conversation.length} conversation entries, ${view.activity.length} history events`
     );
   }
   console.log('[papers-smoke] OK');

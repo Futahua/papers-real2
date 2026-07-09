@@ -428,14 +428,14 @@ function deskSectionHtml() {
   } else {
     brief = `<div class="room-desc empty"><button class="quiet" id="brief-edit">Write a brief — what are you working on here right now?</button></div>`;
   }
-  const things = desk.items.filter((i) => i.type === 'thing').map((i) => deskThingRow(i.thing));
-  const notes = desk.items.filter((i) => i.type === 'note').map((i) => deskNoteRow(i.note));
+  // Render desk items in the creator's own desk order — the order is state.
+  const itemRows = desk.items.map((i) => (i.type === 'thing' ? deskThingRow(i.thing) : deskNoteRow(i.note)));
   const canSynthesize = Boolean(desk.brief || desk.items.length);
   return `
     <div class="section desk-section">
       <h2 class="section-title">The Desk — active work</h2>
       ${brief}
-      ${things.join('')}${notes.join('')}
+      ${itemRows.join('')}
       ${!desk.items.length ? '<div class="empty-hint">Nothing on the Desk yet. Use “Put on the Desk” on things and notes below — the Desk is what the AI treats as your active work.</div>' : ''}
       ${desk.workingNote ? workingNoteCard(desk.workingNote) : ''}
       ${inlineError('desk')}
@@ -518,7 +518,7 @@ function noteSurfaceHtml(a) {
         ${a.kind === 'working-note'
           ? `${esc(`working note · begun ${fmtDate(a.createdAt)} · last revised ${fmtDate(a.updatedAt || a.createdAt)}${(a.provenance?.revisions?.length || 0) > 1 ? ` · ${a.provenance.revisions.length} revisions` : ''}`)}`
           : `Written ${fmtDate(a.createdAt)}`}${a.provenance?.engine ? ` · via ${esc(a.provenance.engine)}` : ''}
-        · <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}">${a.pinned ? 'Unpin from the Backpack landing' : 'Pin to the Backpack landing'}</button>
+        ${a.kind === 'working-note' ? '· <span class="ev-gone">lives on the Desk</span>' : `· <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}">${a.pinned ? 'Unpin from the Backpack landing' : 'Pin to the Backpack landing'}</button>`}
       </div>
       <div class="note-body">${esc(a.body)}</div>
       ${noteSourcesHtml(a)}

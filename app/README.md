@@ -4,8 +4,11 @@ This is the REAL2 implementation of **Slice 1 — one world, one room, real thin
 [`DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`](../DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt).
 
 Papers opens into a persistent world. Rooms hold truthful references to real files and
-folders on this machine, a room-scoped conversation, and durable room notes the AI
-writes from those things. Everything survives closing and reopening the app.
+folders on this machine, a room-scoped conversation, durable room notes the AI writes
+from those things, and a Papers-owned room history. Entering a room lands on the room's
+own state: a creator-written description, an honest snapshot, a callout for things the
+room has lost contact with, what happened since your last visit, and the notes pinned
+to the room. Everything survives closing and reopening the app.
 
 ## Run
 

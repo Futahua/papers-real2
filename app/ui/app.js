@@ -18,6 +18,7 @@ const state = {
   openNoteId: null, // when set, the room surface shows this note
   noteSources: null, // { artifactId, rows } — live reality-check of an open note's sources
   selectedThings: new Set(),
+  editingDescription: false,
   thinking: false,
   guard: null, // { items, thingIds }
   inlineError: null, // { scope: 'things' | 'notes', text }
@@ -49,6 +50,12 @@ async function loadWorld() {
   state.rooms = data.rooms;
   render();
   console.log(`[papers-ui] world rendered: "${state.world.name}", ${state.rooms.length} room(s)`);
+  // Dev/test affordance: #open-room=<id|first> jumps straight into a room.
+  const m = location.hash.match(/^#open-room=(.+)$/);
+  if (m && state.rooms.length && state.view === 'world') {
+    location.hash = '';
+    enterRoom(m[1] === 'first' ? state.rooms[0].id : m[1]);
+  }
 }
 
 async function enterRoom(roomId) {
@@ -60,6 +67,10 @@ async function enterRoom(roomId) {
   state.inlineError = null;
   render();
   scrollTalk();
+  const { room, things, artifacts, activity } = state.room;
+  console.log(
+    `[papers-ui] room rendered: "${room.title}" — things=${things.length} missing=${things.filter((t) => t.status === 'missing').length} notes=${artifacts.length} pinned=${artifacts.filter((a) => a.pinned).length} sinceEvents=${room.previousEnteredAt ? activity.filter((e) => e.at > room.previousEnteredAt).length : 'n/a'}`
+  );
 }
 
 async function refreshRoom() {
@@ -85,7 +96,9 @@ function renderWorld() {
       (r) => `
       <div class="room-card" data-room="${esc(r.id)}">
         <h2>${esc(r.title)}</h2>
-        <div class="room-counts">${r.thingCount} thing${r.thingCount === 1 ? '' : 's'} · ${r.artifactCount} note${r.artifactCount === 1 ? '' : 's'}</div>
+        ${r.description ? `<div class="room-card-desc">${esc(r.description.slice(0, 90))}${r.description.length > 90 ? '…' : ''}</div>` : ''}
+        <div class="room-counts">${r.thingCount} thing${r.thingCount === 1 ? '' : 's'}${r.missingCount ? ` <span class="warn">(${r.missingCount} missing)</span>` : ''} · ${r.artifactCount} note${r.artifactCount === 1 ? '' : 's'}</div>
+        ${r.lastActivity ? `<div class="room-counts room-last" title="${esc(r.lastActivity.text)}">${esc(r.lastActivity.text)}</div>` : ''}
         <div class="room-counts">last entered ${fmtDate(r.lastEnteredAt)}</div>
       </div>`
     )
@@ -143,12 +156,24 @@ function thingRow(t) {
     </div>`;
 }
 
+// Is this artifact new since the creator's previous visit to the room?
+function isNewSinceLastVisit(a) {
+  const prev = state.room?.room?.previousEnteredAt;
+  return Boolean(prev && a.createdAt > prev);
+}
+
 function noteCard(a) {
   const from = (a.provenance?.sourceThings || []).map((s) => s.displayName).join(', ');
   const snippet = (a.body || '').replace(/\s+/g, ' ').slice(0, 150);
   return `
-    <div class="note-card" data-note="${esc(a.id)}">
-      <h3>${esc(a.title)}</h3>
+    <div class="note-card ${a.pinned ? 'pinned' : ''}" data-note="${esc(a.id)}">
+      <div class="note-card-head">
+        <h3>${esc(a.title)}</h3>
+        <span class="note-card-tags">
+          ${isNewSinceLastVisit(a) ? '<span class="new-badge">new since your last visit</span>' : ''}
+          <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}" title="${a.pinned ? 'Unpin from the room landing' : 'Pin to the room landing'}">${a.pinned ? 'Unpin' : 'Pin'}</button>
+        </span>
+      </div>
       <div class="note-snippet">${esc(snippet)}${a.body && a.body.length > 150 ? '…' : ''}</div>
       <div class="note-provenance">
         <span class="provenance-chip">Papers AI</span>
@@ -175,13 +200,87 @@ function inlineError(scope) {
   return `<div class="inline-error">${esc(state.inlineError.text)} <button class="quiet" id="dismiss-error">dismiss</button></div>`;
 }
 
-// The room's contents: things, notes, history. This is the primary surface.
+// The room greets you with its own state: description, an honest snapshot,
+// what happened since your last visit, and the work pinned to the room.
+// Everything shown here is derived from persisted world data — never an
+// ephemeral claim.
+function roomOverviewHtml() {
+  const { room, things, artifacts, activity, conversation } = state.room;
+  const missing = things.filter((t) => t.status === 'missing');
+  const prev = room.previousEnteredAt;
+  const sinceEvents = prev ? activity.filter((e) => e.at > prev) : [];
+  const pinned = artifacts
+    .filter((a) => a.pinned)
+    .sort((a, b) => ((a.pinnedAt || '') < (b.pinnedAt || '') ? -1 : 1));
+
+  let desc;
+  if (state.editingDescription) {
+    desc = `
+      <div class="room-desc editing">
+        <textarea id="desc-input" rows="3" placeholder="What is this room for? What lives here?">${esc(room.description || '')}</textarea>
+        <div class="section-actions">
+          <button class="primary" id="desc-save">Save</button>
+          <button id="desc-cancel">Cancel</button>
+        </div>
+      </div>`;
+  } else if (room.description) {
+    desc = `
+      <div class="room-desc">
+        <div class="room-desc-text">${esc(room.description)}</div>
+        <div class="room-desc-meta">room description, yours · updated ${fmtDate(room.descriptionUpdatedAt)} · <button class="quiet" id="desc-edit">edit</button></div>
+      </div>`;
+  } else {
+    desc = `<div class="room-desc empty"><button class="quiet" id="desc-edit">Describe what this room is for…</button></div>`;
+  }
+
+  const snapshot = `
+    <div class="room-snapshot">${things.length} thing${things.length === 1 ? '' : 's'}${missing.length ? ` <span class="warn">(${missing.length} missing)</span>` : ''} · ${artifacts.length} note${artifacts.length === 1 ? '' : 's'} · ${activity.length} room event${activity.length === 1 ? '' : 's'}${conversation.length ? ` · ${conversation.length} conversation entr${conversation.length === 1 ? 'y' : 'ies'}` : ''}</div>`;
+
+  const missingBlock = missing.length
+    ? `<div class="missing-callout">This room has lost contact with ${missing.length} real thing${missing.length === 1 ? '' : 's'}: ${missing.map((t) => esc(t.displayName)).join(', ')}. Details under Things.</div>`
+    : '';
+
+  let sinceBlock = '';
+  if (prev) {
+    if (sinceEvents.length) {
+      const shown = sinceEvents.slice(-5);
+      sinceBlock = `
+        <div class="since-visit">
+          <div class="since-title">Since your last visit (${fmtDate(prev)}):</div>
+          ${shown.map(activityLine).join('')}
+          ${sinceEvents.length > shown.length ? `<div class="activity-line earlier">… and ${sinceEvents.length - shown.length} more, in Room history below.</div>` : ''}
+        </div>`;
+    } else {
+      sinceBlock = `<div class="since-visit quiet-line">Nothing new since your last visit (${fmtDate(prev)}).</div>`;
+    }
+  }
+
+  const pinnedBlock = pinned.length
+    ? `<h2 class="section-title pinned-title">Pinned to this room</h2>${pinned.map(noteCard).join('')}`
+    : '';
+
+  return `
+    <div class="section room-overview">
+      ${desc}
+      ${snapshot}
+      ${missingBlock}
+      ${sinceBlock}
+      ${pinnedBlock}
+    </div>`;
+}
+
+// The room's contents: overview, things, notes, history. This is the
+// primary surface.
 function roomContentsHtml() {
   const { things, artifacts, activity } = state.room;
   const selCount = state.selectedThings.size;
   const recentActivity = activity.slice(-8);
   const earlier = activity.length - recentActivity.length;
+  // Unpinned notes, newest first — revisitation order. Pinned ones live in
+  // the room overview above.
+  const shelfNotes = artifacts.filter((a) => !a.pinned).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   return `
+    ${roomOverviewHtml()}
     <div class="section">
       <h2 class="section-title">Things in this room</h2>
       ${things.length ? things.map(thingRow).join('') : '<div class="empty-hint">Nothing here yet. Attach real files or folders from this machine — Papers keeps references, the originals stay where they are.</div>'}
@@ -194,7 +293,7 @@ function roomContentsHtml() {
     </div>
     <div class="section">
       <h2 class="section-title">Room notes</h2>
-      ${artifacts.length ? artifacts.map(noteCard).join('') : '<div class="empty-hint">No notes yet. Select things above and ask for a room note — what the AI writes stays here.</div>'}
+      ${shelfNotes.length ? shelfNotes.map(noteCard).join('') : artifacts.length ? '<div class="empty-hint">All of this room’s notes are pinned above.</div>' : '<div class="empty-hint">No notes yet. Select things above and ask for a room note — what the AI writes stays here.</div>'}
       ${inlineError('notes')}
     </div>
     <div class="section">
@@ -239,6 +338,7 @@ function noteSurfaceHtml(a) {
       <div class="note-provenance">
         <span class="provenance-chip">Papers AI</span>
         Written ${fmtDate(a.createdAt)}${a.provenance?.engine ? ` · via ${esc(a.provenance.engine)}` : ''}
+        · <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}">${a.pinned ? 'Unpin from the room landing' : 'Pin to the room landing'}</button>
       </div>
       <div class="note-body">${esc(a.body)}</div>
       ${noteSourcesHtml(a)}
@@ -296,7 +396,7 @@ function renderRoom() {
         <button class="quiet back" id="back-to-world">← ${esc(state.world.name)}</button>
         <div class="room-head-main">
           <h1 class="room-title" id="room-title" title="Click to rename">${esc(room.title)}</h1>
-          <div class="room-identity">A room in this world since ${fmtDay(room.createdAt)} · ${things.length} thing${things.length === 1 ? '' : 's'} · ${artifacts.length} note${artifacts.length === 1 ? '' : 's'}</div>
+          <div class="room-identity">A room in this world since ${fmtDay(room.createdAt)}</div>
         </div>
       </div>
       <div class="room-body">
@@ -310,6 +410,15 @@ function renderRoom() {
 
   document.getElementById('back-to-world').addEventListener('click', backToWorld);
   wireRoomTitle(room);
+  // Pin/unpin works wherever a note appears — overview, shelf, or open note.
+  appEl.querySelectorAll('[data-pin-note]').forEach((el) => {
+    el.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await window.papers.pinNote(room.id, el.dataset.pinNote, el.dataset.pinned === '0');
+      await refreshRoom();
+      render();
+    });
+  });
   if (openNote) {
     document.getElementById('close-note').addEventListener('click', () => {
       state.openNoteId = null;
@@ -371,6 +480,34 @@ function wireRoomTitle(room) {
 }
 
 function wireContents(room) {
+  // Room description: creator-owned durable room state.
+  const descEdit = document.getElementById('desc-edit');
+  if (descEdit) {
+    descEdit.addEventListener('click', () => {
+      state.editingDescription = true;
+      render();
+      const input = document.getElementById('desc-input');
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    });
+  }
+  const descSave = document.getElementById('desc-save');
+  if (descSave) {
+    descSave.addEventListener('click', async () => {
+      const text = document.getElementById('desc-input').value;
+      state.room.room = await window.papers.setRoomDescription(room.id, text);
+      state.editingDescription = false;
+      await refreshRoom();
+      render();
+    });
+    document.getElementById('desc-cancel').addEventListener('click', () => {
+      state.editingDescription = false;
+      render();
+    });
+  }
+
   document.getElementById('attach-file').addEventListener('click', () => attach('file'));
   document.getElementById('attach-folder').addEventListener('click', () => attach('folder'));
 

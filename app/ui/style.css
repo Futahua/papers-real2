@@ -187,6 +187,69 @@ textarea { resize: none; }
 .section-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .empty-hint { color: var(--ink-soft); font-style: italic; }
 
+/* Room overview — the landing state of the room */
+.room-overview {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px 14px;
+  margin-bottom: 30px;
+}
+.room-desc-text { white-space: pre-wrap; }
+.room-desc-meta { color: var(--ink-faint); font-size: 12px; margin-top: 4px; }
+.room-desc.empty button { font-style: italic; padding-left: 0; }
+.room-desc.editing textarea { margin-bottom: 0; }
+.room-desc.editing .section-actions { margin-top: 8px; }
+.room-snapshot {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dotted var(--line);
+}
+.warn { color: var(--missing); }
+.missing-callout {
+  color: var(--missing);
+  background: var(--paper);
+  border: 1px dashed var(--missing);
+  border-radius: 6px;
+  padding: 7px 11px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.since-visit { margin-top: 12px; }
+.since-visit .since-title {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+.since-visit.quiet-line { color: var(--ink-faint); font-size: 13px; font-style: italic; }
+.pinned-title { margin-top: 16px; }
+
+/* Note card refinements */
+.note-card.pinned { border-color: var(--accent); background: var(--accent-soft); }
+.note-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.note-card-tags { display: flex; align-items: baseline; gap: 8px; flex: none; }
+.new-badge {
+  background: var(--present);
+  color: #fdfaf3;
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* World-view room card extras */
+.room-card-desc { color: var(--ink-soft); font-size: 13px; margin-bottom: 6px; }
+.room-card .room-last {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+}
+
 /* Things */
 .thing-row {
   display: flex;

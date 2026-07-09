@@ -1,0 +1,72 @@
+PAPERS_DELTA_LOG
+Lightweight cumulative record of material changes to the REAL2 rebuild.
+Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
+
+================================================================================
+2026-07-09 — Slice 1 implementation began (first code in REAL2)
+================================================================================
+
+WHAT CHANGED
+
+1. Implementation was started under the creator's takeover directive, following
+   PAPERS_NEXT_BUILD_ORDER_V1, Slice 1 ("one world, one room, real things"),
+   world-first. All code lives in app/ on branch slice1-world-room-things.
+   No governing doc changed meaning; this entry records implementation facts.
+
+2. Build-order steps 1–4 and 6–7 of Slice 1's internal order are implemented
+   and verified by tests (node --test, 8/8 passing on 2026-07-09):
+   - Papers-owned world store: human-legible JSON under %APPDATA%\Papers\world
+     (override: PAPERS_WORLD_DIR). Layout: world.json, rooms/<id>/room.json,
+     things.json, conversation.json, artifacts/<id>.json. The store is the
+     system of record; no engine transcript holds continuity.
+   - Minimal Backpack room: create / rename / enter / persist, with things,
+     room notes, and room-scoped conversation surfaces.
+   - Truthful thing references: id, real path, display name, file/folder type,
+     origin ("external"), attachedAt / lastCheckedAt, status present/missing —
+     re-verified against the real filesystem at read time and persisted.
+     "Open real location" opens reality; missing items are reported honestly
+     and the button refuses rather than pretending.
+   - Room-note artifacts: durable, provenance-carrying (createdBy: papers-ai,
+     engine id, requestedBy, source things with real paths), visibly Papers-
+     made in the UI ("This note is a Papers artifact, not a file on your
+     machine").
+   - Restart continuity: verified by tests that re-open the same world dir
+     with a fresh store instance.
+
+3. Step 5 (the AI) is implemented but not yet verified live on this machine:
+   - One engine seam: app/engine/adapter.js, calling the locally installed
+     Claude Code CLI in print mode over stdin. Engine vocabulary stops at this
+     file. Papers stores no engine credentials, sessions, or provider state.
+   - Two operations only: room-scoped reply, and the guarded "summarize
+     selected room things into a room note" action (exact-preview + approval
+     before any file content is read and shared; honest truncation/binary/
+     unreadable markers in what the AI is shown).
+   - The engine is NOT signed in on this machine, so the live path today is
+     the honest-failure path (a status line in the room conversation telling
+     the creator to run `claude /login` once). The adapter never fabricates
+     replies. Live AI note generation remains UNVERIFIED until sign-in.
+
+IMPLEMENTATION DECISIONS TAKEN (constitution §5 authority, reversible)
+
+- Electron + plain Node modules, not Tauri. Reasons: one language, no long
+  native first-build in the takeover run, world core testable headless.
+  Not a product commitment; the world store and engine seam are framework-
+  independent plain Node and would survive a shell swap.
+- File-backed JSON world store, not SQLite. The world is deliberately
+  inspectable on the real machine. Revisit only if scale demands it.
+- Engine = local Claude Code CLI print mode. Thinnest possible engine
+  configuration (build order §6.1): sign-in belongs to the engine's own
+  tooling, not to any Papers surface. No provider UI exists anywhere.
+
+WHAT SLICE 1 STILL NEEDS
+
+1. One-time `claude /login` on the machine, then live verification of:
+   room chat replies and the guarded room-note action end-to-end (acceptance
+   flow steps 6–8 of build order §9).
+2. A pass of the full 14-step acceptance flow (§9) by the creator, including
+   the subjective §10.3 "feels like Papers" judgment.
+3. Small hardening as needed after first real use (e.g., world.json write
+   conflicts if two instances run at once — currently unguarded).
+
+FILES: see app/ tree and app/README.md. Root README status section updated
+to "implementation — Slice 1 in progress". Commits on slice1-world-room-things.

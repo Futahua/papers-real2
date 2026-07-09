@@ -308,16 +308,39 @@ textarea { resize: none; }
 .note-surface .note-footer { color: var(--ink-soft); font-size: 12px; }
 .note-made-from { margin-top: 20px; margin-bottom: 16px; }
 
-/* Room history */
-.activity-line {
+/* Room history — the room's life as a readable, navigable timeline */
+.timeline-day {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 12px 0 4px;
+}
+.event-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   color: var(--ink-soft);
   font-size: 13px;
-  padding: 3px 0;
-  border-bottom: 1px dotted var(--line);
+  padding: 3px 0 3px 10px;
+  border-left: 2px solid var(--line);
 }
-.activity-line.failed { color: var(--missing); }
-.activity-line.earlier { border-bottom: none; font-style: italic; }
-.activity-when { color: var(--ink-faint); margin-right: 8px; font-size: 12px; }
+.event-row .event-text { min-width: 0; overflow-wrap: anywhere; }
+.event-row.ev-missing { border-left-color: var(--missing); color: var(--missing); }
+.event-row.ev-good { border-left-color: var(--present); }
+.event-row.ev-note { border-left-color: var(--accent); }
+.event-row.earlier { border-left: none; font-style: italic; }
+.event-actions { flex: none; white-space: nowrap; }
+.ev-gone { color: var(--ink-faint); font-style: italic; font-size: 12px; }
+.visit-divider {
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 10px 0 6px;
+}
+.activity-when { color: var(--ink-faint); margin-right: 2px; font-size: 12px; flex: none; }
 
 /* Transient, visibly-not-part-of-the-record errors */
 .inline-error {

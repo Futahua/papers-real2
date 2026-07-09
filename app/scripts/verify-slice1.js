@@ -110,6 +110,11 @@ async function main() {
   const gone = after.find((t) => t.type === 'file');
   check('deleted real file is reported missing', gone.status === 'missing');
   check('folder is still present', after.find((t) => t.type === 'folder').status === 'present');
+  const missingEvent = store.getActivity(view.room.id).find((e) => e.kind === 'thing-missing');
+  check(
+    'losing contact became a room event with refs',
+    Boolean(missingEvent && missingEvent.refs && missingEvent.refs.path === gone.path)
+  );
 
   console.log(`\nResult: ${failures === 0 ? 'ALL PAPERS-OWNED CHECKS PASSED' : `${failures} CHECK(S) FAILED`}`);
   console.log(`AI path this run: ${artifactId ? 'LIVE (verified end-to-end)' : 'honest failure (runtime unavailable — reported, not faked)'}`);

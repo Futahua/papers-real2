@@ -8,7 +8,10 @@ folders on this machine, a room-scoped conversation, durable room notes the AI w
 from those things, and a Papers-owned room history. Entering a room lands on the room's
 own state: a creator-written description, an honest snapshot, a callout for things the
 room has lost contact with, what happened since your last visit, and the notes pinned
-to the room. Everything survives closing and reopening the app.
+to the room. Room history is a navigable timeline — grouped by day, marked at your
+last visit, honest about reality drift (lost/recovered contact with real things), and
+each event is a path back into the note or real location it is about. Everything
+survives closing and reopening the app.
 
 ## Run
 

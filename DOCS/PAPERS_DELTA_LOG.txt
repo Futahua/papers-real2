@@ -3,6 +3,63 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-09 (fifth pass) — room history becomes a navigable room timeline
+================================================================================
+
+PR #2 merged. This pass deepens the room's accumulated life: room history
+goes from a flat 8-line tail of prose to a navigable, honest timeline, and
+the room's event record itself gets richer. Branch slice2a-room-timeline.
+
+AUDIT FINDINGS THAT DROVE IT (from the merged code)
+- Events were lossy prose: {kind, text, at} only — nothing connected an
+  event to the note or thing it was about.
+- WORST: refreshThings silently flipped things between present and missing
+  with NO activity record. The room's most important truth — losing contact
+  with reality — never entered the room's narrative.
+- Only the last 8 events were visible; older history was persisted but
+  unreachable in the UI.
+- previousEnteredAt existed but history had no visit boundary.
+- No path from an event back into the work it described.
+
+WHAT WAS BUILT
+1. EVENT REFS (data): activity events now optionally carry refs
+   ({noteId, title} and/or {thingId, path, displayName}). All writers
+   updated: attach/detach, note created, pin/unpin. Events without objects
+   (room-created, renamed, described) carry none. Old pre-refs events are
+   rendered as plain lines — no pretense of context that does not exist.
+2. REALITY-TRANSITION EVENTS (truthfulness): refreshThings now logs
+   'thing-missing' ("Lost contact with X — nothing at <path>") and
+   'thing-recovered' ("X is back at <path>") when a thing's status actually
+   changes — once per transition, never per refresh. Reality drift is now
+   part of the room's story.
+3. ROOM TIMELINE (UI): the history section renders newest-first, grouped by
+   day (Today / Yesterday / date), with a "your last visit" divider placed
+   where it truthfully falls, kind-coloring (lost contact red, recovered
+   green, note-work accent), and a show-all/show-fewer toggle over the full
+   persisted record (previously capped at 8 forever).
+4. EVENTS AS PATHS BACK INTO WORK: an event about a note offers "open note"
+   (or says honestly that the note is gone); an event about a real thing
+   offers "open real location" (honest refusal if reality moved on) and
+   says when the thing is no longer attached to the room. The
+   since-your-last-visit landing block uses the same navigable rows.
+
+CONSIDERED AND REJECTED: logging note *views* as activity (surveillance-ish
+feed theater — activity records work, not attention); any separate "feed"
+store (refs live on the same activity.json events).
+
+VERIFIED: 19/19 unit tests (refs durability across restart; missing/
+recovered logged exactly once; no refs on object-less events); live ollama
+acceptance walk re-passed with a new check that losing contact produces a
+refs-carrying room event; headed render of an aged real room (3 things,
+1 genuinely missing, pinned note, 2 since-visit events) clean.
+
+ACCEPTED LIMITATIONS
+- Pre-refs events from earlier worlds render as plain text lines (honest).
+- Timeline day-grouping uses the machine's local sense of "today" against
+  UTC-stored timestamps; day labels can be off near midnight. Cosmetic.
+- 'unknown'-status transitions are not evented (only present<->missing).
+
+================================================================================
 2026-07-09 (fourth pass) — Slice 2A begins: the room greets you with its state
 ================================================================================
 

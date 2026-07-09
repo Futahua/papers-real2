@@ -268,6 +268,64 @@ test('the world view surfaces each room\'s last activity and missing count', () 
   assert.ok(card.lastActivity.at);
 });
 
+test('room events carry refs to the objects they are about, durably', () => {
+  const dir = tempDir('refs');
+  const realDir = tempDir('real6');
+  const realFile = path.join(realDir, 'referred.txt');
+  fs.writeFileSync(realFile, 'x');
+
+  let noteId;
+  {
+    const store = new WorldStore(dir);
+    store.loadWorld();
+    const room = store.createRoom('Referenced');
+    const thing = store.attachThing(room.id, realFile);
+    const note = store.addArtifact(room.id, { kind: 'room-note', title: 'Ref note', body: '…', provenance: {} });
+    noteId = note.id;
+    store.setArtifactPinned(room.id, note.id, true);
+    store.detachThing(room.id, thing.id);
+  }
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const roomId = store.listRooms()[0].id;
+  const byKind = Object.fromEntries(store.getActivity(roomId).map((e) => [e.kind, e]));
+  assert.equal(byKind['thing-attached'].refs.path, path.resolve(realFile));
+  assert.equal(byKind['thing-attached'].refs.displayName, 'referred.txt');
+  assert.equal(byKind['thing-detached'].refs.path, path.resolve(realFile));
+  assert.equal(byKind['note-created'].refs.noteId, noteId);
+  assert.equal(byKind['note-pinned'].refs.noteId, noteId);
+  assert.equal(byKind['room-created'].refs, undefined, 'events without objects carry no refs');
+});
+
+test('losing and regaining contact with a real thing are room events, logged once', () => {
+  const dir = tempDir('transitions');
+  const realDir = tempDir('real7');
+  const realFile = path.join(realDir, 'flicker.txt');
+  fs.writeFileSync(realFile, 'x');
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Flicker');
+  store.attachThing(room.id, realFile);
+
+  fs.rmSync(realFile);
+  store.refreshThings(room.id);
+  store.refreshThings(room.id); // unchanged status: no duplicate event
+  let kinds = store.getActivity(room.id).map((e) => e.kind);
+  assert.equal(kinds.filter((k) => k === 'thing-missing').length, 1);
+  const missingEvent = store.getActivity(room.id).find((e) => e.kind === 'thing-missing');
+  assert.equal(missingEvent.refs.path, path.resolve(realFile));
+  assert.match(missingEvent.text, /Lost contact/);
+
+  fs.writeFileSync(realFile, 'back');
+  store.refreshThings(room.id);
+  store.refreshThings(room.id);
+  kinds = store.getActivity(room.id).map((e) => e.kind);
+  assert.equal(kinds.filter((k) => k === 'thing-recovered').length, 1);
+  assert.match(store.getActivity(room.id).find((e) => e.kind === 'thing-recovered').text, /is back/);
+});
+
 test('artifact provenance records the real sources it was made from', () => {
   const dir = tempDir('prov');
   const store = new WorldStore(dir);

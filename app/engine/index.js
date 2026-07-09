@@ -61,4 +61,13 @@ async function generateRoomNote(context, readings) {
   return { ok: true, title, body, engineLabel: result.engineLabel };
 }
 
-module.exports = { roomReply, generateRoomNote, activeRuntimeId };
+// The Backpack-native action: synthesize the Desk (brief + desk things +
+// desk notes + previous working note) into a revised working note.
+async function synthesizeDesk(context, material) {
+  const result = await complete(prompts.deskSynthesisPrompt(context, material));
+  if (!result.ok) return result;
+  const { title, body } = prompts.parseNoteResponse(result.text);
+  return { ok: true, title, body, engineLabel: result.engineLabel };
+}
+
+module.exports = { roomReply, generateRoomNote, synthesizeDesk, activeRuntimeId };

@@ -3,6 +3,53 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-09 (seventh pass) — the Desk: first inhabited Backpack slice
+================================================================================
+
+Creator-directed leap past "Backpack as persistent container with memory"
+into active work. Branch backpack-desk. Concept doc:
+DOCS/PAPERS_BACKPACK_DESK_V1.txt (new, indexed).
+
+WHAT WAS BUILT
+1. THE DESK (rooms/<id>/desk.json — Papers-owned, durable): the Backpack's
+   active work surface, distinct from its broader contents.
+   - THE BRIEF: creator's current focus in their own words (identity =
+     description; current work = brief). Edited inline; changes are events.
+   - DESK ITEMS: ordered set of things/notes placed on the Desk; on/off the
+     Desk without moving anything in the Backpack; membership changes are
+     refs-carrying events. Detaching a thing prunes it from the Desk.
+   - THE WORKING NOTE: one durable artifact (kind "working-note") the AI
+     revises IN PLACE from the Desk. Same object across revisions;
+     provenance.revisions[] records engine, brief used, and sources per
+     revision; artifact-level sources always reflect the current text.
+2. DESK-GROUNDED ASSISTANT: the AI's serialized context now carries a
+   "THE DESK" block (brief + items with live status + working note) marked
+   as its default working context — replies are grounded in active work,
+   not in an undifferentiated dump. New Backpack-native guarded action:
+   SYNTHESIZE THE DESK → working note. Preview and execution share one
+   material-gathering path, so the preview is exact by construction.
+3. UI: "The Desk — active work" section between the landing overview and
+   the inventory; brief editing; Put on the Desk / Take off affordances on
+   things and notes; working-note card with revision count; missing desk
+   things shown missing on the Desk itself.
+
+VERIFIED
+- 25/25 unit tests (desk continuity/order/dedup, validation, detach prune,
+  working-note in-place revision trail, Desk context serialization,
+  synthesis prompt honesty).
+- scripts/verify-desk.js LIVE on ollama end-to-end: brief + desk →
+  synthesis → working note with full provenance → reality changed → second
+  synthesis revised the SAME artifact (2-revision trail, no note pile) →
+  restart continuity → missing-reality honesty on the Desk.
+- Headed render with populated Desk clean.
+
+ACCEPTED LIMITATIONS / DEFERRED
+- Local qwen model ignored the TITLE line in synthesis; honest fallback
+  title "Working note" used. Cosmetic; better models title properly.
+- One working note per Backpack (deliberate first form — see concept doc).
+- Desk state is not yet consulted by the world view's room cards.
+
+================================================================================
 2026-07-09 (sixth pass) — ontology correction adopted: WORLD / BACKPACK / ROOM
 ================================================================================
 

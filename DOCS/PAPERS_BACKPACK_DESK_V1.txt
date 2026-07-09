@@ -1,0 +1,91 @@
+PAPERS_BACKPACK_DESK_V1
+
+The Desk — the Backpack's active work surface. First-form concept document.
+Introduced 2026-07-09 on the creator's direction to build the first genuinely
+inhabited Backpack slice.
+
+Status
+- Downstream of PAPERS_FOUNDER_BRIEF_V3 and PAPERS_ONTOLOGY_CLARIFICATION_V1.
+- Documents a shipped product concept and its deliberate limits. If a later
+  document supersedes the Desk's first form, it must say so explicitly.
+
+================================================================================
+1. WHAT THE DESK IS
+================================================================================
+
+A Backpack holds everything that belongs to it: things (references to real
+items on the machine), notes, history, conversation. The DESK is the smaller
+set of that material which is the Backpack's ACTIVE WORK right now.
+
+The Desk carries three kinds of state, all Papers-owned and durable:
+
+1. THE BRIEF — the creator's current focus for this Backpack, in their own
+   words. Distinct from the Backpack description: the description says what
+   the Backpack IS; the brief says what the creator is DOING there now.
+
+2. DESK ITEMS — an ordered set of things and notes the creator has placed on
+   the Desk. Putting something on the Desk does not move or copy it; taking
+   it off does not remove it from the Backpack. Desk membership is work
+   state, not storage.
+
+3. THE WORKING NOTE — one durable artifact (kind "working-note") that the AI
+   REVISES IN PLACE from the Desk, instead of littering the Backpack with
+   one-shot summaries. Same object across revisions; every revision is
+   recorded in the artifact's provenance trail (engine, brief used, source
+   things with real paths, source notes, timestamp). The artifact-level
+   source list always reflects what the CURRENT text was made from.
+
+================================================================================
+2. THE ASSISTANT IS DESK-GROUNDED
+================================================================================
+
+The Backpack's AI treats the Desk as its default working context. Its
+serialized context includes the brief, the desk items (with their live
+present/missing status — the Desk never hides missing reality), and the
+working note's existence. Ordinary Backpack conversation is therefore
+grounded in the active work by default, not in an undifferentiated dump of
+everything the Backpack contains.
+
+The Desk's native action is SYNTHESIZE: turn the brief + desk things (read
+truthfully, with capped content and honest truncation markers) + desk notes
++ the previous working note into a revised working note. It is guarded the
+same way as every Papers AI action: an exact preview of precisely what will
+be shared, then explicit approval, then a durable, attributable result.
+Failures are honest and recorded in Backpack history; nothing is ever faked.
+
+================================================================================
+3. TRUTHFULNESS RULES
+================================================================================
+
+- The Desk may only reference objects that actually exist in the Backpack;
+  detaching a thing from the Backpack takes it off the Desk as part of the
+  same recorded event.
+- Desk things are re-verified against reality like all thing references;
+  a missing thing is shown missing on the Desk itself.
+- Desk changes are Backpack events (desk-added, desk-removed,
+  brief-updated, note-updated) carrying refs, so the Backpack's timeline
+  remains a truthful, navigable record of the work.
+- The synthesis preview and the executed action are generated from the same
+  gathering code, so the preview is exact by construction.
+
+================================================================================
+4. WHAT THE DESK IS NOT (first-form limits, stated deliberately)
+================================================================================
+
+This is the FIRST form of Backpack inhabitation, not the final shape of
+Backpacks:
+
+- Not a task manager: no checkboxes, statuses, assignees, or deadlines.
+- Not a claim that every future Backpack is "a desk plus notes". Future
+  Backpack kinds may have entirely different active-work forms; the Desk is
+  the proving slice for "a Backpack knows what is being worked on".
+- Not an autonomous agent surface: the AI acts on the Desk only through the
+  guarded, creator-initiated synthesis action and Desk-grounded replies.
+- One working note per Backpack for now. Multiple parallel work streams per
+  Backpack are a plausible later step, not silently pre-built.
+
+Persistence: rooms/<id>/desk.json ({brief, briefUpdatedAt, items[],
+workingNoteId}). Pre-Desk Backpacks simply have no desk.json and read as an
+empty Desk — no migration needed.
+
+End of PAPERS_BACKPACK_DESK_V1.

@@ -21,4 +21,9 @@ contextBridge.exposeInMainWorld('papers', {
   createNote: (roomId, thingIds) => ipcRenderer.invoke('room:createNote', roomId, thingIds),
   noteSources: (roomId, artifactId) => ipcRenderer.invoke('room:noteSources', roomId, artifactId),
   openRealPath: (realPath) => ipcRenderer.invoke('world:openRealPath', realPath),
+  deskAdd: (roomId, type, id) => ipcRenderer.invoke('desk:add', roomId, type, id),
+  deskRemove: (roomId, type, id) => ipcRenderer.invoke('desk:remove', roomId, type, id),
+  setBrief: (roomId, text) => ipcRenderer.invoke('desk:setBrief', roomId, text),
+  synthesizePreview: (roomId) => ipcRenderer.invoke('desk:synthesizePreview', roomId),
+  synthesize: (roomId) => ipcRenderer.invoke('desk:synthesize', roomId),
 });

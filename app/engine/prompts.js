@@ -9,7 +9,7 @@
 // Serialize room context truthfully. Statuses come from the world store's
 // freshly checked references — the AI is told what is present and what is
 // missing, never a prettied-up version.
-function roomContextBlock({ world, room, things, artifacts, conversation }) {
+function roomContextBlock({ world, room, things, artifacts, conversation, desk }) {
   const lines = [];
   lines.push(
     "You are the AI presence inside Papers, the creator's personal world layer over their computer."
@@ -18,6 +18,23 @@ function roomContextBlock({ world, room, things, artifacts, conversation }) {
     `You are currently inside the Backpack "${room.title}" — a persistent Papers place in the world "${world.name}".`
   );
   lines.push('');
+  if (desk && (desk.brief || desk.items.length || desk.workingNote)) {
+    lines.push("THE DESK — this Backpack's active work right now. Treat it as your default working context:");
+    if (desk.brief) {
+      lines.push(`Current brief (the creator's own words): ${desk.brief}`);
+    }
+    for (const item of desk.items) {
+      if (item.type === 'thing') {
+        lines.push(`- on the Desk: ${item.thing.displayName} — ${item.thing.type}, ${item.thing.status}, at ${item.thing.path}`);
+      } else {
+        lines.push(`- on the Desk: the note "${item.note.title}"`);
+      }
+    }
+    if (desk.workingNote) {
+      lines.push(`- the working note: "${desk.workingNote.title}" (the durable note you revise from this Desk)`);
+    }
+    lines.push('');
+  }
   if (things.length) {
     lines.push("Things attached to this Backpack (references to real items on the creator's machine):");
     for (const t of things) {
@@ -95,4 +112,48 @@ function parseNoteResponse(text) {
   return { title: null, body: text };
 }
 
-module.exports = { roomContextBlock, replyPrompt, notePrompt, parseNoteResponse };
+// The Desk synthesis action: turn the Backpack's active work — brief, desk
+// things (read truthfully), desk notes, and the previous working note if
+// one exists — into one revised working note.
+function deskSynthesisPrompt(context, { readings, deskNotes, previousNote }) {
+  const parts = [roomContextBlock(context)];
+  parts.push('');
+  parts.push(
+    'The creator asked you to synthesize the Desk — this Backpack\'s active work — into the working note. ' +
+      'Below is exactly what was read just now; truncation and unreadable content are marked honestly.'
+  );
+  if (context.desk?.brief) {
+    parts.push('');
+    parts.push(`=== The brief (the creator's current focus, in their words) ===`);
+    parts.push(context.desk.brief);
+  }
+  for (const { thing, content } of readings) {
+    parts.push('');
+    parts.push(`=== Desk thing: ${thing.displayName} (${thing.type}, at ${thing.path}) ===`);
+    parts.push(content.text);
+  }
+  for (const note of deskNotes) {
+    parts.push('');
+    parts.push(`=== Desk note: "${note.title}" ===`);
+    parts.push(note.body);
+  }
+  if (previousNote) {
+    parts.push('');
+    parts.push(`=== The current working note (your previous synthesis — evolve it, do not start from scratch) ===`);
+    parts.push(previousNote.body);
+  }
+  parts.push('');
+  parts.push(
+    'Write the revised working note now. First line must be exactly "TITLE: " followed by a short title for the active work. ' +
+      'Then a blank line, then the note body in plain text. Cover: what this work is, its current state, what is unresolved or missing, ' +
+      'and sensible next steps — grounded only in the material above. ' +
+      (previousNote
+        ? 'Carry forward what is still true from the previous working note and revise what has changed. '
+        : '') +
+      'If content was truncated, binary, or unreadable, reflect that honestly. ' +
+      'Output only the note itself — no reasoning steps, no preamble, no meta-commentary.'
+  );
+  return parts.join('\n');
+}
+
+module.exports = { roomContextBlock, replyPrompt, notePrompt, deskSynthesisPrompt, parseNoteResponse };

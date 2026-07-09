@@ -243,6 +243,7 @@ textarea { resize: none; }
   margin: 14px 0 10px;
 }
 .note-surface .note-footer { color: var(--ink-soft); font-size: 12px; }
+.note-made-from { margin-top: 20px; margin-bottom: 16px; }
 
 /* Room history */
 .activity-line {

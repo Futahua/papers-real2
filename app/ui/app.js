@@ -16,6 +16,7 @@ const state = {
   roomId: null,
   room: null, // { room, things, artifacts, conversation, activity }
   openNoteId: null, // when set, the room surface shows this note
+  noteSources: null, // { artifactId, rows } — live reality-check of an open note's sources
   selectedThings: new Set(),
   thinking: false,
   guard: null, // { items, thingIds }
@@ -204,22 +205,59 @@ function roomContentsHtml() {
 }
 
 // A note opened as a room surface of its own — an object in the room, not a
-// popup over it.
+// popup over it. Its sources are shown as live references, re-checked
+// against reality, not as dead text.
+function noteSourceRow(s) {
+  return `
+    <div class="thing-row">
+      <span class="status-dot ${esc(s.status)}" title="${esc(s.status)}"></span>
+      <span class="thing-main">
+        <span class="thing-name">${esc(s.displayName)} <span class="preview-detail">· ${esc(s.type)}${s.attached ? '' : ' · no longer attached to this room'}</span></span>
+        <span class="thing-path" title="${esc(s.path)}">${esc(s.path)}</span>
+        ${s.status === 'missing' ? '<span class="thing-missing-note">missing — nothing exists at this path right now</span>' : ''}
+      </span>
+      <button class="quiet" data-open-source="${esc(s.path)}" ${s.status !== 'present' ? 'disabled title="The real item is missing"' : 'title="Open the real location on this machine"'}>Open real location</button>
+    </div>`;
+}
+
+function noteSourcesHtml(a) {
+  if (!a.provenance?.sourceThings?.length) return '';
+  const loaded = state.noteSources && state.noteSources.artifactId === a.id;
+  return `
+    <div class="section note-made-from">
+      <h2 class="section-title">Made from</h2>
+      ${loaded ? state.noteSources.rows.map(noteSourceRow).join('') : '<div class="empty-hint">Checking the real sources…</div>'}
+      ${inlineError('note')}
+    </div>`;
+}
+
 function noteSurfaceHtml(a) {
-  const sources = (a.provenance?.sourceThings || [])
-    .map((s) => `${s.displayName} (${s.path})`)
-    .join('; ');
   return `
     <div class="note-surface">
       <button class="quiet" id="close-note">← Back to room contents</button>
       <h2 class="note-title">${esc(a.title)}</h2>
       <div class="note-provenance">
         <span class="provenance-chip">Papers AI</span>
-        Written ${fmtDate(a.createdAt)}${sources ? ` from: ${esc(sources)}` : ''}
+        Written ${fmtDate(a.createdAt)}${a.provenance?.engine ? ` · via ${esc(a.provenance.engine)}` : ''}
       </div>
       <div class="note-body">${esc(a.body)}</div>
+      ${noteSourcesHtml(a)}
       <div class="note-footer">This note is a Papers artifact kept in this room — not a file on your machine.</div>
     </div>`;
+}
+
+async function loadNoteSources(artifactId) {
+  const result = await window.papers.noteSources(state.roomId, artifactId);
+  if (state.openNoteId !== artifactId) return; // the creator moved on
+  state.noteSources = { artifactId, rows: result.ok ? result.sources : [] };
+  render();
+}
+
+function openNoteSurface(artifactId) {
+  state.openNoteId = artifactId;
+  state.noteSources = null;
+  render();
+  loadNoteSources(artifactId);
 }
 
 function talkPanelHtml() {
@@ -275,7 +313,18 @@ function renderRoom() {
   if (openNote) {
     document.getElementById('close-note').addEventListener('click', () => {
       state.openNoteId = null;
+      state.noteSources = null;
+      state.inlineError = null;
       render();
+    });
+    appEl.querySelectorAll('[data-open-source]').forEach((el) => {
+      el.addEventListener('click', async () => {
+        const result = await window.papers.openRealPath(el.dataset.openSource);
+        state.inlineError = result.ok ? null : { scope: 'note', text: result.error };
+        // Re-check the sources — reality may have just changed.
+        loadNoteSources(openNote.id);
+        render();
+      });
     });
   } else {
     wireContents(room);
@@ -365,10 +414,7 @@ function wireContents(room) {
   });
 
   appEl.querySelectorAll('[data-note]').forEach((el) => {
-    el.addEventListener('click', () => {
-      state.openNoteId = el.dataset.note;
-      render();
-    });
+    el.addEventListener('click', () => openNoteSurface(el.dataset.note));
   });
 }
 
@@ -474,11 +520,11 @@ function wireGuard() {
     if (result.ok) {
       state.room.artifacts = result.artifacts;
       state.selectedThings = new Set();
-      state.openNoteId = result.artifact.id;
       state.inlineError = null;
-    } else {
-      state.inlineError = { scope: 'notes', text: result.error };
+      openNoteSurface(result.artifact.id);
+      return;
     }
+    state.inlineError = { scope: 'notes', text: result.error };
     render();
   });
 }

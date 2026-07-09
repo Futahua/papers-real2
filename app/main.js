@@ -6,11 +6,12 @@
 // store (Papers-owned, on disk) is the system of record; the UI and the AI
 // engine are both clients of it.
 
+const fs = require('node:fs');
 const path = require('node:path');
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const { WorldStore } = require('./world/store');
 const { readThingContent } = require('./world/things');
-const engine = require('./engine/adapter');
+const engine = require('./engine');
 
 const worldDir =
   process.env.PAPERS_WORLD_DIR ||
@@ -88,6 +89,44 @@ function registerHandlers(getWindow) {
     return { ok: true, things };
   });
 
+  // The real state, right now, of the sources a note was made from. A note
+  // stays honestly connected to reality: each source is re-checked against
+  // the filesystem and against the room's current things.
+  ipcMain.handle('room:noteSources', (_e, roomId, artifactId) => {
+    const artifact = store.listArtifacts(roomId).find((a) => a.id === artifactId);
+    if (!artifact) return { ok: false, error: 'That note is not in this room.' };
+    const things = store.listThings(roomId);
+    const sources = (artifact.provenance?.sourceThings || []).map((s) => {
+      let status = 'missing';
+      let type = s.type;
+      try {
+        const st = fs.statSync(s.path);
+        status = 'present';
+        type = st.isDirectory() ? 'folder' : 'file';
+      } catch {}
+      return {
+        displayName: s.displayName,
+        path: s.path,
+        type,
+        status,
+        attached: things.some((t) => t.path === s.path),
+      };
+    });
+    return { ok: true, sources };
+  });
+
+  // Open a real location by path — honest refusal if reality moved on.
+  ipcMain.handle('world:openRealPath', async (_e, realPath) => {
+    try {
+      const st = fs.statSync(realPath);
+      if (st.isDirectory()) await shell.openPath(realPath);
+      else shell.showItemInFolder(realPath);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: `Nothing exists at ${realPath} any more.` };
+    }
+  });
+
   ipcMain.handle('room:say', async (_e, roomId, text) => {
     store.appendConversation(roomId, { role: 'creator', text });
     const result = await engine.roomReply(roomContext(roomId), text);
@@ -95,7 +134,7 @@ function registerHandlers(getWindow) {
       store.appendConversation(roomId, {
         role: 'ai',
         text: result.text,
-        meta: { engine: engine.ENGINE_ID },
+        meta: { engine: result.engineLabel },
       });
     } else {
       store.appendConversation(roomId, { role: 'status', text: result.error });
@@ -150,7 +189,7 @@ function registerHandlers(getWindow) {
       body: result.body,
       provenance: {
         createdBy: 'papers-ai',
-        engine: engine.ENGINE_ID,
+        engine: result.engineLabel,
         requestedBy: 'creator',
         sourceThingIds: things.map((t) => t.id),
         sourceThings: things.map((t) => ({ displayName: t.displayName, path: t.path, type: t.type })),

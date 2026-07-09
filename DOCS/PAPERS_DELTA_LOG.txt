@@ -3,6 +3,52 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-09 (third pass) — engine seam de-Claude-locked; Slice 1 verified LIVE
+================================================================================
+
+1. ENGINE REFACTOR (creator-directed). The AI layer is no longer structurally
+   "Claude = Papers AI". New shape:
+   - app/engine/index.js — the Papers-facing contract (reply in room, write
+     room note from room things) and runtime selection. The only door.
+   - app/engine/prompts.js — runtime-neutral Papers→text serialization.
+   - app/engine/runtimes/claude-cli.js — Claude Code CLI is now ONE backend;
+     its binary, sign-in, and error vocabulary are contained there.
+   - app/engine/runtimes/ollama.js — second backend: local Ollama server.
+   Runtime selection is dev-level env config, no product surface:
+   PAPERS_ENGINE = claude-cli (default) | ollama, plus PAPERS_ENGINE_URL /
+   PAPERS_ENGINE_MODEL for ollama. Default stays claude-cli (most capable
+   path once signed in). Provenance now records the runtime that actually
+   generated each note/reply (e.g. "ollama (qwen-unsloth:latest)").
+
+2. SLICE 1 VERIFIED LIVE END-TO-END. New headless acceptance harness
+   (app/scripts/verify-slice1.js) walks build order §9 minus native UI steps.
+   Results on this machine, 2026-07-09:
+   - PAPERS_ENGINE=ollama (local qwen-unsloth model): ALL checks passed with
+     the AI path LIVE — real room reply + real AI-written room note with
+     truthful provenance, surviving restart. Slice 1's AI leg is no longer
+     unverified.
+   - default claude-cli: all Papers-owned checks passed; AI path reported an
+     honest failure (still not signed in). Sign-in detection fixed (the CLI
+     prints "Not logged in" to stdout, not stderr).
+   - Unit tests 13/13 (new: unknown-runtime and unreachable-runtime honesty,
+     Papers-native prompt serialization, TITLE parsing fallback).
+
+3. ROOM-FIRST MILESTONE: note sources are now live references. An open room
+   note shows a "Made from" section where each source is re-checked against
+   reality at view time: present/missing status, open-real-location, and an
+   honest "no longer attached to this room" tag when the room moved on. The
+   note surface also names the runtime that wrote it. Artifacts stay
+   truthfully connected to the world they came from.
+
+4. Prompt discipline (runtime-neutral): local models leaked reasoning
+   preambles into replies; prompts now demand output-only. Known limitation:
+   small local models may still ignore the TITLE format — the honest
+   fallback title covers that.
+
+KNOWN STATE: claude-cli remains unsigned on this machine; ollama path is the
+live one. No runtime UI exists anywhere, deliberately.
+
+================================================================================
 2026-07-09 (second pass) — Slice 1 audit: room rebalanced away from chat
 ================================================================================
 

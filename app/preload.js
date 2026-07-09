@@ -17,4 +17,6 @@ contextBridge.exposeInMainWorld('papers', {
   say: (roomId, text) => ipcRenderer.invoke('room:say', roomId, text),
   notePreview: (roomId, thingIds) => ipcRenderer.invoke('room:notePreview', roomId, thingIds),
   createNote: (roomId, thingIds) => ipcRenderer.invoke('room:createNote', roomId, thingIds),
+  noteSources: (roomId, artifactId) => ipcRenderer.invoke('room:noteSources', roomId, artifactId),
+  openRealPath: (realPath) => ipcRenderer.invoke('world:openRealPath', realPath),
 });

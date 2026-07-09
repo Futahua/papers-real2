@@ -23,14 +23,28 @@ npm start
 
 ## The AI
 
-The AI inside rooms is powered through one thin engine seam
-([`engine/adapter.js`](engine/adapter.js)) that calls the locally installed Claude Code
-CLI in print mode. Papers stores **no** engine credentials, sessions, or provider
-state; the Papers world store is the only custodian of continuity.
+The AI inside rooms speaks through one Papers-native engine seam
+([`engine/index.js`](engine/index.js)): reply in room context, write a room note from
+selected room things. Underneath, interchangeable runtime backends implement a tiny
+text-in/text-out contract. Papers stores **no** runtime credentials, sessions, or
+provider state; the Papers world store is the only custodian of continuity, and every
+AI-made note records which runtime actually wrote it.
 
-One-time setup on a new machine: open a terminal, run `claude`, sign in with `/login`.
-Until then, rooms work fully — attach things, open real locations, everything persists —
-and the AI reports honestly that it is not signed in rather than faking replies.
+Runtime selection is a dev-level environment variable, not a product surface:
+
+| `PAPERS_ENGINE` | Backend | Needs |
+|---|---|---|
+| `claude-cli` (default) | locally installed Claude Code CLI, print mode | one-time `claude` → `/login` |
+| `ollama` | local Ollama server | Ollama running; optional `PAPERS_ENGINE_URL` (default `http://127.0.0.1:11434`) and `PAPERS_ENGINE_MODEL` (default: first installed model) |
+
+If the selected runtime is unavailable, rooms keep working fully — attach things, open
+real locations, everything persists — and the AI reports honestly that it cannot
+respond rather than faking replies.
+
+**Acceptance walk:** `node scripts/verify-slice1.js` runs the Slice 1 flow headless
+(world → room → real things → AI reply → guarded note → restart → missing-reference
+truthfulness) against whichever runtime is selected, and reports the AI path honestly
+as LIVE or as an honest failure.
 
 ## Layout
 
@@ -43,7 +57,13 @@ app/
 │   ├── things.js      Truthful references to real machine items
 │   └── ids.js
 ├── engine/
-│   └── adapter.js     The one engine seam. Engine vocabulary stops here.
+│   ├── index.js       The one engine seam: Papers-native actions, runtime selection
+│   ├── prompts.js     Papers → text serialization (runtime-neutral)
+│   └── runtimes/      Backend per runtime; vendor vocabulary stops here
+│       ├── claude-cli.js
+│       └── ollama.js
+├── scripts/
+│   └── verify-slice1.js  Headless Slice 1 acceptance walk
 ├── ui/                World-first shell: world view → room surface
 └── test/              Continuity + truthfulness tests (node --test)
 ```

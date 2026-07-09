@@ -108,6 +108,7 @@ Not all docs have equal weight.
 **High authority**
 
 2. Explicit correction/supersession docs that clearly say they override the founder brief on a specific point.
+   * `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — canonical WORLD / BACKPACK / ROOM vocabulary (a clarification consistent with the founder brief; binding on implementation vocabulary, docs, and milestone framing).
 
 **Operational rebuild authority**
 
@@ -131,6 +132,7 @@ These are behavioral and continuity docs. They matter a lot, but they do not out
 
 * `PAPERS_REPO_DECISION_AUDIT_V1.txt`
 * `PAPERS_NEXT_BUILD_ORDER_V1.txt`
+* `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — canonical WORLD / BACKPACK / ROOM vocabulary correction
 * `PAPERS_DELTA_LOG.txt` — lightweight cumulative record of material changes (newest first)
 * `PROMPTER/PAPERS_FOUNDER_BRIEF.txt`
 * `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt`

@@ -3,6 +3,44 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-09 (sixth pass) — ontology correction adopted: WORLD / BACKPACK / ROOM
+================================================================================
+
+The creator issued a binding vocabulary correction: Backpacks are the core
+Papers-native organizing unit; the world is the real machine-and-life
+substrate Papers lives over; "room" is only a provisional implementation
+word for the first Backpack surface. Canonical text:
+DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt (new, indexed in DOCS/README.md
+under correction/clarification docs).
+
+DRIFT ACKNOWLEDGED: the Slice 1 / Slice 2A implementation had made "room"
+the de facto product noun in UI copy, AI-facing context, activity text, and
+docs. That drift was real and is corrected in this pass.
+
+WHAT CHANGED (branch backpack-ontology, stacked on slice2a-room-timeline)
+1. New governing doc PAPERS_ONTOLOGY_CLARIFICATION_V1.txt.
+2. All user-facing UI copy now says Backpack (creation flow, landing,
+   sections "Things in this Backpack" / "Backpack notes" / "Backpack
+   history" / "Backpack conversation", identity line, pin labels, guard
+   dialog, honest-status strings, note surface).
+3. AI-facing context (engine/prompts.js) now teaches the AI the correct
+   ontology: it is inside a Backpack, a persistent Papers place in the
+   world.
+4. Newly written activity events use Backpack wording ("Backpack renamed",
+   "The AI wrote the Backpack note …", "pinned to the Backpack").
+   Historical events persisted with old "room" wording are a truthful
+   record and were NOT rewritten.
+5. READMEs (root + app) reframed Backpack-first, with the room-as-
+   implementation-label tolerance stated explicitly.
+
+DELIBERATELY NOT RENAMED (implementation tolerance per the clarification,
+so this is a decision, not drift): code identifiers (roomId, WorldStore
+methods), IPC channel names (room:*), persisted schema labels (rooms/
+directory, room.json, artifact kind "room-note", activity kinds
+room-created/renamed/described), CSS class names. New modules/channels/
+labels should prefer Backpack naming where it avoids schema churn.
+
+================================================================================
 2026-07-09 (fifth pass) — room history becomes a navigable room timeline
 ================================================================================
 

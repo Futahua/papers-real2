@@ -3,15 +3,20 @@
 This is the REAL2 implementation of **Slice 1 — one world, one room, real things** from
 [`DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`](../DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt).
 
-Papers opens into a persistent world. Rooms hold truthful references to real files and
-folders on this machine, a room-scoped conversation, durable room notes the AI writes
-from those things, and a Papers-owned room history. Entering a room lands on the room's
-own state: a creator-written description, an honest snapshot, a callout for things the
-room has lost contact with, what happened since your last visit, and the notes pinned
-to the room. Room history is a navigable timeline — grouped by day, marked at your
-last visit, honest about reality drift (lost/recovered contact with real things), and
-each event is a path back into the note or real location it is about. Everything
-survives closing and reopening the app.
+Papers opens into a persistent world — the Papers-owned layer over this real machine.
+**Backpacks** are the Papers-native places within it (see
+[`DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt`](../DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt));
+what the code calls a "room" is the first implemented Backpack surface, and `room`
+survives in identifiers, IPC channels, and schema labels as an implementation label
+only. A Backpack holds truthful references to real files and folders, a Backpack-scoped
+conversation, durable Backpack notes the AI writes from those things, and a
+Papers-owned Backpack history. Entering a Backpack lands on its own state: a
+creator-written description, an honest snapshot, a callout for things it has lost
+contact with, what happened since your last visit, and the notes pinned to it.
+Backpack history is a navigable timeline — grouped by day, marked at your last visit,
+honest about reality drift (lost/recovered contact with real things), and each event
+is a path back into the note or real location it is about. Everything survives closing
+and reopening the app.
 
 ## Run
 

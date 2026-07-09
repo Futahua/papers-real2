@@ -42,7 +42,7 @@ function withEnv(vars, fn) {
 
 test('room context is serialized in Papers terms, truthfully', () => {
   const block = prompts.roomContextBlock(context);
-  assert.match(block, /room "Test room"/);
+  assert.match(block, /Backpack "Test room"/);
   assert.match(block, /world "Test world"/);
   assert.match(block, /a\.txt — file, present/);
   assert.match(block, /lost\.txt — file, missing/); // missing is told, not hidden

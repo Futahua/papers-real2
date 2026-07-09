@@ -326,6 +326,110 @@ test('losing and regaining contact with a real thing are room events, logged onc
   assert.match(store.getActivity(room.id).find((e) => e.kind === 'thing-recovered').text, /is back/);
 });
 
+test('the Desk — brief, items, working note — survives restart in order', () => {
+  const dir = tempDir('desk');
+  const realDir = tempDir('real8');
+  const fileA = path.join(realDir, 'a.txt');
+  const fileB = path.join(realDir, 'b.txt');
+  fs.writeFileSync(fileA, 'a');
+  fs.writeFileSync(fileB, 'b');
+
+  let ids = {};
+  {
+    const store = new WorldStore(dir);
+    store.loadWorld();
+    const room = store.createRoom('Desk room');
+    const ta = store.attachThing(room.id, fileA);
+    const tb = store.attachThing(room.id, fileB);
+    const note = store.addArtifact(room.id, { kind: 'room-note', title: 'Desk note', body: 'x', provenance: {} });
+    store.setBrief(room.id, 'Finish the gate plan.');
+    store.addToDesk(room.id, 'thing', tb.id);
+    store.addToDesk(room.id, 'note', note.id);
+    store.addToDesk(room.id, 'thing', ta.id);
+    store.addToDesk(room.id, 'thing', ta.id); // dedup: no double entry
+    ids = { roomId: room.id, ta: ta.id, tb: tb.id, note: note.id };
+  }
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const desk = store.getDeskView(ids.roomId);
+  assert.equal(desk.brief, 'Finish the gate plan.');
+  assert.ok(desk.briefUpdatedAt);
+  assert.deepEqual(
+    desk.items.map((i) => (i.type === 'thing' ? i.thing.id : i.note.id)),
+    [ids.tb, ids.note, ids.ta],
+    'desk order is preserved and deduplicated'
+  );
+  const kinds = store.getActivity(ids.roomId).map((e) => e.kind);
+  assert.equal(kinds.filter((k) => k === 'brief-updated').length, 1);
+  assert.equal(kinds.filter((k) => k === 'desk-added').length, 3);
+});
+
+test('adding a non-existent object to the Desk is refused, and removal logs an event', () => {
+  const dir = tempDir('deskval');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Strict desk');
+  assert.throws(() => store.addToDesk(room.id, 'thing', 'thing_nope'), /No such thing/);
+  assert.throws(() => store.addToDesk(room.id, 'note', 'artifact_nope'), /No such note/);
+  const note = store.addArtifact(room.id, { kind: 'room-note', title: 'On off', body: 'x', provenance: {} });
+  store.addToDesk(room.id, 'note', note.id);
+  store.removeFromDesk(room.id, 'note', note.id);
+  assert.equal(store.getDesk(room.id).items.length, 0);
+  const last = store.getActivity(room.id).at(-1);
+  assert.equal(last.kind, 'desk-removed');
+  assert.match(last.text, /stays in the Backpack/);
+  assert.equal(last.refs.noteId, note.id);
+});
+
+test('detaching a thing also takes it off the Desk', () => {
+  const dir = tempDir('deskdetach');
+  const realDir = tempDir('real9');
+  const file = path.join(realDir, 'gone.txt');
+  fs.writeFileSync(file, 'x');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Prune');
+  const thing = store.attachThing(room.id, file);
+  store.addToDesk(room.id, 'thing', thing.id);
+  store.detachThing(room.id, thing.id);
+  assert.equal(store.getDesk(room.id).items.length, 0);
+});
+
+test('the working note is revised in place with an honest revision trail', () => {
+  const dir = tempDir('working');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Working');
+  const first = store.addArtifact(room.id, {
+    kind: 'working-note',
+    title: 'Plan v1',
+    body: 'First synthesis.',
+    provenance: { createdBy: 'papers-ai', engine: 'test', revisions: [{ at: 'x', engine: 'test' }] },
+  });
+  store.setWorkingNote(room.id, first.id);
+  const updated = store.updateArtifact(room.id, first.id, {
+    title: 'Plan v2',
+    body: 'Second synthesis.',
+    revision: { engine: 'test-2', sourceThings: [{ displayName: 'b.txt', path: 'C:\\b.txt', type: 'file' }] },
+  });
+  assert.equal(updated.id, first.id, 'same durable object');
+  assert.equal(updated.title, 'Plan v2');
+  assert.ok(updated.updatedAt);
+  assert.equal(updated.provenance.revisions.length, 2);
+  assert.equal(updated.provenance.engine, 'test-2');
+  assert.equal(updated.provenance.sourceThings[0].displayName, 'b.txt');
+
+  // Restart: still one artifact, revised, and still the Desk's working note.
+  const reopened = new WorldStore(dir);
+  reopened.loadWorld();
+  const desk = reopened.getDeskView(room.id);
+  assert.equal(desk.workingNote.id, first.id);
+  assert.equal(desk.workingNote.body, 'Second synthesis.');
+  assert.equal(reopened.listArtifacts(room.id).length, 1);
+  assert.equal(reopened.getActivity(room.id).at(-1).kind, 'note-updated');
+});
+
 test('artifact provenance records the real sources it was made from', () => {
   const dir = tempDir('prov');
   const store = new WorldStore(dir);

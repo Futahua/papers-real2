@@ -19,6 +19,7 @@
 //     rooms/<roomId>/things.json          references to real machine things
 //     rooms/<roomId>/conversation.json    room-scoped conversation record
 //     rooms/<roomId>/activity.json        room history: what happened here, when
+//     rooms/<roomId>/desk.json            the Backpack's active work surface
 //     rooms/<roomId>/artifacts/<id>.json  durable room artifacts (room notes)
 
 const fs = require('node:fs');
@@ -187,6 +188,13 @@ class WorldStore {
     const things = this.listThings(roomId);
     const thing = things.find((t) => t.id === thingId);
     this.saveThings(roomId, things.filter((t) => t.id !== thingId));
+    // Leaving the Backpack means leaving the Desk too; the detach event
+    // below covers both.
+    const desk = this.getDesk(roomId);
+    if (desk.items.some((i) => i.type === 'thing' && i.id === thingId)) {
+      desk.items = desk.items.filter((i) => !(i.type === 'thing' && i.id === thingId));
+      this.saveDesk(roomId, desk);
+    }
     if (thing) {
       this.appendActivity(roomId, 'thing-detached', `Removed the reference to "${thing.displayName}" (the real ${thing.type} was not touched)`, {
         thingId: thing.id,
@@ -257,9 +265,176 @@ class WorldStore {
     this.appendActivity(
       roomId,
       'note-created',
-      `The AI wrote the Backpack note "${artifact.title}"${sources ? ` from ${sources}` : ''}`,
+      `The AI wrote the ${artifact.kind === 'working-note' ? 'working note' : 'Backpack note'} "${artifact.title}"${sources ? ` from ${sources}` : ''}`,
       { noteId: artifact.id, title: artifact.title }
     );
+    return artifact;
+  }
+
+  // --- The Desk: the Backpack's active work surface ----------------------
+  // The Desk is what the creator is working on right now, as opposed to
+  // everything the Backpack holds. It carries a brief (the current focus,
+  // in the creator's words), an ordered set of desk items (things and notes
+  // placed on the Desk), and the id of the working note — the one durable
+  // artifact the AI revises in place from the Desk. All of it is
+  // Papers-owned and survives restart.
+
+  deskFile(roomId) {
+    return path.join(this.roomDir(roomId), 'desk.json');
+  }
+
+  getDesk(roomId) {
+    this.getRoomRecord(roomId);
+    return readJson(this.deskFile(roomId), {
+      brief: '',
+      briefUpdatedAt: null,
+      items: [], // [{ type: 'thing' | 'note', id }]
+      workingNoteId: null,
+    });
+  }
+
+  saveDesk(roomId, desk) {
+    writeJson(this.deskFile(roomId), desk);
+    return desk;
+  }
+
+  setBrief(roomId, text) {
+    const desk = this.getDesk(roomId);
+    const next = (text || '').trim();
+    if (next === desk.brief) return desk;
+    desk.brief = next;
+    desk.briefUpdatedAt = new Date().toISOString();
+    this.saveDesk(roomId, desk);
+    this.appendActivity(
+      roomId,
+      'brief-updated',
+      next ? 'The Backpack brief was updated' : 'The Backpack brief was cleared'
+    );
+    return desk;
+  }
+
+  // Put a thing or note on the Desk. The object must actually exist in the
+  // Backpack — the Desk never points at work that is not there.
+  addToDesk(roomId, type, id) {
+    const desk = this.getDesk(roomId);
+    if (desk.items.some((i) => i.type === type && i.id === id)) return desk;
+    let displayName;
+    if (type === 'thing') {
+      const thing = this.listThings(roomId).find((t) => t.id === id);
+      if (!thing) throw new Error(`No such thing in this Backpack: ${id}`);
+      displayName = thing.displayName;
+      this.appendActivity(roomId, 'desk-added', `"${thing.displayName}" was placed on the Desk`, {
+        thingId: thing.id,
+        path: thing.path,
+        displayName: thing.displayName,
+      });
+    } else if (type === 'note') {
+      const note = this.listArtifacts(roomId).find((a) => a.id === id);
+      if (!note) throw new Error(`No such note in this Backpack: ${id}`);
+      displayName = note.title;
+      this.appendActivity(roomId, 'desk-added', `The note "${note.title}" was placed on the Desk`, {
+        noteId: note.id,
+        title: note.title,
+      });
+    } else {
+      throw new Error(`Unknown desk item type: ${type}`);
+    }
+    desk.items.push({ type, id });
+    this.saveDesk(roomId, desk);
+    return desk;
+  }
+
+  removeFromDesk(roomId, type, id) {
+    const desk = this.getDesk(roomId);
+    if (!desk.items.some((i) => i.type === type && i.id === id)) return desk;
+    desk.items = desk.items.filter((i) => !(i.type === type && i.id === id));
+    this.saveDesk(roomId, desk);
+    let label = id;
+    let refs;
+    if (type === 'thing') {
+      const thing = this.listThings(roomId).find((t) => t.id === id);
+      if (thing) {
+        label = `"${thing.displayName}"`;
+        refs = { thingId: thing.id, path: thing.path, displayName: thing.displayName };
+      }
+    } else {
+      const note = this.listArtifacts(roomId).find((a) => a.id === id);
+      if (note) {
+        label = `The note "${note.title}"`;
+        refs = { noteId: note.id, title: note.title };
+      }
+    }
+    this.appendActivity(roomId, 'desk-removed', `${label} was taken off the Desk (it stays in the Backpack)`, refs);
+    return desk;
+  }
+
+  // The Desk resolved against what actually exists right now. Items whose
+  // object has left the Backpack are pruned; today the only product path
+  // that removes desk-referenced objects is detachThing, which prunes the
+  // Desk itself, so this is a defensive backstop rather than a silent
+  // history rewrite.
+  getDeskView(roomId) {
+    const desk = this.getDesk(roomId);
+    const things = this.listThings(roomId);
+    const artifacts = this.listArtifacts(roomId);
+    const items = [];
+    const live = [];
+    for (const item of desk.items) {
+      const obj =
+        item.type === 'thing'
+          ? things.find((t) => t.id === item.id)
+          : artifacts.find((a) => a.id === item.id);
+      if (!obj) continue;
+      live.push(item);
+      items.push({ type: item.type, [item.type]: obj });
+    }
+    if (live.length !== desk.items.length) {
+      desk.items = live;
+      this.saveDesk(roomId, desk);
+    }
+    const workingNote = desk.workingNoteId
+      ? artifacts.find((a) => a.id === desk.workingNoteId) || null
+      : null;
+    return {
+      brief: desk.brief,
+      briefUpdatedAt: desk.briefUpdatedAt,
+      items,
+      workingNote,
+    };
+  }
+
+  setWorkingNote(roomId, artifactId) {
+    const desk = this.getDesk(roomId);
+    desk.workingNoteId = artifactId;
+    this.saveDesk(roomId, desk);
+    return desk;
+  }
+
+  // Revise an artifact in place — same object, new text, honest trail. Used
+  // for the Desk's working note so active work accumulates in one durable
+  // place instead of scattering into ever more one-shot notes.
+  updateArtifact(roomId, artifactId, { title, body, revision }) {
+    const file = path.join(this.artifactsDir(roomId), `${artifactId}.json`);
+    const artifact = readJson(file, null);
+    if (!artifact) throw new Error(`No such note in this Backpack: ${artifactId}`);
+    if (title) artifact.title = title;
+    artifact.body = body;
+    artifact.updatedAt = new Date().toISOString();
+    artifact.provenance = artifact.provenance || {};
+    if (revision) {
+      artifact.provenance.revisions = artifact.provenance.revisions || [];
+      artifact.provenance.revisions.push({ at: artifact.updatedAt, ...revision });
+      // The artifact-level source list reflects what the CURRENT text was
+      // made from; the revisions trail keeps the full history.
+      if (revision.sourceThings) artifact.provenance.sourceThings = revision.sourceThings;
+      if (revision.sourceThingIds) artifact.provenance.sourceThingIds = revision.sourceThingIds;
+      if (revision.engine) artifact.provenance.engine = revision.engine;
+    }
+    writeJson(file, artifact);
+    this.appendActivity(roomId, 'note-updated', `The AI revised the working note "${artifact.title}"`, {
+      noteId: artifact.id,
+      title: artifact.title,
+    });
     return artifact;
   }
 
@@ -340,6 +515,7 @@ class WorldStore {
       things: this.refreshThings(roomId),
       artifacts: this.listArtifacts(roomId),
       conversation: this.getConversation(roomId),
+      desk: this.getDeskView(roomId),
       activity: this.getActivity(roomId),
     };
   }

@@ -133,6 +133,7 @@ These are behavioral and continuity docs. They matter a lot, but they do not out
 * `PAPERS_REPO_DECISION_AUDIT_V1.txt`
 * `PAPERS_NEXT_BUILD_ORDER_V1.txt`
 * `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — canonical WORLD / BACKPACK / ROOM vocabulary correction
+* `PAPERS_BACKPACK_DESK_V1.txt` — the Desk: the Backpack's active work surface (first-form concept)
 * `PAPERS_DELTA_LOG.txt` — lightweight cumulative record of material changes (newest first)
 * `PROMPTER/PAPERS_FOUNDER_BRIEF.txt`
 * `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt`

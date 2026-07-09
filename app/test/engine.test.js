@@ -51,6 +51,50 @@ test('room context is serialized in Papers terms, truthfully', () => {
   assert.ok(!block.includes('engine hiccup'), 'status entries are not conversation');
 });
 
+test('the Desk is the assistant\'s default working context, serialized truthfully', () => {
+  const withDesk = {
+    ...context,
+    desk: {
+      brief: 'Ship the gate plan by Friday.',
+      items: [
+        { type: 'thing', thing: { displayName: 'plan.txt', type: 'file', status: 'missing', path: 'C:\\real\\plan.txt' } },
+        { type: 'note', note: { title: 'Gate measurements' } },
+      ],
+      workingNote: { title: 'Gate plan — working note' },
+    },
+  };
+  const block = prompts.roomContextBlock(withDesk);
+  assert.match(block, /THE DESK/);
+  assert.match(block, /default working context/);
+  assert.match(block, /Ship the gate plan by Friday\./);
+  assert.match(block, /plan\.txt — file, missing/); // desk does not hide missing reality
+  assert.match(block, /the note "Gate measurements"/);
+  assert.match(block, /working note: "Gate plan — working note"/);
+  // An empty desk adds no desk block at all.
+  const empty = prompts.roomContextBlock({ ...context, desk: { brief: '', items: [], workingNote: null } });
+  assert.ok(!empty.includes('THE DESK'));
+});
+
+test('desk synthesis prompt shares material honestly and evolves the previous note', () => {
+  const ctx = {
+    ...context,
+    desk: { brief: 'Current focus.', items: [], workingNote: { title: 'W' } },
+  };
+  const prompt = prompts.deskSynthesisPrompt(ctx, {
+    readings: [{ thing: { displayName: 'a.txt', type: 'file', path: 'C:\\real\\a.txt' }, content: { text: 'CONTENT-A' } }],
+    deskNotes: [{ title: 'N1', body: 'NOTE-BODY' }],
+    previousNote: { title: 'W', body: 'PREVIOUS-SYNTHESIS' },
+  });
+  assert.match(prompt, /=== The brief/);
+  assert.match(prompt, /Current focus\./);
+  assert.match(prompt, /Desk thing: a\.txt/);
+  assert.match(prompt, /CONTENT-A/);
+  assert.match(prompt, /Desk note: "N1"/);
+  assert.match(prompt, /PREVIOUS-SYNTHESIS/);
+  assert.match(prompt, /evolve it, do not start from scratch/);
+  assert.match(prompt, /TITLE: /);
+});
+
 test('note responses parse the TITLE line, and fall back honestly', () => {
   const parsed = prompts.parseNoteResponse('TITLE: A good note\n\nThe body.');
   assert.equal(parsed.title, 'A good note');

@@ -19,9 +19,10 @@ const state = {
   noteSources: null, // { artifactId, rows } — live reality-check of an open note's sources
   selectedThings: new Set(),
   editingDescription: false,
+  editingBrief: false,
   historyExpanded: false,
   thinking: false,
-  guard: null, // { items, thingIds }
+  guard: null, // { kind: 'note', items, thingIds } | { kind: 'desk', items, updating }
   inlineError: null, // { scope: 'things' | 'notes', text }
   talkOpen: localStorage.getItem('papers-ui:talk-open') !== 'no',
 };
@@ -69,9 +70,9 @@ async function enterRoom(roomId) {
   state.historyExpanded = false;
   render();
   scrollTalk();
-  const { room, things, artifacts, activity } = state.room;
+  const { room, things, artifacts, activity, desk } = state.room;
   console.log(
-    `[papers-ui] room rendered: "${room.title}" — things=${things.length} missing=${things.filter((t) => t.status === 'missing').length} notes=${artifacts.length} pinned=${artifacts.filter((a) => a.pinned).length} sinceEvents=${room.previousEnteredAt ? activity.filter((e) => e.at > room.previousEnteredAt).length : 'n/a'}`
+    `[papers-ui] room rendered: "${room.title}" — things=${things.length} missing=${things.filter((t) => t.status === 'missing').length} notes=${artifacts.length} pinned=${artifacts.filter((a) => a.pinned).length} deskItems=${desk.items.length} brief=${desk.brief ? 'yes' : 'no'} workingNote=${desk.workingNote ? 'yes' : 'no'} sinceEvents=${room.previousEnteredAt ? activity.filter((e) => e.at > room.previousEnteredAt).length : 'n/a'}`
   );
 }
 
@@ -153,15 +154,20 @@ function thingRow(t) {
         <span class="thing-path" title="${esc(t.path)}">${esc(t.path)}</span>
         ${missing}
       </span>
+      ${onDesk('thing', t.id) ? '<span class="ev-gone">on the Desk</span>' : `<button class="quiet" data-desk-add="thing:${esc(t.id)}" title="Put it on the Desk — the Backpack’s active work">Put on the Desk</button>`}
       <button class="quiet" data-open-thing="${esc(t.id)}" ${t.status !== 'present' ? 'disabled title="The real item is missing"' : 'title="Open the real location on this machine"'}>Open real location</button>
       <button class="quiet" data-detach-thing="${esc(t.id)}" title="Remove the reference from this Backpack (the real item is not touched)">Remove</button>
     </div>`;
 }
 
-// Is this artifact new since the creator's previous visit to the room?
+// Is this artifact new (or newly revised) since the previous visit?
 function isNewSinceLastVisit(a) {
   const prev = state.room?.room?.previousEnteredAt;
-  return Boolean(prev && a.createdAt > prev);
+  return Boolean(prev && (a.updatedAt || a.createdAt) > prev);
+}
+
+function onDesk(type, id) {
+  return state.room.desk.items.some((i) => i.type === type && i[i.type].id === id);
 }
 
 function noteCard(a) {
@@ -173,6 +179,7 @@ function noteCard(a) {
         <h3>${esc(a.title)}</h3>
         <span class="note-card-tags">
           ${isNewSinceLastVisit(a) ? '<span class="new-badge">new since your last visit</span>' : ''}
+          ${onDesk('note', a.id) ? '<span class="ev-gone">on the Desk</span>' : `<button class="quiet" data-desk-add="note:${esc(a.id)}" title="Put it on the Desk — the Backpack’s active work">Desk</button>`}
           <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}" title="${a.pinned ? 'Unpin from the Backpack landing' : 'Pin to the Backpack landing'}">${a.pinned ? 'Unpin' : 'Pin'}</button>
         </span>
       </div>
@@ -291,8 +298,9 @@ function roomOverviewHtml() {
   const missing = things.filter((t) => t.status === 'missing');
   const prev = room.previousEnteredAt;
   const sinceEvents = prev ? activity.filter((e) => e.at > prev) : [];
+  const workingId = state.room.desk?.workingNote?.id;
   const pinned = artifacts
-    .filter((a) => a.pinned)
+    .filter((a) => a.pinned && a.id !== workingId)
     .sort((a, b) => ((a.pinnedAt || '') < (b.pinnedAt || '') ? -1 : 1));
 
   let desc;
@@ -351,16 +359,106 @@ function roomOverviewHtml() {
     </div>`;
 }
 
-// The room's contents: overview, things, notes, history. This is the
+// ---- The Desk: the Backpack's active work surface --------------------------
+
+function deskThingRow(t) {
+  return `
+    <div class="thing-row desk-row">
+      <span class="status-dot ${esc(t.status)}" title="${esc(t.status)}"></span>
+      <span class="thing-main">
+        <span class="thing-name">${esc(t.displayName)} <span class="preview-detail">· ${esc(t.type)}</span></span>
+        <span class="thing-path" title="${esc(t.path)}">${esc(t.path)}</span>
+        ${t.status === 'missing' ? '<span class="thing-missing-note">missing — the Desk does not pretend otherwise</span>' : ''}
+      </span>
+      <button class="quiet" data-open-thing="${esc(t.id)}" ${t.status !== 'present' ? 'disabled' : 'title="Open the real location"'}>Open real location</button>
+      <button class="quiet" data-desk-remove="thing:${esc(t.id)}" title="Take it off the Desk (it stays in the Backpack)">Take off</button>
+    </div>`;
+}
+
+function deskNoteRow(a) {
+  return `
+    <div class="thing-row desk-row">
+      <span class="status-dot present" title="a Papers note"></span>
+      <span class="thing-main">
+        <span class="thing-name">${esc(a.title)} <span class="preview-detail">· note</span></span>
+      </span>
+      <button class="quiet" data-note-open="${esc(a.id)}">Open</button>
+      <button class="quiet" data-desk-remove="note:${esc(a.id)}" title="Take it off the Desk (it stays in the Backpack)">Take off</button>
+    </div>`;
+}
+
+function workingNoteCard(a) {
+  const revisions = a.provenance?.revisions?.length || 0;
+  const snippet = (a.body || '').replace(/\s+/g, ' ').slice(0, 180);
+  return `
+    <div class="note-card working ${isNewSinceLastVisit(a) ? '' : ''}" data-note="${esc(a.id)}">
+      <div class="note-card-head">
+        <h3>${esc(a.title)}</h3>
+        <span class="note-card-tags">
+          ${isNewSinceLastVisit(a) ? '<span class="new-badge">revised since your last visit</span>' : ''}
+          <span class="working-chip">working note</span>
+        </span>
+      </div>
+      <div class="note-snippet">${esc(snippet)}${a.body && a.body.length > 180 ? '…' : ''}</div>
+      <div class="note-provenance">
+        <span class="provenance-chip">Papers AI</span>
+        last revised ${fmtDate(a.updatedAt || a.createdAt)}${revisions > 1 ? ` · ${revisions} revisions` : ''}
+      </div>
+    </div>`;
+}
+
+function deskSectionHtml() {
+  const { desk } = state.room;
+  let brief;
+  if (state.editingBrief) {
+    brief = `
+      <div class="room-desc editing">
+        <textarea id="brief-input" rows="2" placeholder="What are you working on here right now?">${esc(desk.brief || '')}</textarea>
+        <div class="section-actions">
+          <button class="primary" id="brief-save">Save brief</button>
+          <button id="brief-cancel">Cancel</button>
+        </div>
+      </div>`;
+  } else if (desk.brief) {
+    brief = `
+      <div class="room-desc">
+        <div class="room-desc-text">${esc(desk.brief)}</div>
+        <div class="room-desc-meta">the brief — your current focus, in your words · updated ${fmtDate(desk.briefUpdatedAt)} · <button class="quiet" id="brief-edit">edit</button></div>
+      </div>`;
+  } else {
+    brief = `<div class="room-desc empty"><button class="quiet" id="brief-edit">Write a brief — what are you working on here right now?</button></div>`;
+  }
+  // Render desk items in the creator's own desk order — the order is state.
+  const itemRows = desk.items.map((i) => (i.type === 'thing' ? deskThingRow(i.thing) : deskNoteRow(i.note)));
+  const canSynthesize = Boolean(desk.brief || desk.items.length);
+  return `
+    <div class="section desk-section">
+      <h2 class="section-title">The Desk — active work</h2>
+      ${brief}
+      ${itemRows.join('')}
+      ${!desk.items.length ? '<div class="empty-hint">Nothing on the Desk yet. Use “Put on the Desk” on things and notes below — the Desk is what the AI treats as your active work.</div>' : ''}
+      ${desk.workingNote ? workingNoteCard(desk.workingNote) : ''}
+      ${inlineError('desk')}
+      <div class="section-actions">
+        <button class="primary" id="synthesize-desk" ${canSynthesize ? '' : 'disabled title="Put something on the Desk or write a brief first"'}>${desk.workingNote ? 'Revise the working note from the Desk' : 'Synthesize the Desk into a working note'}</button>
+      </div>
+    </div>`;
+}
+
+// The room's contents: overview, desk, things, notes, history. This is the
 // primary surface.
 function roomContentsHtml() {
-  const { things, artifacts } = state.room;
+  const { things, artifacts, desk } = state.room;
   const selCount = state.selectedThings.size;
+  const workingId = desk.workingNote?.id;
   // Unpinned notes, newest first — revisitation order. Pinned ones live in
-  // the room overview above.
-  const shelfNotes = artifacts.filter((a) => !a.pinned).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  // the room overview above; the working note lives on the Desk.
+  const shelfNotes = artifacts
+    .filter((a) => !a.pinned && a.id !== workingId)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   return `
     ${roomOverviewHtml()}
+    ${deskSectionHtml()}
     <div class="section">
       <h2 class="section-title">Things in this Backpack</h2>
       ${things.length ? things.map(thingRow).join('') : '<div class="empty-hint">Nothing here yet. Attach real files or folders from this machine — the Backpack keeps references, the originals stay where they are.</div>'}
@@ -417,8 +515,10 @@ function noteSurfaceHtml(a) {
       <h2 class="note-title">${esc(a.title)}</h2>
       <div class="note-provenance">
         <span class="provenance-chip">Papers AI</span>
-        Written ${fmtDate(a.createdAt)}${a.provenance?.engine ? ` · via ${esc(a.provenance.engine)}` : ''}
-        · <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}">${a.pinned ? 'Unpin from the Backpack landing' : 'Pin to the Backpack landing'}</button>
+        ${a.kind === 'working-note'
+          ? `${esc(`working note · begun ${fmtDate(a.createdAt)} · last revised ${fmtDate(a.updatedAt || a.createdAt)}${(a.provenance?.revisions?.length || 0) > 1 ? ` · ${a.provenance.revisions.length} revisions` : ''}`)}`
+          : `Written ${fmtDate(a.createdAt)}`}${a.provenance?.engine ? ` · via ${esc(a.provenance.engine)}` : ''}
+        ${a.kind === 'working-note' ? '· <span class="ev-gone">lives on the Desk</span>' : `· <button class="quiet" data-pin-note="${esc(a.id)}" data-pinned="${a.pinned ? '1' : '0'}">${a.pinned ? 'Unpin from the Backpack landing' : 'Pin to the Backpack landing'}</button>`}
       </div>
       <div class="note-body">${esc(a.body)}</div>
       ${noteSourcesHtml(a)}
@@ -649,9 +749,73 @@ function wireContents(room) {
       render();
       return;
     }
-    state.guard = { items: preview.items, thingIds: ids };
+    state.guard = { kind: 'note', items: preview.items, thingIds: ids };
     render();
   });
+
+  // The Desk.
+  const briefEdit = document.getElementById('brief-edit');
+  if (briefEdit) {
+    briefEdit.addEventListener('click', () => {
+      state.editingBrief = true;
+      render();
+      const input = document.getElementById('brief-input');
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    });
+  }
+  const briefSave = document.getElementById('brief-save');
+  if (briefSave) {
+    briefSave.addEventListener('click', async () => {
+      state.room.desk = await window.papers.setBrief(room.id, document.getElementById('brief-input').value);
+      state.editingBrief = false;
+      await refreshRoom();
+      render();
+    });
+    document.getElementById('brief-cancel').addEventListener('click', () => {
+      state.editingBrief = false;
+      render();
+    });
+  }
+  appEl.querySelectorAll('[data-desk-add]').forEach((el) => {
+    el.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const [type, id] = el.dataset.deskAdd.split(':');
+      await window.papers.deskAdd(room.id, type, id);
+      await refreshRoom();
+      render();
+    });
+  });
+  appEl.querySelectorAll('[data-desk-remove]').forEach((el) => {
+    el.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const [type, id] = el.dataset.deskRemove.split(':');
+      await window.papers.deskRemove(room.id, type, id);
+      await refreshRoom();
+      render();
+    });
+  });
+  appEl.querySelectorAll('[data-note-open]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openNoteSurface(el.dataset.noteOpen);
+    });
+  });
+  const synthBtn = document.getElementById('synthesize-desk');
+  if (synthBtn) {
+    synthBtn.addEventListener('click', async () => {
+      const preview = await window.papers.synthesizePreview(room.id);
+      if (!preview.ok) {
+        state.inlineError = { scope: 'desk', text: preview.error };
+        render();
+        return;
+      }
+      state.guard = { kind: 'desk', items: preview.items, updating: preview.updating };
+      render();
+    });
+  }
 
   appEl.querySelectorAll('[data-note]').forEach((el) => {
     el.addEventListener('click', () => openNoteSurface(el.dataset.note));
@@ -711,28 +875,51 @@ function wireTalk(room) {
 function renderGuard() {
   const g = state.guard;
   if (!g) return '';
-  const items = g.items
-    .map(
-      (i) => `
-      <div class="preview-item">
-        <span class="thing-name">${esc(i.displayName)} <span class="preview-detail">· ${esc(i.type)}, ${esc(i.status)}</span></span>
-        <span class="thing-path">${esc(i.path)}</span>
-        <span class="preview-detail">${esc(i.detail)}</span>
-      </div>`
-    )
-    .join('');
+  let title;
+  let intro;
+  let confirmLabel;
+  let items;
+  if (g.kind === 'desk') {
+    title = g.updating ? 'Revise the working note?' : 'Write the working note?';
+    intro = `This will share exactly the following with the AI, which will ${g.updating ? 'revise' : 'write'} this Backpack's working note:`;
+    confirmLabel = g.updating ? 'Share these and revise the note' : 'Share these and write the note';
+    items = g.items
+      .map(
+        (i) => `
+        <div class="preview-item">
+          <span class="thing-name">${esc(i.label)}</span>
+          ${i.path ? `<span class="thing-path">${esc(i.path)}</span>` : ''}
+          <span class="preview-detail">${esc(i.detail)}</span>
+        </div>`
+      )
+      .join('');
+  } else {
+    title = 'Write a Backpack note?';
+    intro = 'This will read the following real items and share exactly this much with the AI, which will write one note into this Backpack:';
+    confirmLabel = 'Read these and write the note';
+    items = g.items
+      .map(
+        (i) => `
+        <div class="preview-item">
+          <span class="thing-name">${esc(i.displayName)} <span class="preview-detail">· ${esc(i.type)}, ${esc(i.status)}</span></span>
+          <span class="thing-path">${esc(i.path)}</span>
+          <span class="preview-detail">${esc(i.detail)}</span>
+        </div>`
+      )
+      .join('');
+  }
   return `
     <div class="modal-backdrop" id="modal-backdrop">
       <div class="modal">
         <div class="modal-head">
-          <h2>Write a Backpack note?</h2>
+          <h2>${title}</h2>
           <button class="quiet" id="modal-close">Cancel</button>
         </div>
-        <div class="modal-body">This will read the following real items and share exactly this much with the AI, which will write one note into this Backpack:
+        <div class="modal-body">${intro}
 ${items}</div>
         <div class="modal-foot">
           <span class="note-origin">Nothing on your machine is changed. The note will be kept by Papers, marked as AI-made.</span>
-          <button class="primary" id="guard-confirm">Read these and write the note</button>
+          <button class="primary" id="guard-confirm">${confirmLabel}</button>
         </div>
       </div>
     </div>`;
@@ -750,11 +937,24 @@ function wireGuard() {
   });
   document.getElementById('modal-close').addEventListener('click', close);
   document.getElementById('guard-confirm').addEventListener('click', async () => {
-    const { thingIds } = state.guard;
+    const guard = state.guard;
     state.guard = null;
     state.thinking = true;
     render();
-    const result = await window.papers.createNote(state.roomId, thingIds);
+    if (guard.kind === 'desk') {
+      const result = await window.papers.synthesize(state.roomId);
+      state.thinking = false;
+      if (result.view) state.room = result.view;
+      if (result.ok) {
+        state.inlineError = null;
+        openNoteSurface(result.artifact.id);
+        return;
+      }
+      state.inlineError = { scope: 'desk', text: result.error };
+      render();
+      return;
+    }
+    const result = await window.papers.createNote(state.roomId, guard.thingIds);
     state.thinking = false;
     if (result.activity) state.room.activity = result.activity;
     if (result.ok) {

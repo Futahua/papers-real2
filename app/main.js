@@ -10,7 +10,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const { WorldStore } = require('./world/store');
-const { readThingContent } = require('./world/things');
+const { readThingContent, MAX_TEXT_BYTES } = require('./world/things');
 const engine = require('./engine');
 
 const worldDir =
@@ -95,6 +95,134 @@ function registerHandlers(getWindow) {
       shell.showItemInFolder(thing.path);
     }
     return { ok: true, things };
+  });
+
+  // --- The Desk: the Backpack's active work surface -----------------------
+
+  ipcMain.handle('desk:add', (_e, roomId, type, id) => {
+    store.addToDesk(roomId, type, id);
+    return store.getDeskView(roomId);
+  });
+
+  ipcMain.handle('desk:remove', (_e, roomId, type, id) => {
+    store.removeFromDesk(roomId, type, id);
+    return store.getDeskView(roomId);
+  });
+
+  ipcMain.handle('desk:setBrief', (_e, roomId, text) => {
+    store.setBrief(roomId, text);
+    return store.getDeskView(roomId);
+  });
+
+  // Everything the Desk synthesis would share with the AI, gathered in one
+  // place so the guard preview and the actual action are exactly the same
+  // material.
+  function gatherDeskMaterial(roomId) {
+    store.refreshThings(roomId); // desk statuses must reflect reality now
+    const desk = store.getDeskView(roomId);
+    const readings = desk.items
+      .filter((i) => i.type === 'thing')
+      .map((i) => ({ thing: i.thing, content: readThingContent(i.thing) }));
+    const capNote = (note) => {
+      const truncated = note.body.length > MAX_TEXT_BYTES;
+      return {
+        id: note.id,
+        title: note.title,
+        body: truncated
+          ? note.body.slice(0, MAX_TEXT_BYTES) +
+            `\n… (truncated: showing first ${MAX_TEXT_BYTES} of ${note.body.length} characters)`
+          : note.body,
+        truncated,
+        totalChars: note.body.length,
+      };
+    };
+    const deskNotes = desk.items.filter((i) => i.type === 'note').map((i) => capNote(i.note));
+    const previousNote = desk.workingNote ? capNote(desk.workingNote) : null;
+    return { desk, readings, deskNotes, previousNote };
+  }
+
+  // Guarded Desk synthesis, step 1 of 2: an exact preview of what would be
+  // shared with the AI.
+  ipcMain.handle('desk:synthesizePreview', (_e, roomId) => {
+    const { desk, readings, deskNotes, previousNote } = gatherDeskMaterial(roomId);
+    if (!desk.brief && !readings.length && !deskNotes.length) {
+      return { ok: false, error: 'The Desk is empty — put things or notes on it, or write a brief, before synthesizing.' };
+    }
+    const items = [];
+    if (desk.brief) {
+      items.push({ label: 'The brief (your words)', detail: `${desk.brief.length} characters will be shared with the AI` });
+    }
+    for (const { thing, content } of readings) {
+      items.push({
+        label: `${thing.displayName} — ${thing.type}, ${thing.status}`,
+        path: thing.path,
+        detail:
+          content.kind === 'text'
+            ? `${content.shownBytes} of ${content.totalBytes} bytes will be shared${content.truncated ? ' (truncated)' : ''}`
+            : content.kind === 'folder-listing'
+              ? `a listing of ${content.shownEntries} of ${content.totalEntries} entries will be shared`
+              : content.kind === 'binary'
+                ? 'binary file — only its name and size will be shared'
+                : 'unreadable — only its name and the error will be shared',
+      });
+    }
+    for (const note of deskNotes) {
+      items.push({
+        label: `Desk note "${note.title}"`,
+        detail: `${note.truncated ? `first ${MAX_TEXT_BYTES} of ` : ''}${note.totalChars} characters will be shared`,
+      });
+    }
+    if (previousNote) {
+      items.push({
+        label: `The current working note "${previousNote.title}"`,
+        detail: 'shared so the AI revises it instead of starting over',
+      });
+    }
+    return { ok: true, items, updating: Boolean(previousNote) };
+  });
+
+  // Guarded Desk synthesis, step 2 of 2: run it and keep the result as the
+  // Backpack's working note — one durable artifact, revised in place.
+  ipcMain.handle('desk:synthesize', async (_e, roomId) => {
+    const { desk, readings, deskNotes, previousNote } = gatherDeskMaterial(roomId);
+    if (!desk.brief && !readings.length && !deskNotes.length) {
+      return { ok: false, error: 'The Desk is empty — put things or notes on it, or write a brief, before synthesizing.' };
+    }
+    const result = await engine.synthesizeDesk(roomContext(roomId), { readings, deskNotes, previousNote });
+    if (!result.ok) {
+      store.appendActivity(roomId, 'note-failed', `The working note could not be revised: ${result.error}`);
+      return { ok: false, error: result.error, view: store.getRoomView(roomId) };
+    }
+    const sourceThings = readings.map(({ thing }) => ({
+      displayName: thing.displayName,
+      path: thing.path,
+      type: thing.type,
+    }));
+    const revision = {
+      engine: result.engineLabel,
+      requestedBy: 'creator',
+      briefUsed: desk.brief || null,
+      sourceThingIds: readings.map(({ thing }) => thing.id),
+      sourceThings,
+      sourceNoteIds: deskNotes.map((n) => n.id),
+    };
+    let artifact;
+    if (desk.workingNote) {
+      artifact = store.updateArtifact(roomId, desk.workingNote.id, {
+        title: result.title || desk.workingNote.title,
+        body: result.body,
+        revision,
+      });
+    } else {
+      artifact = store.addArtifact(roomId, {
+        kind: 'working-note',
+        title: result.title || 'Working note',
+        body: result.body,
+        provenance: { createdBy: 'papers-ai', ...revision, revisions: [{ at: new Date().toISOString(), ...revision }] },
+      });
+      store.setWorkingNote(roomId, artifact.id);
+    }
+    return { ok: true, artifact, view: store.getRoomView(roomId) };
   });
 
   // The real state, right now, of the sources a note was made from. A note

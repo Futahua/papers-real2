@@ -481,6 +481,18 @@ function createWindow() {
   return win;
 }
 
+// One instance owns the world at a time. Two Papers instances over the same
+// world directory would silently clobber each other's JSON writes — the
+// second instance says so and leaves, rather than corrupting continuity.
+// app.exit(1), not app.quit(): the ready-chain below is top-level, and a
+// graceful quit can still let this second instance reach openWorld() and
+// write world state before teardown — the exact race the lock exists to
+// prevent. Nothing here needs the skipped before-quit/will-quit events.
+if (!app.requestSingleInstanceLock()) {
+  console.error('[papers] Another Papers instance already has this world open. Exiting instead of writing over it.');
+  app.exit(1);
+}
+
 app.whenReady().then(async () => {
   if (process.argv.includes('--papers-smoke')) {
     try {

@@ -2,7 +2,7 @@
 
 This repository is the **canonical Papers rebuild** and the **only active Papers product line** from this point onward. It is a clean, world-first rebuild — **not** a cleaned-up copy of the legacy implementation.
 
-If you are an agent or a person picking this up, read [`DOCS/PROMPTER/`](DOCS/PROMPTER/) and [`DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`](DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt) **before touching anything**. Authority comes from those documents, **not** from the legacy source structure.
+If you are a **coding agent on a narrow task**, read [`AGENTS.md`](AGENTS.md) first, follow your task prompt, and read only the files it names. If you are doing broad orientation, read [`DOCS/PROMPTER/`](DOCS/PROMPTER/) and [`DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`](DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt). In all cases the creator’s live direction in the current session is the highest authority.
 
 ---
 
@@ -54,10 +54,10 @@ Full statement: `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`.
 
 ## Authority chain (highest wins)
 
-1. **`DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`** — what Papers fundamentally is.
-2. Later explicit correction documents that say they supersede the founder brief on a point.
-3. Operational rebuild documents — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`.
-4. The creator’s live direction in-session.
+1. **The creator’s live direction in the current session** — explicit instruction given now always outranks older documents, including AI-written planning docs.
+2. **`DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`** — what Papers fundamentally is.
+3. Later explicit correction documents that say they supersede the founder brief on a point.
+4. Operational rebuild documents — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`.
 5. Legacy repo history, old plans, and legacy implementation details — **weak evidence, often contaminated**.
 
 Supporting behavioral docs:
@@ -93,6 +93,7 @@ room, real things)**, world-first, never from the legacy app shell.
 ```text
 REAL2/
 ├── README.md
+├── AGENTS.md
 ├── .gitignore
 ├── app/                       (the Papers application — see app/README.md)
 └── DOCS/

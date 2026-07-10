@@ -1,13 +1,15 @@
 PAPERS_BACKPACK_DESK_V1
 
 The Desk — the Backpack's active work surface. First-form concept document.
-Introduced 2026-07-09 on the creator's direction to build the first genuinely
-inhabited Backpack slice.
+Introduced 2026-07-09 as the first active-work experiment inside a Backpack;
+shipped in the current implementation and being evaluated through real use.
+Not part of the mandatory definition of Backpack — future Backpack experiences
+may use, adapt, replace, or omit the Desk concept.
 
 Status
 - Downstream of PAPERS_FOUNDER_BRIEF_V3 and PAPERS_ONTOLOGY_CLARIFICATION_V1.
-- Documents a shipped product concept and its deliberate limits. If a later
-  document supersedes the Desk's first form, it must say so explicitly.
+- Documents a shipped implementation experiment and its deliberate limits. If a
+  later document supersedes the Desk's first form, it must say so explicitly.
 
 ================================================================================
 1. WHAT THE DESK IS

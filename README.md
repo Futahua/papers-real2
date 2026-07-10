@@ -2,7 +2,7 @@
 
 This repository is the **canonical Papers rebuild** and the **only active Papers product line** from this point onward. It is a clean, world-first rebuild — **not** a cleaned-up copy of the legacy implementation.
 
-If you are an agent or a person picking this up, read [`DOCS/PROMPTER/`](DOCS/PROMPTER/) and [`DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`](DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt) **before touching anything**. Authority comes from those documents, **not** from the legacy source structure.
+If you are a **coding agent on a narrow task**, read [`AGENTS.md`](AGENTS.md) first, follow your task prompt, and read only the files it names. If you are doing broad orientation, read [`DOCS/PROMPTER/`](DOCS/PROMPTER/) and [`DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`](DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt). In all cases the creator's live direction in the current session is the highest authority.
 
 ---
 
@@ -20,7 +20,7 @@ Papers has two separate local directories and two separate GitHub repositories. 
 
 ### Why the repositories are split
 
-The split is deliberate and structural. Its purpose is to stop future work from drifting back into “a generic agent workbench with Papers vocabulary painted on top” — which is exactly what legacy v0 became. Keeping the rebuild in a separate repo means REAL2 cannot silently inherit v0’s assumptions, session model, provider-centric surfaces, or Hermes-as-identity coupling.
+The split is deliberate and structural. Its purpose is to stop future work from drifting back into "a generic agent workbench with Papers vocabulary painted on top" — which is exactly what legacy v0 became. Keeping the rebuild in a separate repo means REAL2 cannot silently inherit v0's assumptions, session model, provider-centric surfaces, or Hermes-as-identity coupling.
 
 ---
 
@@ -29,7 +29,7 @@ The split is deliberate and structural. Its purpose is to stop future work from 
 1. **Do not continue development inside the legacy repo** (`Futahua/papers-are-papers` / REAL).
 2. **Do not merge REAL2 into the legacy repo**, and do not merge legacy into REAL2.
 3. **No wholesale migration from REAL.** Do not copy the legacy codebase into REAL2, and do not scaffold REAL2 by refactoring the old repo in place.
-4. **Salvage is deliberate, narrow, and documented.** REAL may be mined for specific proven pieces (see the audit’s salvage map) — but only by explicit decision, slice by slice, never as a bulk import.
+4. **Salvage is deliberate, narrow, and documented.** REAL may be mined for specific proven pieces (see the audit's salvage map) — but only by explicit decision, slice by slice, never as a bulk import.
 5. **Authority is the rebuild docs, not legacy source.** When code, legacy implementation, or old plans disagree with the governing docs, the governing docs win.
 6. **Future sessions and implementation work target REAL2 only.**
 7. **The first implementation scaffold in REAL2 must be designed from the REAL2 docs themselves, not copied from the legacy app shell and renamed.**
@@ -44,9 +44,9 @@ Papers is an **AI-native personal layer over the existing computer**. Windows re
 * **Backpacks**: persistent, overlapping rooms/lenses over the same real world, never sealed silos
 * **Tools**: reusable capabilities shared across that world
 * **A global AI**: present across the whole environment rather than trapped in one room
-* **Truthful grounding**: Papers points back to the creator’s real files, systems, and sources; it never pretends imported copies are the originals
+* **Truthful grounding**: Papers points back to the creator's real files, systems, and sources; it never pretends imported copies are the originals
 
-The practical agent/operator workbench is a **foundation**, not the product’s identity. Papers must never collapse into an engine cockpit, provider console, or generic chat workbench with Papers language layered on top.
+The practical agent/operator workbench is a **foundation**, not the product's identity. Papers must never collapse into an engine cockpit, provider console, or generic chat workbench with Papers language layered on top.
 
 Full statement: `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`.
 
@@ -54,10 +54,10 @@ Full statement: `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`.
 
 ## Authority chain (highest wins)
 
-1. **`DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`** — what Papers fundamentally is.
-2. Later explicit correction documents that say they supersede the founder brief on a point.
-3. Operational rebuild documents — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`.
-4. The creator’s live direction in-session.
+1. **The creator's live direction in the current session** — explicit instruction given now always outranks older documents, including AI-written planning docs.
+2. **`DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`** — what Papers fundamentally is.
+3. Later explicit correction documents that say they supersede the founder brief on a point.
+4. Operational rebuild documents — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`.
 5. Legacy repo history, old plans, and legacy implementation details — **weak evidence, often contaminated**.
 
 Supporting behavioral docs:
@@ -93,6 +93,7 @@ room, real things)**, world-first, never from the legacy app shell.
 ```text
 REAL2/
 ├── README.md
+├── AGENTS.md
 ├── .gitignore
 ├── app/                       (the Papers application — see app/README.md)
 └── DOCS/
@@ -119,8 +120,8 @@ REAL2/
 
 * A copied or renamed legacy app shell
 * Bulk imports from REAL
-* A generic Tauri/React chat workbench scaffold created “just to get started”
-* Provider-setup work, engine-management surfaces, or session plumbing treated as the product’s center of gravity
+* A generic Tauri/React chat workbench scaffold created "just to get started"
+* Provider-setup work, engine-management surfaces, or session plumbing treated as the product's center of gravity
 
 ---
 

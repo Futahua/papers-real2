@@ -11,6 +11,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const { WorldStore } = require('../world/store');
+const revision = require('../world/revision');
 const { readThingContent, MAX_TEXT_BYTES, MAX_FOLDER_ENTRIES } = require('../world/things');
 
 function tempDir(name) {
@@ -626,6 +627,122 @@ test('any note in the current Backpack form can be revised in place — not just
   const reopened = new WorldStore(dir).listArtifacts(room.id)[0];
   assert.equal(reopened.body, 'Replacements bought: 4-inch, stainless.');
   assert.equal(reopened.provenance.revisions[0].previousBody, 'The old hinges are rusted through.');
+});
+
+// --- Revision approval: eligibility and the exact-material fingerprint ------
+// One feature's gathering path (world/revision.js) — these tests pin the
+// current Backpack form's boundary and the approval binding, not a
+// universal contract.
+
+function seedRevisableNote(dirName) {
+  const dir = tempDir(dirName);
+  const realDir = tempDir(dirName + '-real');
+  const srcFile = path.join(realDir, 'source.txt');
+  fs.writeFileSync(srcFile, 'original source content');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Approval');
+  const note = store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'Bound note',
+    body: 'The body as approved.',
+    provenance: {
+      createdBy: 'papers-ai',
+      engine: 'test',
+      sourceThings: [{ displayName: 'source.txt', path: path.resolve(srcFile), type: 'file' }],
+    },
+  });
+  return { store, room, note, srcFile };
+}
+
+test('only AI-made notes are revisable; others are refused at the gathering path', () => {
+  const { store, room } = seedRevisableNote('eligible');
+  const creatorNote = store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'Hand-made',
+    body: 'Not AI-made.',
+    provenance: { createdBy: 'creator' },
+  });
+  const refused = revision.gatherRevisionMaterial(store, room.id, creatorNote.id, 'shorter');
+  assert.equal(refused.error, revision.REVISION_NOT_AI_MADE_ERROR);
+});
+
+test('a revision needs a direction or at least one recorded source', () => {
+  const { store, room } = seedRevisableNote('material');
+  const sourceless = store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'Sourceless',
+    body: 'No recorded sources.',
+    provenance: { createdBy: 'papers-ai', engine: 'test' },
+  });
+  // neither direction nor sources: refused, with the exact message
+  const refused = revision.gatherRevisionMaterial(store, room.id, sourceless.id, '   ');
+  assert.equal(refused.error, revision.REVISION_NEEDS_MATERIAL_ERROR);
+  // direction without sources: accepted
+  const withDirection = revision.gatherRevisionMaterial(store, room.id, sourceless.id, 'Tighten it.');
+  assert.ok(!withDirection.error && withDirection.fingerprint);
+  assert.equal(withDirection.readings.length, 0);
+});
+
+test('sources without a direction are accepted', () => {
+  const { store, room, note } = seedRevisableNote('srconly');
+  const gathered = revision.gatherRevisionMaterial(store, room.id, note.id, '');
+  assert.ok(!gathered.error && gathered.fingerprint);
+  assert.equal(gathered.readings.length, 1);
+});
+
+test('the approval fingerprint is deterministic while nothing changes', () => {
+  const { store, room, note } = seedRevisableNote('stable');
+  const a = revision.gatherRevisionMaterial(store, room.id, note.id, 'Same direction.');
+  const b = revision.gatherRevisionMaterial(store, room.id, note.id, 'Same direction.');
+  assert.equal(a.fingerprint, b.fingerprint, 'unchanged material fingerprints identically');
+  assert.ok(revision.approvalMatches(b, a.fingerprint), 'the approval still matches');
+});
+
+test('a changed note body invalidates the approval', () => {
+  const { store, room, note } = seedRevisableNote('bodychange');
+  const approved = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  store.updateArtifact(room.id, note.id, { body: 'The body changed after approval.' });
+  const regathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.notEqual(regathered.fingerprint, approved.fingerprint);
+  assert.ok(!revision.approvalMatches(regathered, approved.fingerprint));
+});
+
+test('a changed source file invalidates the approval; a fresh preview matches again', () => {
+  const { store, room, note, srcFile } = seedRevisableNote('srcchange');
+  const approved = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  fs.appendFileSync(srcFile, ' — and then reality moved on');
+  const regathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.ok(!revision.approvalMatches(regathered, approved.fingerprint), 'stale approval no longer matches');
+  // The note itself was not mutated by the refusal path.
+  assert.equal(store.listArtifacts(room.id)[0].body, 'The body as approved.');
+  assert.equal(store.listArtifacts(room.id)[0].provenance.revisions, undefined);
+  // A fresh preview over the changed reality matches its own confirmation.
+  const fresh = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.ok(revision.approvalMatches(fresh, regathered.fingerprint));
+});
+
+test('a changed direction invalidates the approval', () => {
+  const { store, room, note } = seedRevisableNote('dirchange');
+  const approved = revision.gatherRevisionMaterial(store, room.id, note.id, 'Make it shorter.');
+  const other = revision.gatherRevisionMaterial(store, room.id, note.id, 'Make it longer.');
+  assert.ok(!revision.approvalMatches(other, approved.fingerprint));
+});
+
+test('a missing fingerprint never matches, and gathering never loads the AI engine', () => {
+  const { store, room, note } = seedRevisableNote('nofp');
+  const gathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.ok(!revision.approvalMatches(gathered, undefined));
+  assert.ok(!revision.approvalMatches(gathered, null));
+  assert.ok(!revision.approvalMatches(gathered, ''));
+  // Gathering + approval checking are reality-reading only — the refusal
+  // path cannot have called a runtime because nothing under engine/ was
+  // ever loaded into this process.
+  const engineDir = path.join(__dirname, '..', 'engine') + path.sep;
+  assert.ok(
+    !Object.keys(require.cache).some((f) => f.startsWith(engineDir)),
+    'revision gathering must not load, let alone call, the AI engine'
+  );
 });
 
 test('artifact provenance records the real sources it was made from', () => {

@@ -35,20 +35,44 @@ canonically. What was ported, adapted to recovered doctrine:
    recovery map's F4 observation; the substrate universality itself
    (getDeskView inside getRoomView) is untouched and remains a known issue.
 
-3. STORAGE/LIFECYCLE HARDENING (separate commits). (a) Single-instance
-   lock: a second Papers instance over the same world exits immediately
-   (app.exit(1)) instead of racing the first instance's JSON writes —
-   exit(1) rather than quit() because the ready-chain is top-level and a
-   graceful quit could still let the second instance write world state
-   before teardown. (b) A world file that fails to parse is quarantined
-   loudly (renamed *.corrupt-<ts>, error logged) instead of being silently
-   replaced by the next write; absent files still read as normal fallbacks.
+3. EXACT APPROVAL BINDING. The revision guard's preview returns a
+   deterministic fingerprint (sha256, node:crypto) over the exact material
+   that would be sent — note title, exact capped body, the creator's
+   direction, and each re-read source's path/type/status/content-kind/
+   exact text/truncation counts. Confirmation re-gathers through the same
+   path and refuses a stale approval (no runtime call, no note mutation)
+   if anything changed since the preview; the creator previews again.
+   One feature's gathering path (app/world/revision.js), not an approval
+   framework.
+
+4. REVISION ELIGIBILITY. The gathering path enforces the feature's stated
+   boundary: only notes with provenance.createdBy = "papers-ai" are
+   revisable (the UI offers no revise affordance otherwise), and a
+   revision needs material to revise with — a non-empty direction or at
+   least one recorded source; with neither, preview and action refuse.
+
+5. DUPLICATE-INSTANCE EXIT (separate commit). Ordinary Electron
+   single-instance protection for the application/profile
+   (requestSingleInstanceLock): a second normal Papers launch exits
+   immediately with code 1 instead of running two instances that would
+   write the same world files. This is NOT a PAPERS_WORLD_DIR lock — a
+   different Electron profile pointed at the same world directory is not
+   prevented. exit(1) rather than quit() because the ready-chain is
+   top-level and a graceful quit could still let the second instance write
+   world state before teardown.
+
+The local commit's corrupt-file quarantine experiment was NOT ported: it
+renamed damaged records aside with only terminal logging — records could
+appear to vanish with no creator-visible surface. Proper recovery behavior
+needs its own explicit design; the experiment remains preserved on the
+protected local branch.
 
 Tests: engine prompt tests updated for the softened Desk copy; new tests for
 revision of a non-working note (trail preserves replaced text), revision
-prompt honesty, runtime-failure propagation on revision, and corrupt-file
-quarantine. scripts/verify-note-revision.js added as the headless acceptance
-walk for this slice.
+prompt honesty, runtime-failure propagation on revision, exact-approval
+fingerprint stability and mismatch refusal, and the eligibility boundary.
+scripts/verify-note-revision.js added as the headless acceptance walk for
+this slice, including a stale-approval refusal check.
 
 ================================================================================
 2026-07-10 (ninth pass) — documents made internally consistent: clean rewrites

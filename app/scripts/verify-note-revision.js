@@ -16,7 +16,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const { WorldStore } = require('../world/store');
-const { checkThing, readThingContent, MAX_TEXT_BYTES } = require('../world/things');
+const { gatherRevisionMaterial, approvalMatches, REVISION_CHANGED_ERROR } = require('../world/revision');
 const engine = require('../engine');
 
 let failures = 0;
@@ -26,27 +26,18 @@ function check(name, cond, detail) {
   console.log(`  [${mark}] ${name}${detail ? ` — ${detail}` : ''}`);
 }
 
-// Mirrors main.js gatherNoteRevisionMaterial: one gathering path, so what is
-// previewed is what is shared.
-function gatherMaterial(store, roomId, artifactId) {
-  const note = store.listArtifacts(roomId).find((a) => a.id === artifactId);
-  const readings = (note.provenance?.sourceThings || []).map((s) => {
-    const thing = checkThing({ path: s.path, displayName: s.displayName, type: s.type });
-    return { thing, content: readThingContent(thing) };
-  });
-  const capped = note.body.length > MAX_TEXT_BYTES;
-  const noteForPrompt = {
-    title: note.title,
-    body: capped
-      ? note.body.slice(0, MAX_TEXT_BYTES) +
-        `\n… (truncated: showing first ${MAX_TEXT_BYTES} of ${note.body.length} characters)`
-      : note.body,
-  };
-  return { note, noteForPrompt, readings };
-}
-
-async function reviseOnce(store, world, roomId, artifactId, direction) {
-  const { note, noteForPrompt, readings } = gatherMaterial(store, roomId, artifactId);
+// The same gathering + approval path main.js uses (world/revision.js), so
+// what this walk previews, fingerprints, and shares is exactly what the
+// app does.
+async function reviseOnce(store, world, roomId, artifactId, direction, approvedFingerprint) {
+  const gathered = gatherRevisionMaterial(store, roomId, artifactId, direction);
+  if (gathered.error) return { ok: false, error: gathered.error };
+  // The approval must still match the material exactly — a stale approval
+  // is refused before any runtime call or note mutation.
+  if (!approvalMatches(gathered, approvedFingerprint)) {
+    return { ok: false, refused: true, error: REVISION_CHANGED_ERROR };
+  }
+  const { note, noteForPrompt, readings } = gathered;
   const context = { world, ...store.getRoomView(roomId) };
   const result = await engine.reviseNote(context, { note: noteForPrompt, direction: direction || null, readings });
   if (!result.ok) {
@@ -67,6 +58,13 @@ async function reviseOnce(store, world, roomId, artifactId, direction) {
     },
   });
   return { ok: true, artifact };
+}
+
+// "Preview" for this walk: gather through the shared path and keep the
+// fingerprint the way the UI guard does.
+function previewFingerprint(store, roomId, artifactId, direction) {
+  const gathered = gatherRevisionMaterial(store, roomId, artifactId, direction);
+  return gathered.error ? { error: gathered.error } : { fingerprint: gathered.fingerprint };
 }
 
 async function main() {
@@ -96,7 +94,10 @@ async function main() {
   check('no desk.json exists — the Desk plays no part in this walk', !fs.existsSync(path.join(worldDir, 'rooms', room.id, 'desk.json')));
 
   console.log('\n2. Guarded revision with the creator\'s direction (through the engine seam)');
-  const first = await reviseOnce(store, world, room.id, note.id, 'Fold in what the gate plan says now, and keep it short.');
+  const dir1 = 'Fold in what the gate plan says now, and keep it short.';
+  const preview1 = previewFingerprint(store, room.id, note.id, dir1);
+  check('preview returns an approval fingerprint', Boolean(preview1.fingerprint));
+  const first = await reviseOnce(store, world, room.id, note.id, dir1, preview1.fingerprint);
   if (!first.ok) {
     console.log(`  [HONEST-FAILURE] ${first.error.slice(0, 120)}`);
     check('honest failure was recorded in Backpack history', store.getActivity(room.id).some((e) => e.kind === 'note-failed'));
@@ -112,9 +113,15 @@ async function main() {
     check('the Backpack event says "note", not "working note"', last.kind === 'note-updated' && /revised the note "/.test(last.text));
   }
 
-  console.log('\n3. Reality changes; a second revision evolves the SAME note');
+  console.log('\n3. Reality changes; a stale approval is refused; a fresh preview succeeds');
+  const stale = previewFingerprint(store, room.id, note.id, null);
   fs.appendFileSync(planFile, 'UPDATE: hinges bought — 4-inch stainless. Paint chosen: green.\n');
-  const second = await reviseOnce(store, world, room.id, note.id, null);
+  const refused = await reviseOnce(store, world, room.id, note.id, null, stale.fingerprint);
+  check('a stale approval is refused after the source changed', refused.refused === true);
+  check('the refusal names the change honestly', /changed after the preview/.test(refused.error || ''));
+  const preview2 = previewFingerprint(store, room.id, note.id, null);
+  check('a fresh preview yields a new fingerprint', preview2.fingerprint !== stale.fingerprint);
+  const second = await reviseOnce(store, world, room.id, note.id, null, preview2.fingerprint);
   if (!second.ok) {
     console.log(`  [HONEST-FAILURE] ${second.error.slice(0, 120)}`);
   } else if (first.ok) {
@@ -136,7 +143,7 @@ async function main() {
 
   console.log('\n5. Missing-reality honesty in the revision material');
   fs.rmSync(planFile);
-  const { readings } = gatherMaterial(store, room.id, note.id);
+  const { readings } = gatherRevisionMaterial(store, room.id, note.id, 'check the sources');
   check('a vanished source is re-read as missing, not remembered as present', readings[0].thing.status === 'missing');
   check('what would be shared says so honestly', readings[0].content.kind === 'unreadable');
 

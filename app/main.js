@@ -11,6 +11,7 @@ const path = require('node:path');
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const { WorldStore } = require('./world/store');
 const { checkThing, readThingContent, MAX_TEXT_BYTES } = require('./world/things');
+const { gatherRevisionMaterial, approvalMatches, REVISION_CHANGED_ERROR } = require('./world/revision');
 const engine = require('./engine');
 
 const worldDir =
@@ -239,35 +240,18 @@ function registerHandlers(getWindow) {
   // note — can be revised in place under the creator's direction, with the
   // same guard shape as every Papers AI action.
 
-  // Everything a note revision would share with the AI, gathered in one
-  // place so the guard preview and the actual action are exactly the same
-  // material. The note's recorded sources are re-read from reality as they
-  // are NOW — missing or unreadable sources are shown honestly.
-  function gatherNoteRevisionMaterial(roomId, artifactId) {
-    const note = store.listArtifacts(roomId).find((a) => a.id === artifactId);
-    if (!note) return { error: 'That note is not in this Backpack.' };
-    const readings = (note.provenance?.sourceThings || []).map((s) => {
-      const thing = checkThing({ path: s.path, displayName: s.displayName, type: s.type });
-      return { thing, content: readThingContent(thing) };
-    });
-    const capped = note.body.length > MAX_TEXT_BYTES;
-    const noteForPrompt = {
-      title: note.title,
-      body: capped
-        ? note.body.slice(0, MAX_TEXT_BYTES) +
-          `\n… (truncated: showing first ${MAX_TEXT_BYTES} of ${note.body.length} characters)`
-        : note.body,
-    };
-    return { note, noteForPrompt, capped, readings };
-  }
+  // Gathering (and the exact-material fingerprint that binds an approval to
+  // what is actually sent) lives in world/revision.js — one path shared by
+  // preview and action, so what was approved is what is shared.
 
   // Guarded note revision, step 1 of 2: an exact preview of what would be
-  // shared with the AI.
+  // shared with the AI, plus the fingerprint of that exact material. The
+  // fingerprint returns with the approval; if the note or a source changes
+  // before confirmation, the stale approval is refused.
   ipcMain.handle('note:revisePreview', (_e, roomId, artifactId, direction) => {
-    const gathered = gatherNoteRevisionMaterial(roomId, artifactId);
+    const gathered = gatherRevisionMaterial(store, roomId, artifactId, direction);
     if (gathered.error) return { ok: false, error: gathered.error };
-    const { note, capped, readings } = gathered;
-    const dir = (direction || '').trim();
+    const { note, capped, readings, direction: dir } = gathered;
     const items = [];
     items.push({
       label: `The note "${note.title}" as it stands`,
@@ -290,17 +274,21 @@ function registerHandlers(getWindow) {
                 : 'unreadable or missing — only its name and the error will be shared',
       });
     }
-    return { ok: true, items };
+    return { ok: true, items, fingerprint: gathered.fingerprint };
   });
 
-  // Guarded note revision, step 2 of 2: run it and keep the result as the
-  // same durable note — revised in place, previous text preserved in the
-  // provenance trail.
-  ipcMain.handle('note:revise', async (_e, roomId, artifactId, direction) => {
-    const gathered = gatherNoteRevisionMaterial(roomId, artifactId);
+  // Guarded note revision, step 2 of 2: re-gather through the same path,
+  // require the approved fingerprint to still match the material exactly —
+  // otherwise refuse before any runtime call or note mutation — then run it
+  // and keep the result as the same durable note, previous text preserved
+  // in the provenance trail.
+  ipcMain.handle('note:revise', async (_e, roomId, artifactId, direction, fingerprint) => {
+    const gathered = gatherRevisionMaterial(store, roomId, artifactId, direction);
     if (gathered.error) return { ok: false, error: gathered.error };
-    const { note, noteForPrompt, readings } = gathered;
-    const dir = (direction || '').trim();
+    if (!approvalMatches(gathered, fingerprint)) {
+      return { ok: false, error: REVISION_CHANGED_ERROR };
+    }
+    const { note, noteForPrompt, readings, direction: dir } = gathered;
     const result = await engine.reviseNote(roomContext(roomId), {
       note: noteForPrompt,
       direction: dir || null,
@@ -481,15 +469,17 @@ function createWindow() {
   return win;
 }
 
-// One instance owns the world at a time. Two Papers instances over the same
-// world directory would silently clobber each other's JSON writes — the
-// second instance says so and leaves, rather than corrupting continuity.
-// app.exit(1), not app.quit(): the ready-chain below is top-level, and a
-// graceful quit can still let this second instance reach openWorld() and
-// write world state before teardown — the exact race the lock exists to
-// prevent. Nothing here needs the skipped before-quit/will-quit events.
+// Ordinary Electron single-instance protection, keyed to this
+// application/profile (requestSingleInstanceLock) — NOT a lock on
+// PAPERS_WORLD_DIR. It stops the normal duplicate launch, which would
+// otherwise have two instances writing the same world files; it does not
+// prevent a different Electron profile from opening the same world
+// directory. app.exit(1), not app.quit(): the ready-chain below is
+// top-level, and a graceful quit could still let this second instance
+// reach openWorld() and write world state before teardown. Nothing here
+// needs the skipped before-quit/will-quit events.
 if (!app.requestSingleInstanceLock()) {
-  console.error('[papers] Another Papers instance already has this world open. Exiting instead of writing over it.');
+  console.error('[papers] Another Papers instance is already running for this profile. Exiting before startup.');
   app.exit(1);
 }
 

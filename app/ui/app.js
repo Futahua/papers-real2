@@ -24,7 +24,7 @@ const state = {
   reviseDirection: '', // creator's direction for revising the open note
   historyExpanded: false,
   thinking: false,
-  guard: null, // { kind: 'note', items, thingIds } | { kind: 'desk', items, updating } | { kind: 'revise', items, artifactId, direction }
+  guard: null, // { kind: 'note', items, thingIds } | { kind: 'desk', items, updating } | { kind: 'revise', items, artifactId, direction, fingerprint }
   inlineError: null, // { scope: 'things' | 'notes', text }
   talkOpen: localStorage.getItem('papers-ui:talk-open') !== 'no',
 };
@@ -422,7 +422,7 @@ function deskSectionHtml() {
     return `
     <div class="section desk-section">
       <h2 class="section-title">The Desk</h2>
-      <div class="empty-hint">Nothing is on the Desk. Put things or notes on it — or <button class="quiet" id="brief-edit">write a brief</button> — when you want your active work given first attention. The AI already sees everything in this Backpack.</div>
+      <div class="empty-hint">The Desk is optional. Put things or notes on it — or <button class="quiet" id="brief-edit">write a brief</button> — when you want to mark something as active work.</div>
     </div>`;
   }
   let brief;
@@ -452,7 +452,7 @@ function deskSectionHtml() {
       <h2 class="section-title">The Desk — active work</h2>
       ${brief}
       ${itemRows.join('')}
-      ${!desk.items.length ? '<div class="empty-hint">Nothing on the Desk yet. Use “Put on the Desk” on things and notes below to flag them as active work — the AI already sees everything in this Backpack.</div>' : ''}
+      ${!desk.items.length ? '<div class="empty-hint">Use “Put on the Desk” to mark things or notes as active work.</div>' : ''}
       ${desk.workingNote ? workingNoteCard(desk.workingNote) : ''}
       ${inlineError('desk')}
       <div class="section-actions">
@@ -549,7 +549,10 @@ function noteSurfaceHtml(a) {
 // In this Backpack form, any AI-made note can be revised in place — with
 // the same guard shape as every Papers AI action. The previous text stays
 // in the note's revision trail; nothing is silently destroyed.
-function noteReviseHtml() {
+function noteReviseHtml(a) {
+  // Revision evolves AI-made Papers notes; anything else gets no revise
+  // affordance here (and the gathering path refuses it server-side too).
+  if (a.provenance?.createdBy !== 'papers-ai') return '';
   return `
     <div class="section note-revise">
       <h2 class="section-title">Revise this note</h2>
@@ -752,7 +755,7 @@ function renderRoom() {
           render();
           return;
         }
-        state.guard = { kind: 'revise', items: preview.items, artifactId: openNote.id, direction };
+        state.guard = { kind: 'revise', items: preview.items, artifactId: openNote.id, direction, fingerprint: preview.fingerprint };
         render();
       });
     }
@@ -1108,7 +1111,7 @@ function wireGuard() {
       return;
     }
     if (guard.kind === 'revise') {
-      const result = await window.papers.noteRevise(state.roomId, guard.artifactId, guard.direction);
+      const result = await window.papers.noteRevise(state.roomId, guard.artifactId, guard.direction, guard.fingerprint);
       state.thinking = false;
       if (result.view) state.room = result.view;
       if (result.ok) {

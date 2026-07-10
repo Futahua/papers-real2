@@ -12,6 +12,14 @@ Status
   implementation, where "room" was becoming the de facto product noun.
 - Authority: below the founder brief; binding on all operational docs,
   implementation vocabulary, and future milestone framing.
+- RECOVERY CORRECTION (added 2026-07-10): Section 2C's hierarchy statement
+  "World → Backpacks → Backpack contents / surfaces / activity / artifacts /
+  AI context" is specific to the CURRENT IMPLEMENTED Backpack form, not a
+  universal prescription for all Backpacks. The binding creator definition
+  (PAPERS_RECOVERY_MAP_V1.txt) permits Backpacks to be literally anything;
+  no universal Backpack children are prescribed. The vocabulary correction
+  (Backpack over room) remains fully binding. Only the universal hierarchy
+  claim about Backpack internals is corrected. See PAPERS_RECOVERY_MAP_V1.txt.
 
 ================================================================================
 1. THE CORRECTION
@@ -52,11 +60,20 @@ replace Backpack as the primary product concept. The currently implemented
 "room" is to be read as the first implemented Backpack slice, not as a
 replacement ontology.
 
-THE HIERARCHY:
-  World → Backpacks → Backpack contents / surfaces / activity / artifacts /
-  AI context
+THE HIERARCHY (for the current implemented Backpack form):
+  World → Backpacks → [Backpack-specific contents / surfaces / activity /
+  artifacts / AI context — specific to this Backpack type, not universal]
 NOT: World → Rooms → maybe Backpack later.
 NOT: chat app → rooms with Papers branding.
+
+[RECOVERY CORRECTION 2026-07-10: The hierarchy above describes the CURRENT
+IMPLEMENTED Backpack form (things, notes, conversation, history, Desk, AI context).
+It is NOT a universal prescription that all future Backpacks must have contents,
+surfaces, activity, artifacts, and AI context. The binding creator definition
+permits Backpacks to be literally anything. Vocabulary: Backpack over room
+(this whole document) remains fully binding. Hierarchy: only the specific
+"Backpack contents / surfaces / activity / artifacts / AI context" children are
+corrected to be implementation-specific, not universal. See PAPERS_RECOVERY_MAP_V1.txt.]
 
 One-line summary:
   The world is the real machine-and-life substrate Papers lives over;

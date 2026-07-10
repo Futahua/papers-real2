@@ -25,19 +25,36 @@ He should NOT be treated as the person who must choose between backend architect
 2. AUTHORITATIVE CONTEXT TO INHERIT
 ================================================================================
 
-Read PAPERS_FOUNDER_BRIEF_V3 first.
-That is the current best statement of founder intent.
+Read DOCS/PAPERS_RECOVERY_MAP_V1.txt first. It is the current product state map
+and supersedes any implied authorizations in older planning documents.
+
+Then read PAPERS_FOUNDER_BRIEF_V3 (with its recovery correction header).
 
 Key assumptions you must carry forward:
-- Papers is an AI-native personal layer over the existing computer.
-- Backpacks are original founder DNA, not optional fluff.
-- Backpacks are persistent rooms/lenses of the Papers world, not sealed silos.
-- Tools are shared capabilities across that world.
-- The AI is global across the Papers environment, not trapped in one room.
-- Papers must remain truthful about real files, systems, and sources rather than inventing a fake proprietary universe.
-- Life OS / knowledge-management ambitions are real and belong inside Papers.
-- The practical operator/workbench direction is a foundation, not the whole identity.
-- Many repo decisions are contaminated by low-confidence founder answers under technical pressure and are not automatically authoritative.
+- Papers is a lightweight personal layer over Windows.
+- Papers' universal governing responsibility: Papers persistently identifies,
+  organizes, exposes, enters, tracks, leaves, and switches Backpacks — one
+  active Backpack at a time.
+- Backpacks may be literally anything. No universal Backpack assumptions may
+  be made about interface, contents, furniture, AI integration, or lifecycle.
+- ONE ACTIVE BACKPACK AT A TIME is the ONLY universal runtime assumption.
+- Backpacks are original founder DNA, not optional fluff — but their contents
+  and surfaces are not universally prescribed.
+- Papers must remain truthful about real files, systems, and sources.
+- The current app/ implementation is experimental proving substrate — one
+  Backpack form, not a universal prescription.
+- Reuse-first is hard law.
+- Behavior-before-builds: desired behavior → existing products → reuse
+  investigation → smallest missing Papers responsibility → build prompt.
+- Many repo decisions are contaminated by low-confidence founder answers under
+  technical pressure and are not automatically authoritative.
+
+[RECOVERY CORRECTION 2026-07-10: Prior versions of this section listed "The AI
+is global across the Papers environment" and "Life OS / knowledge-management
+ambitions are real and belong inside Papers" as inherited axioms. Both exceeded
+the creator's binding definition. Global AI is a possible direction, not a
+universal non-negotiable. Life OS is one possible future Backpack, not required.
+See PAPERS_RECOVERY_MAP_V1.txt for the full drift audit.]
 
 ================================================================================
 3. WHAT TO DO AT THE START OF A NEW SESSION
@@ -63,6 +80,15 @@ If you need a decision, prefer:
 - inferring from the founder brief
 - giving a recommended choice with reasoning
 - asking Giun only about product feeling / preference / “does this still feel like Papers?”
+
+STEP 5 — Before any build prompt, run the behavior-before-builds discipline
+[Added 2026-07-10 per PAPERS_RECOVERY_MAP_V1.txt recovery correction]
+1. Identify the desired creator behavior in behavioral terms.
+2. Survey existing products and open-source alternatives that already do it.
+3. Document the reuse investigation honestly.
+4. Identify the smallest missing Papers responsibility.
+5. Write a bounded build prompt only for that smallest responsibility.
+This sequence is mandatory, not optional, before any new capability is built.
 
 ================================================================================
 4. HOW TO CLASSIFY ANYTHING YOU ENCOUNTER

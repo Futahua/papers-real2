@@ -4,6 +4,28 @@ Build-order document for the canonical Papers rebuild (REAL2)
 
 ---
 
+# Recovery Notice (added 2026-07-10)
+
+**This document is now a historical substrate sequencing record.**
+
+Slice 1 and Slice 2A are implemented. Product expansion is paused pending
+restart gate clearance documented in `DOCS/PAPERS_RECOVERY_MAP_V1.txt`.
+
+**No later slice in this document is automatically authorized.** The detailed
+description of Slice 2, Slice 3, and later layers made them appear authorized
+by proximity — they are not. Each future slice requires explicit creator
+authorization after the behavior-before-builds discipline is run:
+desired creator behavior → existing products → reuse investigation →
+smallest missing Papers responsibility → bounded build prompt.
+
+This document is preserved as a truthful record of the substrate sequencing
+decisions made during the initial REAL2 implementation. It must not be read as
+a roadmap that the next agent is authorized to continue executing.
+
+Read `DOCS/PAPERS_RECOVERY_MAP_V1.txt` before any new build work begins.
+
+---
+
 # Status
 
 This document is an operational sequencing document for REAL2. It is downstream of:

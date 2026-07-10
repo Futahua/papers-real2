@@ -1,6 +1,12 @@
-# Papers — app (Slice 1)
+# Papers — app (Slice 1 + Slice 2A, experimental substrate)
 
-This is the REAL2 implementation of **Slice 1 — one world, one room, real things** from
+> **Product expansion is paused.** This `app/` directory is experimental proving
+> substrate — it demonstrates one form a Backpack can take, not the definition of
+> what all future Backpacks must be. See [`DOCS/PAPERS_RECOVERY_MAP_V1.txt`](../DOCS/PAPERS_RECOVERY_MAP_V1.txt)
+> for the current product state, implementation classification, and restart gate.
+
+This is the REAL2 implementation of **Slice 1 — one world, one room, real things**
+(and Slice 2A — room/Backpack landing with history) from
 [`DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`](../DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt).
 
 Papers opens into a persistent world — the Papers-owned layer over this real machine.

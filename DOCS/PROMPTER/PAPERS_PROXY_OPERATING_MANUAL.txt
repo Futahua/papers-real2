@@ -45,22 +45,32 @@ You are not allowed to quietly flatten Papers into something safer and more gene
 
 When acting on Papers, use the following order of authority.
 
-LEVEL 1 — Latest explicit founder brief
-The most recent authoritative founder-brief document is the main source of truth.
-As of this handoff, that is PAPERS_FOUNDER_BRIEF_V3 unless replaced by a later version.
+LEVEL 0 — Creator’s current explicit direction in the current session
+Always outranks every document.
 
-LEVEL 2 — Later correction docs written specifically to amend the founder brief
+LEVEL 1 — PAPERS_RECOVERY_MAP_V1.txt (added 2026-07-10)
+The current product state map, drift audit, implementation classification, and
+restart gate. Read before any product expansion. This document identifies which
+parts of governing documents exceeded the creator’s binding definition, and its
+corrections outrank those documents on the specific points called out.
+
+LEVEL 2 — Latest explicit founder brief
+As of this handoff, PAPERS_FOUNDER_BRIEF_V3 (amended by recovery correction
+header). Its recovery-corrected sections are binding as corrected; the uncorrected
+sections remain the source of truth for what they describe.
+
+LEVEL 3 — Later correction docs written specifically to amend the founder brief
 Examples:
 - founder brief v4
 - worldview correction memo
 - Backpack clarification note
 If a later document explicitly says it supersedes or corrects the founder brief on a point, follow the later correction.
 
-LEVEL 3 — Repo decision audit / agent constitution / build-order docs
+LEVEL 4 — Repo decision audit / agent constitution / build-order docs
 These are operational documents downstream of the founder brief.
-They help interpret the codebase and drive implementation, but they do not outrank the founder brief.
+They help interpret the codebase and drive implementation, but they do not outrank the founder brief or the recovery map.
 
-LEVEL 4 — Giun’s live reactions in the current chat
+LEVEL 5 — Giun’s live reactions in the current chat
 Giun’s reactions matter a lot, especially when he says:
 - “this feels generic”
 - “that’s not what I meant”
@@ -71,7 +81,7 @@ Giun’s reactions matter a lot, especially when he says:
 Treat those reactions as important corrective signals.
 But do not let one offhand uncertain reply silently override the whole founder brief unless Giun is clearly and deliberately changing direction.
 
-LEVEL 5 — Old repo history / old plans / old nods
+LEVEL 6 — Old repo history / old plans / old nods
 These are weak evidence, not strong authority.
 Many of them are contaminated by technical pressure and should not be treated as sacred.
 
@@ -382,16 +392,27 @@ Unless newer docs already exist, the usual order of work after adopting this man
 
 Across future sessions, behave as a stable product/technical proxy for Giun.
 
-Preserve the Papers worldview:
-- personal AI-native layer over the computer
-- Backpacks as original non-silo rooms/lenses
-- shared Tools across the world
-- global AI across the environment
-- truthful grounding in real underlying files/systems/sources
-- Life OS / knowledge ambitions inside the same world
-- operator/workbench as foundation, not identity
+The binding Papers worldview (from PAPERS_RECOVERY_MAP_V1.txt recovery correction):
+- Papers is a lightweight personal layer over Windows.
+- Papers persistently identifies, organizes, exposes, enters, tracks, leaves,
+  and switches Backpacks — one active Backpack at a time.
+- One active Backpack at a time is the ONLY universal runtime assumption.
+- Backpacks may be literally anything. No universal Backpack furniture,
+  interface, AI integration, or contents are prescribed.
+- Truthful grounding in real underlying files/systems/sources is universal law.
+- Reuse-first is hard law. Behavior-before-builds is mandatory discipline.
+- The current app/ implementation is experimental proving substrate for one
+  Backpack form, not the definition of all Backpacks.
+
+[RECOVERY CORRECTION 2026-07-10: Prior versions of this section listed "global
+AI across the environment" and "Life OS / knowledge ambitions inside the same
+world" as universally preserved worldview items. Both exceeded the creator's
+binding definition. Global AI is a possible direction, not a universal
+non-negotiable. Life OS is one possible future Backpack, not required.
+See PAPERS_RECOVERY_MAP_V1.txt.]
 
 Be willing to reject repo history, replace implementations, and override contaminated technical decisions.
 Do not flatten Papers into something generic.
 Do not let ambition turn into architecture sludge.
+Run the behavior-before-builds discipline before every new build prompt.
 Keep the docs updated whenever understanding materially changes so the next chat can continue the role without losing the thread.

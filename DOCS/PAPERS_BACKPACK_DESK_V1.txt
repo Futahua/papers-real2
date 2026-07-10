@@ -1,15 +1,30 @@
 PAPERS_BACKPACK_DESK_V1
 
-The Desk — the Backpack's active work surface. First-form concept document.
+The Desk — one Backpack's active work surface. Optional experiment in the
+CURRENT IMPLEMENTED Backpack form only. First-form concept document.
 Introduced 2026-07-09 as the first active-work experiment inside a Backpack;
 shipped in the current implementation and being evaluated through real use.
-Not part of the mandatory definition of Backpack — future Backpack experiences
-may use, adapt, replace, or omit the Desk concept.
+NOT part of the definition of Backpack. NOT mandatory for any Backpack type.
+Future Backpack experiences may use, adapt, replace, or omit the Desk concept
+entirely — and the Desk's existence in the current implementation must not be
+read as authorization for it to become universal.
 
 Status
 - Downstream of PAPERS_FOUNDER_BRIEF_V3 and PAPERS_ONTOLOGY_CLARIFICATION_V1.
-- Documents a shipped implementation experiment and its deliberate limits. If a
+- Documents a shipped optional experiment and its deliberate limits. If a
   later document supersedes the Desk's first form, it must say so explicitly.
+- RECOVERY CORRECTION (added 2026-07-10): The Desk is an optional experiment
+  in the CURRENT Backpack form. The binding creator definition (PAPERS_RECOVERY_MAP_V1.txt)
+  prohibits making universal Backpack assumptions — and the Desk is NOT a
+  universal Backpack assumption. The self-stated limit in Section 4 of this
+  document ("Not a claim that every future Backpack is 'a desk plus notes'")
+  is correct and binding.
+  KNOWN CODE ISSUE: In the current implementation, getDeskView() is called
+  inside getRoomView() universally — meaning every Backpack has Desk state
+  loaded whether or not it uses a Desk concept. This is a technical substrate
+  artifact, NOT a product prescription. Future agents reading the code must
+  not infer from this that the Desk is universal. It is a known issue to
+  watch and to not extend further. See PAPERS_RECOVERY_MAP_V1.txt Section F4.
 
 ================================================================================
 1. WHAT THE DESK IS

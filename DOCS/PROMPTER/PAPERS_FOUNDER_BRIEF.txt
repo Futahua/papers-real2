@@ -1,10 +1,47 @@
 PAPERS_FOUNDER_BRIEF_V3
 Authoritative founder-intent document for future agent prompting
-Written to preserve Giun's actual ambitions while replacing low-confidence technical decisions
+Written to preserve Giun’s actual ambitions while replacing low-confidence technical decisions
 
 Status
 This document supersedes earlier founder-brief and salvage-plan drafts where they conflict with it.
 Its job is to let a future assistant step into Giun’s role as Papers’ product/technical proxy without flattening the project into a generic AI desktop app.
+
+================================================================================
+RECOVERY CORRECTION (added 2026-07-10)
+================================================================================
+
+A forensic audit of this document and all REAL2 implementation found that three
+sections exceeded the creator’s binding definition. Those sections are corrected
+inline below. The full audit is in DOCS/PAPERS_RECOVERY_MAP_V1.txt, which
+outranks this document on the specific points it corrects.
+
+BINDING CREATOR DEFINITION (outranks all document claims):
+- Papers is a lightweight personal layer over Windows.
+- Papers’ universal governing responsibility: Papers persistently identifies,
+  organizes, exposes, enters, tracks, leaves, and switches Backpacks — one
+  active Backpack at a time.
+- Backpacks may be literally anything. No universal assumptions may be made
+  about a Backpack’s interface, contents, furniture, AI integration, lifecycle,
+  or state model.
+- ONE ACTIVE BACKPACK AT A TIME is the ONLY universal runtime assumption.
+- Papers must not prescribe: one global Papers AI; permanent World-level memory;
+  universal Backpack context; AI in every Backpack; one provider or runtime;
+  any particular Backpack furniture (notes, files, chat, history, artifacts,
+  a Desk) as mandatory.
+- Reuse-first is hard law. Desired behavior → existing products → reuse
+  investigation → smallest missing Papers responsibility → implementation.
+
+SECTIONS CORRECTED:
+- Section 3: "A Backpack IS closer to..." — corrected below. The items listed
+  describe one possible Backpack form, not universal Backpack anatomy.
+- Section 4C: "GLOBAL AI" — corrected below. Global AI is a possible product
+  direction, not a universal non-negotiable assumption about every Backpack.
+- Section 6: "LIFE OS" — corrected below. Life OS is one possible future
+  Backpack, not a required Papers destiny.
+- Section 8 item 6: "The AI is global..." — corrected below. Same correction
+  as 4C.
+
+================================================================================
 
 ================================================================================
 0. WHY THIS DOCUMENT EXISTS
@@ -96,6 +133,14 @@ A Backpack IS closer to:
 - a lens through which the same underlying world can be viewed and acted on differently
 - a structure that gives the machine more human and inhabitable organization than raw app silos or plain directories
 
+[RECOVERY CORRECTION 2026-07-10: The items above describe one possible Backpack
+form, not universal Backpack anatomy. The binding creator definition (see
+recovery header above) permits Backpacks to be literally anything. No universal
+assumptions about a Backpack's contents, furniture, AI integration, notes,
+files, chat, or history may be derived from this section. Files/notes/tasks/
+artifacts/AI interaction are examples of what ONE kind of Backpack might
+contain — not a prescription for all Backpacks. See PAPERS_RECOVERY_MAP_V1.txt.]
+
 Important consequences:
 - Backpacks may overlap
 - the same underlying files / tools / references may matter to multiple Backpacks
@@ -131,6 +176,13 @@ It should be able to understand and act across the broader Papers world, while s
 
 This matters because Papers is not meant to become “a bunch of isolated Backpack bots.”
 It is one environment with multiple rooms, shared capabilities, and a global intelligence layer that can operate across them.
+
+[RECOVERY CORRECTION 2026-07-10: Global AI is a possible product direction, not
+a universal non-negotiable assumption that every Backpack must include AI, that
+every Backpack shares one AI context, or that Papers must prescribe one AI
+provider or runtime. The AI architecture remains open. Papers must not enforce:
+one global Papers AI; permanent World-level memory; universal Backpack context;
+AI in every Backpack; one provider or runtime. See PAPERS_RECOVERY_MAP_V1.txt.]
 
 ================================================================================
 5. PAPERS MUST REMAIN A LAYER OVER REALITY, NOT A FAKE REPLACEMENT WORLD
@@ -171,6 +223,13 @@ That means:
 The Life OS ambition is not separate from Papers.
 It is one major expression of what Papers is for.
 
+[RECOVERY CORRECTION 2026-07-10: Life OS is one possible future Backpack form
+(or family of Backpacks), not a required Papers destiny, not a required step in
+every build sequence, and not a prescription that the current implementation
+must become a knowledge management system. The correction does not dismiss the
+ambition — it scopes it correctly: it is a Backpack type the creator may one
+day want, not a required Papers-level obligation. See PAPERS_RECOVERY_MAP_V1.txt.]
+
 ================================================================================
 7. THE AGENT WORKBENCH / GLOBAL OPERATOR IS A FOUNDATION, NOT THE WHOLE IDENTITY
 ================================================================================
@@ -204,9 +263,9 @@ The following ambitions should be treated as authoritative unless Giun explicitl
 3) Backpacks are core Papers DNA and represent persistent rooms/lenses of that world.
 4) Backpacks must not become silos or fake proprietary universes.
 5) Tools are reusable cross-world capabilities, not one-off app features.
-6) The AI is global across the environment, not confined to one room.
+6) The AI may be global across the environment rather than trapped per-Backpack — but this is a possible product direction, not a universal non-negotiable. [RECOVERY CORRECTION: See recovery header above and PAPERS_RECOVERY_MAP_V1.txt. Global AI is not a requirement that every Backpack share AI context or that Papers prescribe one AI provider.]
 7) Papers should remain truthful about real underlying files, systems, and sources.
-8) Life OS / knowledge-management ambitions are real and belong inside the Papers world.
+8) Life OS / knowledge-management ambitions are real but belong to one or more Backpack types the creator may eventually want — not a required Papers-level obligation. [RECOVERY CORRECTION: See Section 6 correction above.]
 9) The practical operator/workbench layer is a foundation, not the final identity.
 10) Papers should feel personal, accumulative, and inhabitable rather than generic and interchangeable.
 

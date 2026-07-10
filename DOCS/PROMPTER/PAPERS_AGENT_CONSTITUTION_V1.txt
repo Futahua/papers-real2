@@ -14,6 +14,11 @@ Status
 * REAL is legacy Papers v0. REAL2 is the canonical rebuild line.
 * This constitution is written so future sessions can continue the rebuild
   without re-litigating what Papers is, what v0 was, and how agents should act.
+* RECOVERY CORRECTION (2026-07-10): Laws 5 and 9 are corrected below. Section 6
+  Disallowed Question Type 3 is reversed. Sections on reuse-first and
+  behavior-before-builds are added. See DOCS/PAPERS_RECOVERY_MAP_V1.txt for the
+  full drift audit. The recovery map outranks this document on the specific
+  points it corrects.
 
 Purpose
 This document exists because the founder is not a software architect and must not
@@ -94,9 +99,15 @@ founder’s sense: programs, scripts, shortcuts, mounts, utilities, and other
 capabilities Papers can use across contexts. Engine-native “tool calls” are an
 implementation detail and must not steal the product vocabulary.
 
-LAW 5 — The AI is global across the world.
-The AI may participate in a specific room or conversation, but conceptually it is
-one intelligence across Papers, not a collection of isolated chat instances.
+LAW 5 — The AI is not trapped per-Backpack by default.
+[RECOVERY CORRECTION 2026-07-10: The original Law 5 stated "The AI is global
+across the world" as a non-negotiable universal law. This exceeded the creator's
+binding definition. Corrected law: Papers must not trap AI context inside one
+Backpack as the only possibility, but the AI architecture remains open. Papers
+must not prescribe: one global Papers AI; permanent World-level memory; universal
+Backpack context; AI in every Backpack; one provider or runtime. Global AI is a
+possible product direction, not a universal implementation requirement. The
+current implementation's per-room AI context is one form, not the only form.]
 
 LAW 6 — Papers must remain truthful about reality.
 Papers must not claim files, sources, actions, world state, or machine state that
@@ -117,10 +128,17 @@ clear approvals where appropriate, reversibility, recoverability, and honest
 status reporting. The product is allowed to be powerful; it is not allowed to be
 reckless or to fake certainty.
 
-LAW 9 — Accumulation matters.
-Work done in Papers should be able to leave behind durable artifacts, references,
-or structure that remain in the world after the turn ends. If every useful result
-dies with the session, the product is drifting back toward a generic chat tool.
+LAW 9 — Accumulation is valuable in the current Backpack form; it is not universal.
+[RECOVERY CORRECTION 2026-07-10: The original Law 9 stated "Accumulation matters"
+as a universal law requiring durable artifacts from every AI interaction. This
+was valid for the current implemented Backpack form but exceeded what can be
+universally prescribed for all Backpacks. Corrected law: In the current
+implementation, work done in a Backpack should leave durable artifacts, references,
+or structure — if every result dies with the session the current Backpack form is
+failing. But accumulation is not universally mandated for all Backpack types;
+a future Backpack that operates statelessly or ephemerally is not forbidden. The
+current implementation's artifact/note accumulation model is a good substrate,
+not a universal Papers contract.]
 
 LAW 10 — The founder must not be forced to answer false implementation choices.
 If the founder is being asked to choose between engine adapters, event buses,
@@ -292,18 +310,27 @@ Bad:
 These are usually signs that the agent has forgotten the project law and is asking
 for permission to regress.
 
-DISALLOWED QUESTION TYPE 3 — Requests for product meaning that should be inferred
-from the founder docs and prior repo evidence.
-Bad:
+DISALLOWED QUESTION TYPE 3 — (REVERSED BY RECOVERY CORRECTION 2026-07-10)
+[RECOVERY CORRECTION: The original Type 3 told agents to infer Backpack behavior
+from founder docs and prior repo evidence rather than asking the creator. This
+was one of the primary causes of the drift documented in PAPERS_RECOVERY_MAP_V1.txt:
+agents inferred that the current implemented Backpack furniture (notes, files,
+conversation, Desk) was the universal definition, because the documents showed
+one example and agents were told to infer rather than ask.
 
-* “What exactly is a Backpack?”
-* “Should the AI be global or per-room?”
-* “Is Papers meant to be more like a coding app or more like a notes app?”
+CORRECTED RULE: For questions about what a specific NEW Backpack should contain,
+do, or look like — ask the creator. The authority chain (Founder Brief → Repo
+Decision Audit → Constitution → build order → existing code) tells you what
+Papers' universal responsibility is (Backpack switching, one active at a time)
+and what the CURRENT implemented form looks like. It does NOT authorize you to
+prescribe that universal form onto new Backpacks.
 
-If the governing docs and repo evidence are insufficient, the agent may ask a
-tightly framed clarification. But it must first exhaust the authority chain:
-Founder Brief -> Repo Decision Audit -> Constitution -> current build order ->
-existing REAL2 code.
+Agents must ask tightly framed questions about desired creator behavior BEFORE
+designing any new Backpack type, new Backpack surface, or any capability that
+would become mandatory for all Backpacks. Inferring from prior Backpack patterns
+is only safe for the SAME Backpack type. For new Backpack types, the authority
+chain provides constraints (reuse-first, no fake state, guarded action) but not
+content.]
 
 DISALLOWED QUESTION TYPE 4 — Open-ended “how should this work?” questions when the
 agent has not first produced options and a recommendation.
@@ -476,5 +503,54 @@ That means:
   about it;
 * and remember that the objective is not to build a cleaner agent shell than v0.
   The objective is to make Papers real.
+
+================================================================================
+12. BEHAVIOR-BEFORE-BUILDS (added 2026-07-10)
+=============================================
+
+Before any new capability is implemented, the required discipline is:
+
+1. DESIRED CREATOR BEHAVIOR — What does the creator want to be able to do?
+   Describe it in behavioral terms, not in implementation terms.
+
+2. EXISTING PRODUCTS — Does an existing product (Windows, open-source tools,
+   existing app ecosystem) already do this? If yes, can Papers reuse it?
+
+3. REUSE INVESTIGATION — REUSE-FIRST IS HARD LAW. Before building anything,
+   the agent must identify and evaluate reuse candidates. This is not optional.
+   The investigation must be documented: what was found, why it is or is not
+   sufficient, what remains as the smallest missing Papers responsibility.
+
+4. SMALLEST MISSING PAPERS RESPONSIBILITY — What is the minimum Papers-native
+   piece that cannot be satisfied by reusing existing software?
+
+5. BOUNDED BUILD PROMPT — Only after steps 1-4 are documented may a build
+   prompt be written. The build prompt must be bounded to the smallest missing
+   responsibility identified in step 4. It must not expand into steps the
+   investigation did not authorize.
+
+An agent that skips steps 1-4 and goes straight to implementation is violating
+this constitution regardless of how well the implementation is done.
+
+================================================================================
+13. REUSE-FIRST (added 2026-07-10)
+====================================
+
+Reuse-first is hard law. Its operationalization:
+
+* "Reuse" includes: Windows APIs, open-source tools, packages from npm/crates/
+  PyPI, existing applications already installed, shell commands, platform
+  affordances, and any standard prior art.
+* An agent that builds a new system when a standard open-source package exists
+  for the same purpose has violated this law.
+* An agent that builds a new system to solve a need that an existing installed
+  application already solves — without investigating reuse — has violated this
+  law.
+* The investigation does not need to be exhaustive but it must be honest. If
+  something relevant was not investigated, say so.
+* The minimum question before any build: "What already does this?"
+
+This law does not prevent building Papers-native things — it ensures Papers-
+native things are built only for the slice that actually belongs to Papers.
 
 End of PAPERS_AGENT_CONSTITUTION_V1.

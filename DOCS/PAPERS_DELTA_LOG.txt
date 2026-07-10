@@ -3,6 +3,65 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-10 (eighth pass) — documentation drift audit and recovery
+================================================================================
+
+A forensic audit of all governing documents and all implementation code was
+performed. The project returned to the creator's binding definition. No
+application behavior was changed; no application code was modified.
+
+WHAT WAS FOUND
+12 drift points were identified across 8 governing documents. The drift chain:
+"lightweight layer over Windows" → "Papers world model" as center of gravity →
+implemented universal Backpack furniture (things/notes/conversation/history/Desk)
+as if it were Papers anatomy. The creator's binding definition was recovered:
+Papers persistently identifies, organizes, exposes, enters, tracks, leaves, and
+switches Backpacks — one active Backpack at a time. No universal Backpack
+assumptions may be made. See DOCS/PAPERS_RECOVERY_MAP_V1.txt Section C for
+the full drift chain.
+
+WHAT WAS PRODUCED
+1. NEW: DOCS/PAPERS_RECOVERY_MAP_V1.txt — forensic recovery map with 10
+   sections: starting commit, binding definition, drift chain (12 items),
+   document classification (6 categories across all docs), implementation
+   classification (14 subsystems in 6 categories), salvage candidates, stopping
+   point, restart gate (8 conditions), known unknowns.
+
+2. AMENDED: All governing documents corrected per recovery map findings:
+   - README.md (root) — removed World-model as center of gravity; removed global
+     AI and Backpack furniture as non-negotiable; added binding definition;
+     labeled implementation as experimental substrate; recovery map in authority
+     chain at position 2.
+   - AGENTS.md — recovery map added at position 2; behavior-before-builds rule added.
+   - DOCS/README.md — recovery map added as reading position 2; authority hierarchy
+     corrected; current document set updated.
+   - DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt — recovery correction header added;
+     Sections 3, 4C, 6, and 8 item 6 corrected inline.
+   - DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt — recovery header added; Laws 5
+     and 9 corrected; Section 6 Type 3 reversed; Sections 12 and 13 (behavior-before-
+     builds and reuse-first) added.
+   - DOCS/PROMPTER/PAPERS_PROMPTER_HANDOFF.txt — Section 2 corrected; Step 5
+     (behavior-before-builds) added.
+   - DOCS/PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt — Section 2 authority order
+     corrected; Section 15 operating summary corrected.
+   - DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt — recovery notice header added; no later
+     slice automatically authorized.
+   - DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt — recovery header added; universal
+     hierarchy claim corrected to be implementation-specific.
+   - DOCS/PAPERS_BACKPACK_DESK_V1.txt — optional-experiment framing strengthened;
+     getDeskView() universality noted as known code issue, not product prescription.
+   - DOCS/PAPERS_DELTA_LOG.txt — this entry.
+   - app/README.md — experimental substrate note added; recovery map linked.
+
+CURRENT STATE
+- Product expansion is paused.
+- 31/31 tests continue to pass (no application code was changed).
+- The implementation classified: 4 items KEEP AS CURRENT CORE; 4 items NEUTRAL
+  SUBSTRATE; 8 items OPTIONAL BACKPACK MECHANISM; 1 item QUARANTINE (the Desk as
+  universal, not as optional experiment); 3 items UNRESOLVED.
+- Restart gate: 8 conditions in DOCS/PAPERS_RECOVERY_MAP_V1.txt Section I.
+
+================================================================================
 2026-07-09 (seventh pass) — the Desk: first inhabited Backpack slice
 ================================================================================
 

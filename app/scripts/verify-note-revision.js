@@ -1,9 +1,9 @@
 'use strict';
 
-// Headless acceptance walk for Backpack note revision: any AI-made Backpack
-// note can be revised in place under the creator's direction — a Backpack
-// capability, not Desk furniture. This walk deliberately never touches the
-// Desk: no brief, no desk items, no working note.
+// Headless acceptance walk for Backpack note revision: in the current
+// Backpack form, any AI-made note can be revised in place under the
+// creator's direction — not Desk-only furniture. This walk deliberately
+// never touches the Desk: no brief, no desk items, no working note.
 //
 // Run:  node scripts/verify-note-revision.js            (default engine)
 //       PAPERS_ENGINE=ollama node scripts/verify-note-revision.js

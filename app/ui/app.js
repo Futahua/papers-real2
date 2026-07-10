@@ -548,7 +548,9 @@ function openNoteSurface(artifactId) {
 // ---- Thing preview: read-only source inspection ----------------------------
 // A thing opened as a room surface of its own: what Papers can truthfully
 // read from the real item right now. Nothing is sent to an AI, nothing is
-// selected, and nothing is added to the Backpack's record.
+// selected, and no note, copy, conversation entry, or Desk membership is
+// created. The truthful reference check is persisted as always — losing or
+// regaining contact with the real item stays an honest Backpack event.
 
 async function openPreview(thingId) {
   const result = await window.papers.previewThing(state.roomId, thingId);
@@ -602,7 +604,7 @@ function previewSurfaceHtml() {
         <button id="refresh-preview" title="Re-check the real item and read it again">Refresh preview</button>
         <button id="preview-open-real" ${t.status !== 'present' ? 'disabled title="The real item is missing"' : 'title="Open the real location on this machine"'}>Open real location</button>
       </div>
-      <div class="note-footer">Read-only preview. The real ${t.type === 'folder' ? 'folder' : 'file'} stays at its own path — nothing was changed, shared with an AI, or added to this Backpack.</div>
+      <div class="note-footer">Read-only preview. Papers made no copy or note and sent nothing to an AI. The real ${t.type === 'folder' ? 'folder' : 'file'} stays at its own path — Papers may record if contact with it is lost or restored.</div>
     </div>`;
 }
 

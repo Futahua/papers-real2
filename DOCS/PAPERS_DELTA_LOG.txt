@@ -3,6 +3,54 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-10 (tenth pass) — local pre-recovery slice reconciled onto recovered
+main: in-place note revision (current Backpack form), Desk copy softened,
+storage hardening
+================================================================================
+
+A local branch (backpack-note-revision) written just before the recovery
+passes was reconciled onto recovered main. Its documentation amendments were
+DROPPED where the ninth-pass rewrites already made the same corrections
+canonically. What was ported, adapted to recovered doctrine:
+
+1. IN-PLACE NOTE REVISION (current Backpack form). Any AI-made note in the
+   current Backpack implementation can be revised in place under the
+   creator's direction, with the standard guard shape: an exact preview
+   built from the same gathering code as the action, explicit approval,
+   durable attributable result, honest recorded failure. Each revision
+   records the direction used and preserves the replaced title/text in the
+   note's provenance trail; recorded sources are re-read from reality at
+   revision time, with missing/unreadable sources shown honestly. The
+   Desk's working note becomes one user of this action, not its owner.
+   Worded throughout as current-form behavior, not universal Backpack
+   anatomy. PAPERS_BACKPACK_DESK_V1 amended on this one point (its framing
+   correction was already made by the recovery pass and governs).
+
+2. ASSISTANT CONTEXT COPY SOFTENED. The AI-facing context block no longer
+   calls the Desk "your default working context" — when the Desk is in use
+   it is given first attention, one work surface inside the Backpack, not
+   the Backpack itself. The empty Desk renders as one quiet line, and
+   "Put on the Desk" copy says "flag it as active work" instead of "the
+   Backpack's active work". This is the code-side counterpart of the
+   recovery map's F4 observation; the substrate universality itself
+   (getDeskView inside getRoomView) is untouched and remains a known issue.
+
+3. STORAGE/LIFECYCLE HARDENING (separate commits). (a) Single-instance
+   lock: a second Papers instance over the same world exits immediately
+   (app.exit(1)) instead of racing the first instance's JSON writes —
+   exit(1) rather than quit() because the ready-chain is top-level and a
+   graceful quit could still let the second instance write world state
+   before teardown. (b) A world file that fails to parse is quarantined
+   loudly (renamed *.corrupt-<ts>, error logged) instead of being silently
+   replaced by the next write; absent files still read as normal fallbacks.
+
+Tests: engine prompt tests updated for the softened Desk copy; new tests for
+revision of a non-working note (trail preserves replaced text), revision
+prompt honesty, runtime-failure propagation on revision, and corrupt-file
+quarantine. scripts/verify-note-revision.js added as the headless acceptance
+walk for this slice.
+
+================================================================================
 2026-07-10 (ninth pass) — documents made internally consistent: clean rewrites
 replace bracket-annotated corrections
 ================================================================================

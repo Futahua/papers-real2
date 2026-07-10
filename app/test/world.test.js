@@ -588,6 +588,46 @@ test('preview creates no artifact or interaction record, changes no real source,
   );
 });
 
+test('any note in the current Backpack form can be revised in place — not just the working note', () => {
+  const dir = tempDir('revise');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Revisable');
+  const note = store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'Hinge notes',
+    body: 'The old hinges are rusted through.',
+    provenance: { createdBy: 'papers-ai', engine: 'test', sourceThings: [{ displayName: 'a.txt', path: 'C:\\a.txt', type: 'file' }] },
+  });
+  const revised = store.updateArtifact(room.id, note.id, {
+    title: 'Hinge notes',
+    body: 'Replacements bought: 4-inch, stainless.',
+    revision: {
+      engine: 'test-2',
+      requestedBy: 'creator',
+      direction: 'Fold in the purchase.',
+      sourceThings: [{ displayName: 'a.txt', path: 'C:\\a.txt', type: 'file' }],
+    },
+  });
+  assert.equal(revised.id, note.id, 'same durable note');
+  assert.equal(revised.kind, 'room-note', 'revision does not change what kind of note it is');
+  assert.equal(revised.provenance.revisions.length, 1);
+  const trail = revised.provenance.revisions[0];
+  assert.equal(trail.direction, 'Fold in the purchase.', "the creator's direction is honest provenance");
+  assert.equal(trail.previousBody, 'The old hinges are rusted through.', 'the replaced text stays in the trail');
+  assert.equal(trail.previousTitle, 'Hinge notes');
+  // The Backpack event says "note", not "working note" — in the current
+  // Backpack form, revision is a note behavior, not Desk-only furniture.
+  const last = store.getActivity(room.id).at(-1);
+  assert.equal(last.kind, 'note-updated');
+  assert.match(last.text, /revised the note "Hinge notes"/);
+  assert.equal(last.refs.noteId, note.id);
+  // Restart: the revision is durable.
+  const reopened = new WorldStore(dir).listArtifacts(room.id)[0];
+  assert.equal(reopened.body, 'Replacements bought: 4-inch, stainless.');
+  assert.equal(reopened.provenance.revisions[0].previousBody, 'The old hinges are rusted through.');
+});
+
 test('artifact provenance records the real sources it was made from', () => {
   const dir = tempDir('prov');
   const store = new WorldStore(dir);

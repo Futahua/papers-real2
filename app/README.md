@@ -19,11 +19,18 @@ conversation, durable Backpack notes the AI writes from those things, and a
 Papers-owned Backpack history. Entering a Backpack lands on its own state: a
 creator-written description, an honest snapshot, a callout for things it has lost
 contact with, what happened since your last visit, and the notes pinned to it.
-In the current implementation, each Backpack has a **Desk** — an active work surface (see
+In the current implementation, a Backpack can put work on its **Desk** — an optional
+active-work surface (see
 [`DOCS/PAPERS_BACKPACK_DESK_V1.txt`](../DOCS/PAPERS_BACKPACK_DESK_V1.txt)): a brief in
 the creator's words, things and notes placed on the Desk, and one working note the AI
-revises in place from that Desk with a full provenance trail. The AI treats the Desk
-as its default working context.
+revises in place from that Desk with a full provenance trail. When the Desk is in use,
+the AI's Backpack context foregrounds it as the current active work; the AI stays
+grounded in the whole Backpack either way, and a Backpack with an empty Desk is just
+as much a Backpack.
+In this Backpack form, any AI-made note can be revised in place under the creator's
+direction — a guarded action (exact preview of the note text, your direction, and each
+recorded source re-read from reality) whose every revision records the direction and
+engine used and keeps the replaced text in the note's revision trail.
 Backpack history is a navigable timeline — grouped by day, marked at your last visit,
 honest about reality drift (lost/recovered contact with real things), and each event
 is a path back into the note or real location it is about. Everything survives closing
@@ -47,7 +54,8 @@ npm start
 
 The AI inside rooms speaks through one Papers-native engine seam
 ([`engine/index.js`](engine/index.js)): reply in room context, write a room note from
-selected room things. Underneath, interchangeable runtime backends implement a tiny
+selected room things, revise an existing Backpack note in place, synthesize the Desk
+into its working note. Underneath, interchangeable runtime backends implement a tiny
 text-in/text-out contract. Papers stores **no** runtime credentials, sessions, or
 provider state; the Papers world store is the only custodian of continuity, and every
 AI-made note records which runtime actually wrote it.
@@ -63,10 +71,16 @@ If the selected runtime is unavailable, rooms keep working fully — attach thin
 real locations, everything persists — and the AI reports honestly that it cannot
 respond rather than faking replies.
 
-**Acceptance walk:** `node scripts/verify-slice1.js` runs the Slice 1 flow headless
-(world → room → real things → AI reply → guarded note → restart → missing-reference
-truthfulness) against whichever runtime is selected, and reports the AI path honestly
-as LIVE or as an honest failure.
+**Acceptance walks** (each runs headless against whichever runtime is selected and
+reports the AI path honestly as LIVE or as an honest failure):
+
+- `node scripts/verify-slice1.js` — the Slice 1 flow (world → room → real things →
+  AI reply → guarded note → restart → missing-reference truthfulness)
+- `node scripts/verify-desk.js` — the Desk flow (brief + desk items → guarded
+  synthesis → working note revised in place → restart → missing-reality honesty)
+- `node scripts/verify-note-revision.js` — Backpack note revision (guarded in-place
+  revision under the creator's direction, no Desk involved → provenance trail with
+  the replaced text → restart → missing-source honesty)
 
 ## Layout
 
@@ -85,7 +99,9 @@ app/
 │       ├── claude-cli.js
 │       └── ollama.js
 ├── scripts/
-│   └── verify-slice1.js  Headless Slice 1 acceptance walk
+│   ├── verify-slice1.js         Headless Slice 1 acceptance walk
+│   ├── verify-desk.js           Headless Desk acceptance walk
+│   └── verify-note-revision.js  Headless Backpack note revision walk
 ├── ui/                World-first shell: world view → room surface
 └── test/              Continuity + truthfulness tests (node --test)
 ```

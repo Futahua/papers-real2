@@ -328,6 +328,41 @@ textarea { resize: none; }
 .note-surface .note-footer { color: var(--ink-soft); font-size: 12px; }
 .note-made-from { margin-top: 20px; margin-bottom: 16px; }
 
+/* A thing previewed in the room — read-only source inspection */
+.preview-surface .note-title { font-size: 24px; font-weight: normal; margin: 14px 0 4px; }
+.preview-surface .status-dot {
+  display: inline-block;
+  width: 9px; height: 9px; border-radius: 50%;
+  margin-right: 2px;
+}
+.preview-path { white-space: normal; overflow-wrap: anywhere; margin-top: 2px; }
+.preview-read-meta { color: var(--ink-soft); font-size: 13px; margin-top: 14px; }
+.preview-body {
+  font-family: Consolas, Menlo, 'DejaVu Sans Mono', monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 10px 0;
+  max-height: 62vh;
+  overflow-y: auto;
+}
+.preview-unreadable {
+  color: var(--ink-soft);
+  font-style: italic;
+  background: var(--card);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin: 10px 0;
+}
+.preview-surface .missing-callout { margin-top: 12px; }
+.preview-surface .note-footer { color: var(--ink-soft); font-size: 12px; margin-top: 12px; }
+
 /* Room history — the room's life as a readable, navigable timeline */
 .timeline-day {
   font-size: 12px;

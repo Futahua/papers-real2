@@ -97,6 +97,12 @@ function registerHandlers(getWindow) {
     return { ok: true, things };
   });
 
+  // Read-only source inspection: what Papers can truthfully read from a
+  // thing right now. No AI is contacted and nothing persistent is created.
+  ipcMain.handle('room:previewThing', (_e, roomId, thingId) =>
+    store.previewThing(roomId, thingId)
+  );
+
   // --- The Desk: the Backpack's active work surface -----------------------
 
   ipcMain.handle('desk:add', (_e, roomId, type, id) => {

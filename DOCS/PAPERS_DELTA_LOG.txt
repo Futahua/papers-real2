@@ -6,9 +6,9 @@ Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 2026-07-09 (seventh pass) — the Desk: first inhabited Backpack slice
 ================================================================================
 
-Creator-directed leap past "Backpack as persistent container with memory"
-into active work. Branch backpack-desk. Concept doc:
-DOCS/PAPERS_BACKPACK_DESK_V1.txt (new, indexed).
+First active-work experiment inside a Backpack — a step past "Backpack as
+persistent container with memory" into active work. Branch backpack-desk.
+Concept doc: DOCS/PAPERS_BACKPACK_DESK_V1.txt (new, indexed).
 
 WHAT WAS BUILT
 1. THE DESK (rooms/<id>/desk.json — Papers-owned, durable): the Backpack's

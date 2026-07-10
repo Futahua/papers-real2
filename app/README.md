@@ -13,7 +13,7 @@ conversation, durable Backpack notes the AI writes from those things, and a
 Papers-owned Backpack history. Entering a Backpack lands on its own state: a
 creator-written description, an honest snapshot, a callout for things it has lost
 contact with, what happened since your last visit, and the notes pinned to it.
-Each Backpack has a **Desk** — its active work surface (see
+In the current implementation, each Backpack has a **Desk** — an active work surface (see
 [`DOCS/PAPERS_BACKPACK_DESK_V1.txt`](../DOCS/PAPERS_BACKPACK_DESK_V1.txt)): a brief in
 the creator's words, things and notes placed on the Desk, and one working note the AI
 revises in place from that Desk with a full provenance trail. The AI treats the Desk

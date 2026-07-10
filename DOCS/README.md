@@ -20,16 +20,23 @@ If a future session can read this folder and pick up the rebuild without having 
 
 If you are new to REAL2, read in this order.
 
-### 1) `PROMPTER/PAPERS_FOUNDER_BRIEF.txt`
+### 1) `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4)
 
-Read first. This is the highest-authority founder statement of what Papers fundamentally is. It contains a recovery correction header (added 2026-07-10) that marks specific sections that were found to exceed the creator's binding definition — read that header before acting on the sections it calls out.
+Read first. This is the CANONICAL, clean current statement of what Papers
+fundamentally is. It supersedes PAPERS_FOUNDER_BRIEF_V3 in full — V3's
+superseded claims and the causal history of how they entered the project are
+preserved in `PAPERS_RECOVERY_MAP_V1.txt`, not repeated here as active
+doctrine.
 
 It defines:
 
-* the foundational identity of Papers as a lightweight personal layer over Windows
-* original founder concepts (Backpacks, truthful grounding)
-* what the project must not collapse into
-* the tests new proposals must survive
+* Papers as a lightweight personal layer over Windows
+* Papers' narrow universal responsibility (Backpack identification,
+  organization, exposure, entry, tracking, leaving, switching — one active
+  Backpack at a time)
+* Backpacks, Tools, and AI/agents as unspecified beyond that narrow
+  responsibility
+* reuse-first and behavior-before-builds as binding discipline
 
 ### 2) `PAPERS_RECOVERY_MAP_V1.txt`
 
@@ -116,7 +123,7 @@ Not all docs have equal weight.
 
 **Highest authority**
 
-1. `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` — foundational product identity (see recovery correction header within it).
+1. `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4) — CANONICAL, clean current statement of Papers' product identity.
 
 **Current state authority (read before any product expansion)**
 
@@ -125,7 +132,7 @@ Not all docs have equal weight.
 **High authority (correction/clarification)**
 
 3. Explicit correction/supersession docs that clearly say they override the founder brief on a specific point.
-   * `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — canonical WORLD / BACKPACK / ROOM vocabulary (a clarification consistent with the founder brief; binding on implementation vocabulary, docs, and milestone framing). Amended by the recovery map to narrow the universal hierarchy claim.
+   * `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — canonical PAPERS / BACKPACK / TOOL vocabulary; "world" and "room" are historical implementation labels only, not product ontology.
 
 **Operational rebuild authority**
 
@@ -148,16 +155,16 @@ These are behavioral and continuity docs. They matter a lot, but they do not out
 **Present now**
 
 * `PAPERS_RECOVERY_MAP_V1.txt` — current product state map, drift audit, implementation classification, restart gate (added 2026-07-10)
-* `PAPERS_REPO_DECISION_AUDIT_V1.txt`
-* `PAPERS_NEXT_BUILD_ORDER_V1.txt` — historical substrate sequencing record; no later slice automatically authorized
-* `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — canonical WORLD / BACKPACK / ROOM vocabulary correction (amended by recovery map)
-* `PAPERS_BACKPACK_DESK_V1.txt` — the Desk: optional experiment in the current Backpack form (amended by recovery header)
-* `PAPERS_DELTA_LOG.txt` — lightweight cumulative record of material changes (newest first)
-* `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` — amended by recovery correction header
-* `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt` — amended by recovery correction
-* `PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt` — amended by recovery correction
-* `PROMPTER/PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt`
-* `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt` — amended by recovery correction
+* `PAPERS_REPO_DECISION_AUDIT_V1.txt` — historical evidence (legacy v0 audit)
+* `PAPERS_NEXT_BUILD_ORDER_V1.txt` — historical evidence (substrate sequencing record); no later slice automatically authorized
+* `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — corrected and active: canonical PAPERS / BACKPACK / TOOL vocabulary
+* `PAPERS_BACKPACK_DESK_V1.txt` — implementation-specific: the Desk, an optional experiment in the current Backpack form only
+* `PAPERS_DELTA_LOG.txt` — historical evidence (lightweight cumulative record of material changes, newest first)
+* `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` — CANONICAL (PAPERS_FOUNDER_BRIEF_V4, clean rewrite)
+* `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt` — corrected and active
+* `PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt` — corrected and active
+* `PROMPTER/PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt` — corrected and active
+* `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt` — corrected and active
 
 The governing set is complete. Slice 1 and Slice 2A are implemented. Product expansion is paused pending restart gate clearance (`PAPERS_RECOVERY_MAP_V1.txt` Section I).
 

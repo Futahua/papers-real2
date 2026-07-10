@@ -9,9 +9,11 @@ This document is the authoritative record of:
   — where the project is now;
   — what must happen before another build prompt.
 
-Future agents: read this before any governing document in the repo.
-If any other document contradicts this map, this map wins until the
-creator issues a later explicit direction that says otherwise.
+Future agents: read PAPERS_FOUNDER_BRIEF_V4 (DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt)
+first for the clean current product definition, then read this map for the
+drift history, implementation classification, stopping point, and restart
+gate. If any other document contradicts this map on the questions in scope
+above, this map wins until the creator issues a later explicit direction.
 
 ================================================================================
 A. AUDIT BASELINE
@@ -407,63 +409,76 @@ Amendment in this PR : Recovery map added immediately after founder brief in
 
 -- DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt --
 
-Classification : CORRECTED AND ACTIVE
-Pre-amendment classification : HISTORICAL EVIDENCE for the AI-authored
-    worldview that produced drifts 4-6.
-What remains useful after amendment : The concept that Papers is a layer over
-    the computer (Windows); Backpacks as creator-defined places; avoidance of
-    the generic agent cockpit; creator authority; implementation must not
-    replace product meaning; truth-first discipline.
-What must not be inherited from original : Global AI as settled architecture;
-    Life OS as required destiny; universal Backpack furniture (files, notes,
-    references, tasks, artifacts, AI); one coherent semantic environment
-    Papers owns; "world model" as product center of gravity.
-Higher authority : Creator's live direction; this recovery map.
-Amendment in this PR : Recovery correction header added; sections on global
-    AI, Life OS, and universal Backpack furniture corrected; link to recovery
-    map for historical explanation.
+Classification : CANONICAL (PAPERS_FOUNDER_BRIEF_V4)
+Pre-amendment classification : SUPERSEDED IN FULL — V3 contained drifts 4-6
+    and 12 as active operative doctrine (universal Backpack furniture, global
+    AI as settled architecture, Life OS as required destiny, and more).
+What happened in this PR : This is a FULL REWRITE, not an annotation. V3's
+    superseded claims are not repeated in the active document — they are
+    quoted and explained in Section C of this map. The new V4 document states
+    only: Papers as a lightweight layer over Windows; Papers' narrow universal
+    responsibility (Backpack identify/organize/expose/enter/track/leave/
+    switch, one active at a time); Backpacks/Tools/AI as unspecified beyond
+    that; reuse-first; behavior-before-builds; current implementation as
+    evidence, not ontology.
+What must not be inherited from V3 : Everything not restated in V4. If a
+    claim from V3 is not in V4, it is not active doctrine — see Section C for
+    the specific superseded claims and why each was removed rather than kept
+    as a corrected variant.
+Higher authority : Creator's live direction.
 
 -- DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt --
 
 Classification : CORRECTED AND ACTIVE
 Pre-amendment classification : SUPERSEDED in the parts producing drifts 7-9.
-What remains useful after amendment : The role split (creator / proxy / agent);
-    the anti-cockpit rules; truthfulness discipline; narrow-slice discipline;
-    the test framework (Papers test, truthfulness test, etc.); salvage policy;
-    documentation rules.
-What must not be inherited from original : Law 5 (global AI as universal law);
-    Law 9 (accumulation as universal law); the permission for agents to infer
-    Backpack behavior from prior docs instead of asking the creator.
-Higher authority : Creator's live direction; this recovery map.
-Amendment in this PR : Law 5 corrected; Law 9 narrowed; behavior-before-builds
-    and reuse-first sections added; agent inference rule corrected.
+What happened in this PR : Section 1 ("Papers, Stated Plainly") and Section 2
+    ("Non-Negotiable Product Laws") were REWRITTEN, not annotated. The prior
+    10 laws (persistent world as system of record, Backpacks as "persistent
+    rooms/lenses over a world," global AI, guarded action as identity,
+    accumulation as identity) are replaced with 13 laws scoped to the narrow
+    definition, with AI architecture explicitly stated as unspecified rather
+    than "not trapped per-Backpack by default." Section 3 (v0 lessons),
+    Section 4 (binding rules), and Sections 5-11 were also revised to remove
+    "world-first" and "Papers world" framing throughout.
+What remains useful after amendment : The role split (creator / proxy /
+    agent); the anti-cockpit rules; the salvage policy for REAL; documentation
+    maintenance rules; behavior-before-builds and reuse-first sections.
+What must not be inherited from the original : Any law or rule not present in
+    the rewritten Sections 1-2 — see Section C of this map for what was
+    removed and why.
+Higher authority : Creator's live direction; PAPERS_FOUNDER_BRIEF_V4.
 
 -- DOCS/PROMPTER/PAPERS_PROMPTER_HANDOFF.txt --
 
 Classification : CORRECTED AND ACTIVE
 Pre-amendment classification : SUPERSEDED — carried forward global AI and
-    Life OS as things to inherit in every new session.
-What remains useful after amendment : The proxy role explanation; steps for
-    a fresh session; classification system (core/contingent/mistaken).
-What must not be inherited from original : Global AI, Life OS, and universal
-    Backpack furniture as inherited context.
-Higher authority : Creator's live direction; this recovery map.
-Amendment in this PR : Workflow corrected to behavior-before-builds; inherited
-    context updated to reflect corrected creator definition.
+    Life OS as things to inherit in every new session, and framed "Papers as
+    a coherent personal world-layer" as the test for good recommendations.
+What happened in this PR : Full rewrite. Section 2 ("Authoritative context to
+    inherit") now lists only what PAPERS_FOUNDER_BRIEF_V4 actually says.
+    Section 5 ("questions to ask before advising") no longer asks whether a
+    change preserves "shared Tools / global AI / truthful real-world
+    grounding" as a checklist of assumed-core features.
+What remains useful : The proxy role explanation; steps for a fresh session;
+    the three-bucket classification system (now scoped to the narrow
+    definition instead of to "founder ambition" generally).
+Higher authority : Creator's live direction; PAPERS_FOUNDER_BRIEF_V4.
 
 -- DOCS/PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt --
 
 Classification : CORRECTED AND ACTIVE
 Pre-amendment classification : SUPERSEDED — prescribed the drifted worldview
-    as stable state to carry forward across sessions.
-What remains useful after amendment : The proxy role concept; anti-flattening
-    rules; anti-romanticization rules; classification system; session-end
-    checklist.
-What must not be inherited from original : The prescribed worldview including
-    global AI, Life OS, and the full Backpack furniture set as inherited state.
-Higher authority : Creator's live direction; this recovery map.
-Amendment in this PR : Prescribed worldview corrected; prompting workflow
-    made explicit with behavior-before-builds sequence.
+    as stable state to carry forward across sessions, and gave "global AI
+    spanning the environment" and "Backpacks as non-silo rooms/lenses" as
+    worked examples of CORE classification.
+What happened in this PR : Full rewrite. The authority-order section, the
+    three-bucket classification examples, and the operating summary no longer
+    contain global AI, Life OS, or Backpack furniture as illustrative CORE
+    examples. "Good/bad proxy behavior" examples were replaced with ones that
+    do not assume the current Backpack's furniture is universal.
+What remains useful : The proxy role concept; anti-flattening rules; the
+    authority-level structure; session-end checklist; doc-maintenance rules.
+Higher authority : Creator's live direction; PAPERS_FOUNDER_BRIEF_V4.
 
 -- DOCS/PROMPTER/PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt --
 
@@ -508,18 +523,21 @@ Amendment in this PR : Header added marking it as historical substrate
 
 -- DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt --
 
-Classification : IMPLEMENTATION-SPECIFIC (for current vocabulary decisions)
-What remains useful : The room→Backpack vocabulary correction is sound and
-    binding on the current implementation. The implementation tolerance (room
-    in internal code identifiers) remains practical and honest. The instruction
-    that user-facing copy must say Backpack is correct.
-What must not be inherited : "World" as a proprietary governing ontology.
-    "Backpack contents / surfaces / activity / artifacts / AI context" as
-    universal Backpack children — this prescribes universal furniture.
-Higher authority : Creator's live direction; this recovery map.
-Amendment in this PR : "World" reduced to plain English (the real machine and
-    Papers' layer over it, not a proprietary ontology concept); universal
-    furniture prescription removed from the hierarchy.
+Classification : CORRECTED AND ACTIVE
+Pre-amendment classification : SUPERSEDED — treated "World" as a canonical
+    governing concept with a fixed hierarchy (World → Backpacks → Backpack
+    contents/surfaces/activity/artifacts/AI context) presented as universal.
+What happened in this PR : Full rewrite. "World" is removed as a product
+    concept. The active vocabulary is now Papers / Backpack / Tool only.
+    "World" and "room" are stated explicitly to be historical implementation
+    labels in code and persisted data, not product ontology — this is a
+    definitional statement, not a caveat attached to an otherwise-active
+    hierarchy claim.
+What remains useful : The original room→Backpack vocabulary correction (say
+    Backpack in user-facing and AI-facing language) is preserved as the
+    active naming rule. The code-identifier implementation tolerance is
+    preserved.
+Higher authority : Creator's live direction; PAPERS_FOUNDER_BRIEF_V4.
 
 -- DOCS/PAPERS_BACKPACK_DESK_V1.txt --
 
@@ -528,11 +546,11 @@ What remains useful : Accurate description of the Desk as it exists in the
     current Backpack. The self-stated limits (not universal, not task manager,
     not autonomous) are correct and should be preserved.
 What must not be inherited : The Desk as universal Backpack architecture.
-    The fact that the Desk is in every current Backpack as a universal feature.
-Higher authority : Creator's live direction; this recovery map.
-Amendment in this PR : Header strengthened to make clear the Desk is an
-    optional existing experiment in the current implementation only. The
-    self-stated limit is elevated in prominence.
+    The fact that getDeskView() is called for every Backpack read in the
+    current code must not be read as product intent — see Section F4.
+Higher authority : Creator's live direction; PAPERS_FOUNDER_BRIEF_V4.
+Amendment : Header strengthened to make clear the Desk is an optional existing
+    experiment in the current implementation only.
 
 -- DOCS/PAPERS_DELTA_LOG.txt --
 
@@ -546,9 +564,17 @@ Amendment in this PR : Newest-first entry recording this documentation recovery.
 
 -- DOCS/PAPERS_RECOVERY_MAP_V1.txt (this document) --
 
-Classification : CANONICAL
-What this is : The forensic recovery and current-state map. It supersedes
-    any document that contradicts it on the questions it addresses.
+Classification : CURRENT STATE / FORENSIC AUTHORITY
+What this is : The forensic drift record, implementation classification,
+    stopping point, and restart gate. It is authoritative on those specific
+    questions and supersedes any document that contradicts it on them. It is
+    NOT the primary statement of what Papers is — that is
+    PAPERS_FOUNDER_BRIEF_V4, which is CANONICAL. This map exists so a future
+    agent does not have to read 1,200 lines of forensic history to get a
+    clean product definition; PAPERS_FOUNDER_BRIEF_V4 supplies that in under
+    150 lines. Read the founder brief first for "what is Papers"; read this
+    map for "how did we get here, what does the code contain, and what must
+    happen before more is built."
 Higher authority : Creator's live direction.
 
 ================================================================================
@@ -571,7 +597,10 @@ Persistence    : Loads WorldStore from %APPDATA%\Papers\world on start
 Visible        : The full application experience.
 Assumptions    : Electron is the shell; Windows is the primary target (AppData
                  path); node:fs for persistence.
-Universal      : Yes — the application shell is Papers-level, not Backpack-specific.
+Universal      : PARTIAL. The RESPONSIBILITY it fulfills (opening into a
+                 persistent Backpack-identifying surface) is Papers-level. The
+                 SPECIFIC TECHNOLOGY (Electron) is a current substrate choice,
+                 not a Papers-universal requirement — see Section F2(a) and F6.
 Tests          : Smoke boot test (npm run smoke).
 
 -- E2. BACKPACK IDENTITIES AND ORGANIZATION --
@@ -772,8 +801,12 @@ Behavior       : No AI call happens until creator explicitly approves. Preview
 Persistence    : The action completes and creates a durable artifact, or does not.
 Visible        : Approval modal.
 Assumptions    : Consequential AI actions need creator approval.
-Universal      : The PATTERN is sound and should apply broadly. The specific
-                 implementations are Backpack-specific.
+Universal      : NO — this is an optional Backpack pattern (Section F3(i)),
+                 not a universal Papers requirement. The creator has
+                 explicitly established that a Backpack may deliberately have
+                 unrestricted authority; guarding cannot be prescribed
+                 broadly. The pattern is a recommended reusable choice for a
+                 Backpack that wants it.
 Tests          : engine.test.js — guarded-action preview path tests.
 
 -- E13. RECOVERY / HONESTY MECHANISMS --
@@ -785,13 +818,18 @@ What exists    : Honest missing-thing status (shown to creator; logged as event)
                  sourceThings). "Not a real file" label on artifacts.
                  "Open real location" refuses honestly when path is missing.
                  Thing status re-verified at every room read.
-Behavior       : Papers never claims state it has not verified. Unavailability
-                 is always explicitly reported. Historical events are not rewritten.
+Behavior       : In the current Backpack, Papers never claims state it has not
+                 verified; unavailability is always explicitly reported;
+                 historical events are not rewritten.
 Persistence    : Persisted status reflects actual observed state.
 Visible        : Throughout the UI — missing badges, honest failure messages,
                  provenance labels, "reality moved on" messages.
-Assumptions    : This discipline applies Papers-wide.
-Universal      : YES — this is a core Papers discipline, not Backpack-specific.
+Assumptions    : This discipline applies within the current Backpack, which
+                 makes truthfulness claims about real things.
+Universal      : NO — this is good engineering practice for a Backpack that
+                 makes claims about real-world state (Section F2(d)), not a
+                 universal Papers-wide law. A Backpack that makes no such
+                 claims has nothing to be honest or dishonest about.
 Tests          : world.test.js and engine.test.js have multiple honesty-specific
                  tests. The "inertness" test for preview is especially notable.
 
@@ -811,165 +849,200 @@ Universal      : Test infrastructure is neutral substrate.
 F. IMPLEMENTATION RECOVERY CLASSIFICATION
 ================================================================================
 
+This section was revised on 2026-07-10 to narrow F1 to only what
+PAPERS_FOUNDER_BRIEF_V4 actually calls universal, and to make explicit that
+"useful engineering" is not the same as "Papers core." No code changed in
+this revision — only the classification.
+
 -- F1. KEEP AS CURRENT CORE --
 
-  (a) Application shell (launch, world load, single-window)
-      Evidence    : Electron main.js opens Papers into a persistent world;
-                    required for one-active-Backpack-at-a-time behavior.
-      Reason      : Directly supports Papers' narrow responsibility.
-      Dependencies: Electron, node:fs, world store.
-      Risk of keeping : Windows-only at present; Electron is a large runtime.
-      Risk of removing: Application ceases to exist.
+Limited strictly to behavior that directly implements Papers' narrow
+responsibility: identify, organize, expose, enter, track, leave, and switch
+Backpacks, one active at a time.
+
+  (a) Persistent Backpack identity
+      Evidence    : room.json identity fields (id, title, type, timestamps);
+                    createRoom; listRooms.
+      Reason      : Papers must identify and organize Backpacks. These are
+                    identity fields, not furniture.
       Immediate action: RETAIN.
 
-  (b) Backpack identity records (id, title, type, timestamps)
-      Evidence    : room.json identity fields; createRoom; listRooms.
-      Reason      : Papers' responsibility is to identify and organize Backpacks.
-                    These fields are Papers-level, not furniture-specific.
-      Dependencies: WorldStore, persistence infrastructure.
-      Risk of keeping : Minimal — these are minimal identity fields.
-      Risk of removing: Papers cannot identify or list Backpacks.
+  (b) Backpack naming and organization
+      Evidence    : renameRoom; setRoomDescription (naming/organizing, not the
+                    description's use as "Backpack furniture" — see F3h for
+                    the description's broader framing).
+      Reason      : Organizing Backpacks is part of the narrow responsibility.
       Immediate action: RETAIN.
 
-  (c) Active Backpack selection and switching
-      Evidence    : markRoomEntered; room:get IPC; one-Backpack-at-a-time UI.
-      Reason      : "One active Backpack at a time" is the only universal
-                    runtime assumption per creator's definition.
-      Dependencies: WorldStore; UI navigation.
-      Risk of keeping : Minimal.
-      Risk of removing: Papers loses its core behavior.
+  (c) Visible access / launch / entry points
+      Evidence    : World-view list of Backpacks; navigation into a Backpack.
+      Reason      : Papers must expose Backpacks so the creator can enter them.
       Immediate action: RETAIN.
 
-  (d) Recovery and honesty mechanisms
-      Evidence    : Missing-thing status; engine-failure reporting; no-fake-reply
-                    discipline; provenance on artifacts; truncation markers.
-      Reason      : Papers never claims false state is a Papers-level discipline,
-                    not Backpack-specific. Mentioned explicitly in creator direction.
-      Dependencies: WorldStore; engine; UI.
-      Risk of keeping : None.
-      Risk of removing: Papers would fake state — violates creator direction.
+  (d) Current-Backpack tracking
+      Evidence    : lastEnteredAt; markRoomEntered.
+      Reason      : Papers must track which Backpack is/was active.
       Immediate action: RETAIN.
 
--- F2. KEEP AS NEUTRAL SUBSTRATE --
+  (e) Leaving and switching
+      Evidence    : room:get / room:refresh IPC; back-to-world-view navigation.
+      Reason      : Papers must support leaving one Backpack and switching to
+                    another.
+      Immediate action: RETAIN.
 
-  (a) WorldStore persistence infrastructure (atomic writes, JSON, directory layout)
-      Evidence    : store.js readJson/writeJson; tmp+rename pattern; %APPDATA% path.
-      Reason      : Useful infrastructure that does not define Backpack ontology.
-                    Papers needs to persist something; this is a sound approach.
-      Dependencies: node:fs, node:path.
-      Risk of keeping : JSON at scale; concurrent write unguarded; single-process
-                    assumption.
-      Risk of removing: Must replace with alternative persistence.
-      Immediate action: RETAIN. Revisit if scale demands SQLite.
+  (f) One active Backpack at a time
+      Evidence    : UI renders one Backpack surface at a time.
+      Reason      : This is the ONLY universal runtime assumption stated in
+                    PAPERS_FOUNDER_BRIEF_V4.
+      Immediate action: RETAIN.
 
-  (b) Engine adapter pattern (runtime-neutral contract, honest failure)
-      Evidence    : engine/index.js; runtimes/; prompts.js; no engine vocabulary
-                    leaks past engine/index.js.
-      Reason      : The separation of Papers-native actions from engine internals
-                    is sound neutral infrastructure. The pattern can serve any
-                    future Backpack that needs AI.
-      Dependencies: Node.js; chosen runtime binaries.
-      Risk of keeping : Specific actions (roomReply, generateRoomNote,
-                    synthesizeDesk) are Backpack-specific; must not be treated
-                    as the universal engine API.
-      Risk of removing: Any AI integration needs this separation rebuilt.
-      Immediate action: RETAIN the pattern. RELABEL the specific actions as
-                    current-Backpack actions, not universal engine API.
+  NOT classified as core (moved below): Electron as a technology choice;
+  WorldStore's persistence mechanics; truthfulness/honesty mechanisms;
+  provenance; guarded actions; real-location affordances; artifacts; any AI
+  engine behavior. These are good engineering, not Papers-universal identity
+  — see F2 and F3.
 
-  (c) Guarded action pattern (preview + same-path execution)
-      Evidence    : Guard dialog; same gathering code for preview and execution.
-      Reason      : The pattern of previewing consequential AI actions before
-                    execution is sound and should apply broadly. The specific
-                    implementations are Backpack-specific.
-      Dependencies: UI; engine; WorldStore.
-      Risk of keeping : None.
-      Risk of removing: Future Backpack AI actions would lack the safety pattern.
-      Immediate action: RETAIN the pattern. RELABEL as pattern, not universal impl.
+-- F2. KEEP AS NEUTRAL OR CURRENT SUBSTRATE --
 
-  (d) Test infrastructure
+Useful engineering that the current Backpack (and potentially future ones)
+may reuse. Explicitly NOT classified as Papers-universal core.
+
+  (a) Electron application shell
+      Evidence    : app/main.js, preload.js.
+      Status      : Electron is the CURRENT shell, a technology choice for
+                    this implementation — not Papers core. A different shell
+                    could implement the same narrow responsibility.
+      Immediate action: RETAIN as current substrate. Not to be treated as a
+                    permanent commitment (see F6).
+
+  (b) WorldStore persistence infrastructure
+      Evidence    : store.js; atomic tmp+rename writes; JSON; %APPDATA% path.
+      Status      : "WorldStore" is a historical implementation name, not
+                    product ontology (see PAPERS_ONTOLOGY_CLARIFICATION_V1.txt).
+                    The persistence mechanism itself (atomic JSON writes) is
+                    reusable engineering.
+      Immediate action: RETAIN as current substrate. Revisit format if scale
+                    demands it — not yet investigated against alternatives.
+
+  (c) AI engine adapter seam
+      Evidence    : engine/index.js; runtimes/; prompts.js.
+      Status      : Optional infrastructure for Backpacks that choose to use
+                    AI. Not a Papers-universal requirement — AI architecture
+                    is unspecified per PAPERS_FOUNDER_BRIEF_V4 Section 4. The
+                    runtime-neutral adapter pattern is reusable if a future
+                    Backpack wants AI and wants this style of seam.
+      Immediate action: RETAIN as optional current substrate.
+
+  (d) Honest failure / error-reporting behavior
+      Evidence    : Engine unavailability reported honestly; missing-thing
+                    status reporting; no-fake-reply discipline.
+      Status      : Good engineering practice. NOT classified as universal
+                    Backpack anatomy — a Backpack that makes no claims about
+                    real-world state has nothing to be honest or dishonest
+                    about. Where a Backpack does make such claims, honesty
+                    about them is sound practice to reuse.
+      Immediate action: RETAIN as a recommended pattern, not a universal law.
+
+  (e) Test infrastructure
       Evidence    : app/test/; node:test; headless acceptance scripts.
-      Reason      : Useful regardless of future Backpack variety.
-      Dependencies: node:test.
-      Risk of keeping : None.
-      Risk of removing: Future development loses test confidence.
+      Status      : Reusable regardless of future Backpack variety.
       Immediate action: RETAIN.
 
 -- F3. OPTIONAL BACKPACK MECHANISM --
 
-  (a) File/folder references (things.js, attachThing, refreshThings, things.json)
-      Evidence    : Current Backpack's primary real-world grounding.
-      Reason      : Useful for Backpacks dealing with files. Not all Backpacks
-                    deal with files. Must not be assumed universal.
-      Immediate action: RETAIN for the current Backpack; STOP EXPANDING without
-                    a specific creator-requested behavior.
+Patterns and mechanisms specific to the current Backpack's chosen form.
+Explicitly not required of any other Backpack. The creator may choose
+different, fewer, or no such mechanisms for a new Backpack, including
+choosing to give a Backpack unrestricted authority with no guard at all.
 
+  (a) File/folder references (things.js, attachThing, refreshThings)
   (b) Source preview (previewThing)
-      Evidence    : Allows creator to inspect what a thing reference contains.
-      Reason      : Useful for Backpacks with inspectable references.
-      Immediate action: RETAIN for the current Backpack. STOP EXPANDING.
-
-  (c) Notes / artifacts (addArtifact, listArtifacts, kinds: room-note/working-note)
-      Evidence    : AI-written durable notes with provenance.
-      Reason      : Useful for Backpacks that produce text outputs. Not universal.
-      Immediate action: RETAIN for the current Backpack. STOP EXPANDING. Future
-                    Backpacks may produce non-text or no durable output.
-
+  (c) Notes / artifacts (addArtifact, listArtifacts; room-note/working-note)
   (d) Conversation (conversation.json, appendConversation)
-      Evidence    : Room-scoped conversation record.
-      Reason      : Useful for Backpacks with an AI conversation surface.
-                    Not all Backpacks need conversation.
-      Immediate action: RETAIN for the current Backpack. STOP EXPANDING.
-
   (e) Activity / history (activity.json, appendActivity, navigable timeline)
-      Evidence    : Append-only event log; navigable timeline grouped by day.
-      Reason      : Useful for Backpacks that accumulate a visible history.
-                    Not all Backpacks need a human-visible activity timeline.
-      Immediate action: RETAIN for the current Backpack. STOP EXPANDING.
-
   (f) Visit memory (previousEnteredAt, since-your-last-visit)
-      Evidence    : markRoomEntered shifts the timestamp; landing shows events
-                    since last visit.
-      Reason      : Useful revisitation feature. Not universally required.
-      Immediate action: RETAIN for the current Backpack. STOP EXPANDING.
+  (g) Pinned notes (setArtifactPinned)
+  (h) Backpack description as a content field (setRoomDescription's use as
+      Backpack-authored narrative, distinct from (b) in F1 which is the bare
+      organizational act of naming)
+  (i) Guarded action pattern (preview-before-execution, same-gathering-code
+      for preview and execution) — MOVED HERE from the prior "neutral
+      substrate" classification. The creator has explicitly established that
+      a Backpack can be anything and may deliberately have unrestricted
+      authority; guarding cannot be prescribed broadly. It remains an
+      excellent pattern for a Backpack that wants it.
+  (j) Provenance tracking on artifacts
+  (k) Real-location affordances ("open real location")
+  (l) Missing-state handling and reality-drift events
 
-  (g) Pinned notes (setArtifactPinned, landing surface)
-      Evidence    : Pin/unpin affordances; pinned notes on landing.
-      Reason      : Useful for Backpacks with notes. Not universal.
-      Immediate action: RETAIN for the current Backpack. STOP EXPANDING.
-
-  (h) Backpack description (setRoomDescription)
-      Evidence    : Creator-owned text field on room.json.
-      Reason      : Useful for identifying a Backpack's purpose. May or may not
-                    be needed for all future Backpacks.
-      Immediate action: RETAIN. Could be useful for any Backpack.
+  For all of (a)-(l): RETAIN for the current Backpack. STOP EXPANDING without
+  a specific creator-requested behavior for a specific Backpack. None of these
+  may be assumed for a new Backpack without the creator specifying it.
 
 -- F4. QUARANTINE FROM PRODUCT DIRECTION --
 
   (a) The Desk (desk.json, brief, desk items, working note, synthesizeDesk,
       getDeskView embedded in getRoomView)
-      Evidence    : The Desk is called in getRoomView() for every Backpack read,
-                    making it structurally present in every Backpack. The Desk
-                    document says "not a claim that every future Backpack is a
-                    desk plus notes" — but the code contradicts this for future
-                    readers.
-      Reason      : The Desk is an interesting active-work experiment in this
-                    Backpack. But it must not be seen as a universal Backpack
-                    feature by future agents reading the code.
-      Risk of keeping: Future agents see getDeskView() universally called and
-                    conclude Desks are what Backpacks have.
-      Risk of removing: Removing it would change working product behavior.
-      Immediate action: STOP EXPANDING. Do not add Desk functionality to future
-                    Backpacks until creator specifically requests it. Add clear
-                    code comments noting getDeskView is for the current
-                    experimental Backpack only.
+      Evidence    : getDeskView() is called inside getRoomView() for EVERY
+                    Backpack read — the Desk is structurally present in every
+                    current Backpack, contradicting the Desk document's own
+                    stated limit ("not a claim that every future Backpack is a
+                    desk plus notes").
+      Immediate action: STOP EXPANDING. Do not add Desk functionality to a new
+                    Backpack until the creator specifically requests it.
+
+  (b) getRoomView() returning the same furniture set for every Backpack record
+      Evidence    : getRoomView() unconditionally assembles things, artifacts,
+                    conversation, activity, and desk for any room id — there is
+                    currently only one Backpack "shape" in code, so every
+                    Backpack necessarily gets this furniture whether or not it
+                    is wanted.
+      Risk        : A future agent adding a second Backpack by calling
+                    getRoomView() would inherit all of this furniture by
+                    default, not by creator decision.
+      Immediate action: No code change in this PR. Recorded here so a future
+                    agent designing a second Backpack does not assume this
+                    function's shape is the Backpack contract.
+
+  (c) "World" / "room" naming in top-level code and IPC channels
+      Evidence    : WorldStore, world.json, roomId, room:* IPC channels.
+      Risk        : A future agent could infer "world" and "room" are active
+                    product ontology from reading the code, contradicting
+                    PAPERS_ONTOLOGY_CLARIFICATION_V1.txt.
+      Immediate action: No rename required. Flagged so future agents check the
+                    ontology doc rather than infer ontology from code names.
+
+  (d) World-view cards assuming thingCount, missingCount, artifactCount
+      Evidence    : listRooms() computes these counts for every Backpack card
+                    in the world view, assuming every Backpack has things and
+                    artifacts.
+      Risk        : A future Backpack without things or artifacts would render
+                    a card with zero/undefined counts, which could read as
+                    "this Backpack type is incomplete" rather than "this
+                    Backpack type doesn't use these concepts."
+      Immediate action: No code change in this PR. Flagged for whoever designs
+                    the second Backpack's world-view card to address.
+
+  (e) The universal per-room AI action set (roomReply, generateRoomNote,
+      synthesizeDesk) living in one shared engine/index.js
+      Evidence    : All three actions are defined in the single engine seam
+                    file, implicitly presented as "the" Papers AI actions.
+      Risk        : A future Backpack with different AI needs might be
+                    expected to fit into this same action set rather than
+                    define its own.
+      Immediate action: No code change in this PR. See F6(c) — this is also an
+                    open architectural question, not yet a quarantine verdict.
 
 -- F5. CANDIDATE FOR LATER REMOVAL --
 
-  None identified at this time. All current code serves the current experimental
-  Backpack. No subsystem appears to exist purely because of documentation drift
-  with zero justified use. Removal candidates will emerge naturally once a
-  second Backpack is described and built and the overlap with the current
-  substrate can be assessed.
+  No immediate removals are authorized in this PR. This is a statement of
+  current status, not a prerequisite: identifying removal candidates does NOT
+  require building a second Backpack first. A removal candidate could equally
+  be identified by the creator deciding a piece of F3 is not wanted, or by an
+  agent finding a piece of F2/F3 that turns out to duplicate something
+  reusable that a proper reuse investigation later surfaces. This section will
+  be updated whenever such a finding occurs — it is not gated on any specific
+  future build.
 
 -- F6. UNRESOLVED --
 
@@ -987,98 +1060,135 @@ F. IMPLEMENTATION RECOVERY CLASSIFICATION
 G. SALVAGE MAP
 ================================================================================
 
-This section identifies what remains valuable despite the drift.
+This section identifies what remains valuable despite the drift. It was
+revised on 2026-07-10: this audit is DOCUMENTATION-ONLY and performed NO
+external searches (see Section "SEARCHES PERFORMED" in the completion
+report). No entry below claims "no suitable alternative exists" — that
+would assert a negative that was never actually investigated. Reuse
+investigation happens when a specific desired behavior is authorized, per
+PAPERS_FOUNDER_BRIEF_V4 Section 5-6. Entries here record what the CURRENT
+implementation contains and what the CURRENT implementation is not
+automatically preferred over, if a reuse investigation later finds something
+better.
 
 -- G1. Lightweight application shell --
-Useful capability : Opens Papers into a world; one-Backpack-at-a-time UI;
-                    native file pickers; real location opener.
+Useful capability : Opens Papers into a Backpack-listing surface;
+                    one-Backpack-at-a-time UI; native file pickers; real
+                    location opener.
 Assumption to strip: Windows-only %APPDATA% path (should be configurable).
-                    Electron as final technology (may change).
-Belongs to        : Papers core.
-External alternative: No suitable alternative for a native Windows app shell
-                    that integrates with Papers-owned storage.
+                    Electron as final technology (may change — see F6a).
+Belongs to        : Current substrate (F2a) fulfilling Papers-core
+                    responsibility (F1c/e/f). The technology choice itself
+                    (Electron) is not core.
+Reuse status      : Not investigated in this documentation-only audit. The
+                    current implementation exists and works but is not
+                    automatically preferred over alternatives (Tauri, WinUI3,
+                    or other Windows-native options) — requires investigation
+                    when a specific behavior authorizes revisiting the shell.
 
 -- G2. Backpack identity and launch/switch behavior --
 Useful capability : Backpack records (id, title, timestamps); create/rename;
-                    world view list; enter/leave; one-at-a-time switch.
-Assumption to strip: thingCount/missingCount/artifactCount in world view cards
-                    — these assume current Backpack furniture is universal.
-                    Future Backpacks may not have things or artifacts.
-Belongs to        : Papers core.
-External alternative: None — this is Papers' specific responsibility.
+                    world-view list; enter/leave; one-at-a-time switch.
+Assumption to strip: thingCount/missingCount/artifactCount in world-view cards
+                    — these assume current Backpack furniture is universal
+                    (see F4d). Future Backpacks may not have things or
+                    artifacts.
+Belongs to        : Papers core (F1a-f) — this is Papers' specific
+                    responsibility, not something to source externally.
+Reuse status      : Not applicable — this is Papers' own narrow
+                    responsibility as defined by the creator, not a capability
+                    to look for elsewhere.
 
 -- G3. Persistence utilities --
 Useful capability : Atomic JSON writes; human-legible on-disk layout;
-                    Papers-owned, engine-independent continuity.
-Assumption to strip: Single-process write assumption; JSON-only (SQLite may
-                    be needed later).
-Belongs to        : Neutral substrate.
-External alternative: SQLite via better-sqlite3 is the main alternative.
-                    The current JSON approach is acceptable for now.
+                    engine-independent continuity.
+Assumption to strip: Single-process write assumption; JSON-only (may not
+                    suit larger scale).
+Belongs to        : Current substrate (F2b).
+Reuse status      : Not investigated in this documentation-only audit.
+                    SQLite (e.g. via better-sqlite3) is a plausible
+                    alternative worth investigating if/when scale becomes a
+                    real desired-behavior question — not concluded here.
 
 -- G4. Engine-provider separation --
 Useful capability : Papers-native actions behind an interchangeable runtime;
-                    no engine vocabulary in Papers code; honest failure reporting;
-                    provenance tracking.
+                    no engine vocabulary in Papers code; honest failure
+                    reporting; provenance tracking.
 Assumption to strip: Current specific actions (roomReply, generateRoomNote,
-                    synthesizeDesk) are for the current Backpack, not universal.
-Belongs to        : Neutral substrate.
-External alternative: The pattern itself needs to be custom to Papers. The
-                    runtimes it wraps (Claude Code CLI, Ollama) are reused
-                    open-source tools — correct approach already.
+                    synthesizeDesk) are for the current Backpack, not
+                    universal (see F4e, F6c).
+Belongs to        : Current substrate (F2c) — optional for a Backpack that
+                    chooses AI.
+Reuse status      : The runtimes wrapped (Claude Code CLI, Ollama) are
+                    themselves reused open-source tools, which is consistent
+                    with reuse-first. The adapter pattern itself was not
+                    compared against existing agent-orchestration frameworks
+                    in this audit — not investigated.
 
 -- G5. Honest error reporting --
-Useful capability : Engine unavailability reported honestly; missing references
-                    shown honestly; no fake state anywhere.
-Assumption to strip: Nothing — this discipline is clean.
-Belongs to        : Papers core.
-External alternative: None needed — this is a discipline, not a library.
+Useful capability : Engine unavailability reported honestly; missing
+                    references shown honestly; no fake state.
+Assumption to strip: That this applies Papers-wide by law — it applies to
+                    Backpacks that make truthfulness claims about real-world
+                    state (see F2d).
+Belongs to        : Current substrate (F2d) — a recommended pattern, not
+                    Papers core.
+Reuse status      : Not applicable — this is engineering discipline, not a
+                    capability to source from a library.
 
 -- G6. File inspection utilities (things.js) --
 Useful capability : Truthful reference model (path, displayName, status);
                     existence re-verification; content reading with caps and
                     truncation markers; binary detection; folder introspection.
-Assumption to strip: This is the current Backpack's mechanism, not universal.
-Belongs to        : Optional Backpack mechanism (for file-handling Backpacks).
-External alternative: Node:fs directly. The value of things.js is the
-                    truthfulness discipline, not the file I/O itself.
+Assumption to strip: This is the current Backpack's mechanism, not universal
+                    (F3a).
+Belongs to        : Optional Backpack mechanism.
+Reuse status      : Not investigated in this documentation-only audit.
+                    node:fs directly, or existing file-watching/indexing
+                    libraries, were not compared against this implementation.
 
 -- G7. Guarded action pattern --
 Useful capability : Preview before execution using same gathering code;
                     exact preview by construction; explicit approval required.
-Assumption to strip: The specific guard dialog implementation is for the
-                    current Backpack's actions.
-Belongs to        : Neutral substrate (the pattern); Optional Backpack
-                    mechanism (the specific implementations).
-External alternative: None — this is Papers-specific safety discipline.
+Assumption to strip: That this pattern applies to any AI action broadly —
+                    corrected: it is an optional Backpack mechanism (F3i), not
+                    neutral substrate, because a Backpack may deliberately
+                    choose unrestricted authority instead.
+Belongs to        : Optional Backpack mechanism.
+Reuse status      : Not investigated in this documentation-only audit.
 
 -- G8. Test infrastructure --
 Useful capability : node:test based headless tests; WorldStore test pattern
                     (fresh instance over same dir simulates restart); headless
-                    acceptance scripts with live engine.
-Assumption to strip: Nothing — the test infrastructure is clean and reusable.
-Belongs to        : Neutral substrate.
-External alternative: Jest, Vitest, or other test runners are alternatives.
-                    node:test with no dependencies is a sound choice.
+                    acceptance scripts with a live engine.
+Assumption to strip: Nothing specific — reusable regardless of Backpack
+                    variety.
+Belongs to        : Current substrate (F2e).
+Reuse status      : node:test (no dependencies) was the choice made; Jest and
+                    Vitest were not formally compared in this audit — not
+                    investigated.
 
 -- G9. Recovery and honesty mechanisms --
 Useful capability : Missing-thing detection; reality-drift events; provenance
-                    on all AI-made artifacts; "not a file on your machine" labeling.
-Assumption to strip: The specific event kinds (thing-missing, thing-recovered)
-                    are for file/folder references; other reference types may
-                    need their own transition events.
-Belongs to        : Papers core (the discipline); Optional Backpack mechanism
-                    (the file-specific implementations).
-External alternative: None — this is Papers-specific.
+                    on AI-made artifacts; "not a file on your machine"
+                    labeling.
+Assumption to strip: That the specific event kinds (thing-missing,
+                    thing-recovered) generalize — they are for file/folder
+                    references specifically; other reference types would need
+                    their own transition events.
+Belongs to        : Optional Backpack mechanism (F3l) for Backpacks that make
+                    truthfulness claims about real things — not Papers core.
+Reuse status      : Not applicable — this is Papers-specific engineering
+                    discipline tied to the current Backpack's file references.
 
 -- G10. Source preview functionality --
-Useful capability : Lets creator inspect what a thing reference actually contains
-                    before committing to an AI action; exact same path as AI uses;
-                    honest about truncation and binary content.
-Assumption to strip: Specific to file/folder references in the current Backpack.
+Useful capability : Lets creator inspect what a thing reference actually
+                    contains before committing to an AI action; same path as
+                    AI uses; honest about truncation and binary content.
+Assumption to strip: Specific to file/folder references in the current
+                    Backpack (F3b).
 Belongs to        : Optional Backpack mechanism.
-External alternative: None — this is Papers-specific and ties to the guarded
-                    action pattern.
+Reuse status      : Not investigated in this documentation-only audit.
 
 ================================================================================
 H. CURRENT STOPPING POINT
@@ -1086,26 +1196,53 @@ H. CURRENT STOPPING POINT
 
 WHAT HAS BEEN IMPLEMENTED?
   A single experimental Backpack form built in Electron, using a file-backed
-  JSON world store. This Backpack contains: file/folder references (things),
-  AI-written notes (artifacts), a room-scoped conversation, a navigable
+  JSON persistence layer. This Backpack contains: file/folder references
+  (things), AI-written notes (artifacts), a scoped conversation, a navigable
   activity timeline, a landing page showing Backpack state on entry, a Desk
   (active work surface with brief, desk items, and an in-place working note),
   and an AI engine seam supporting two runtimes (Claude Code CLI and Ollama).
 
-  The application opens into a world view listing all Backpacks. The creator
-  can create, enter, and navigate between Backpacks one at a time. All state
-  is Papers-owned, honest, and survives restart.
+  The application opens into a Backpack-listing surface. The creator can
+  create, enter, and navigate between Backpacks one at a time. State is
+  Papers-owned and, in automated tests, survives restart.
 
-WHAT HAS BEEN VERIFIED?
-  31/31 unit tests passing.
-  Slice 1 acceptance walk (verify-slice1.js) documented as passing on Ollama.
-  Desk acceptance walk (verify-desk.js) documented as passing on Ollama.
-  Headed renders documented as clean in delta log.
+VERIFICATION IS TIERED. Do not describe the current Backpack as proven
+"end-to-end" without specifying which tier that claim rests on.
 
-WHAT REMAINS UNVERIFIED?
-  The claude-cli runtime path is unverified on the current machine (claude not
-  logged in). The full 14-step Slice 1 acceptance flow by the creator (the
-  subjective §10.3 "feels like Papers" judgment) is not on record.
+TIER 1 — VERIFIED NOW, IN THIS AUDIT (2026-07-10):
+  31/31 automated unit tests passing (npm test, node:test, headless).
+  Repository-level documentation diff reviewed for this PR.
+  No application code changed in this recovery PR.
+
+TIER 2 — HISTORICAL VERIFICATION RECORDED IN THE REPOSITORY (not re-run in
+this audit; taken on the record of prior sessions per DOCS/PAPERS_DELTA_LOG.txt):
+  Headless acceptance script (verify-slice1.js) documented as passing against
+    Ollama in a prior session.
+  Headless Desk acceptance script (verify-desk.js) documented as passing
+    against Ollama in a prior session.
+  Headed (windowed) renders documented as "clean" in the delta log by prior
+    sessions — these are prior-session observations, not independently
+    reproduced in this audit.
+
+TIER 3 — NOT YET VERIFIED BY THE CREATOR ON THEIR OWN WINDOWS MACHINE:
+  Current graphical launch and full interaction on the creator's machine.
+  The full real-UI acceptance flow, run by the creator rather than by a prior
+    agent session.
+  Startup and shutdown behavior on the creator's machine.
+  Backpack switching through the actual interface, by the creator.
+  Persistence across a real close/reopen cycle, observed by the creator.
+  Performance and resource use under normal creator use.
+  The creator's own judgment that the current build behaves correctly and
+    "feels like Papers" as they define it.
+  The claude-cli runtime path specifically (documented as unverified on the
+    machine used for prior sessions — claude was not logged in there; status
+    on the creator's own machine is unknown).
+
+The current code is an EXPERIMENTALLY TESTED SUBSTRATE, not yet a
+CREATOR-MACHINE-ACCEPTED BASELINE. No local machine test was required for
+this documentation-only PR. Tier 3 verification is recorded here as the first
+validation activity that should happen after this recovery PR is accepted and
+before any new Windows-facing product code is written.
 
 WHAT PRODUCT WORK IS FROZEN?
   All product expansion beyond the current experimental Backpack. No new
@@ -1145,13 +1282,21 @@ prompt may be issued.
   1. This recovery PR accepted and merged (branch merged to main).
 
   2. Corrected authority chain readable and internally consistent. No surviving
-     governing document contradicts this recovery map on the questions of:
-     Papers' narrow responsibility; Backpack sovereignty; behavior before builds;
-     reuse-first; no universal Backpack assumptions.
+     governing document contradicts this recovery map or PAPERS_FOUNDER_BRIEF_V4
+     on the questions of: Papers' narrow responsibility; Backpack sovereignty;
+     behavior before builds; reuse-first; no universal Backpack assumptions.
 
   3. Current code classified per this recovery map's Section F. Future agents
      reading the code must encounter the classification (via comments or the
      recovery map) before working in the codebase.
+
+  3a. TIER 3 VERIFICATION RUN (see Section H). Before any new Windows-facing
+      product code is written, the creator (or an agent working directly on
+      the creator's machine) should run the current build and confirm it
+      behaves as expected in real interactive use — not just in automated
+      tests. This is the first validation activity after this PR is accepted,
+      and is a precondition for trusting the current substrate as a base for
+      new work, separate from whether new work is otherwise authorized.
 
   4. One explicit desired behavior supplied by the creator for a specific next
      thing. "I want Backpack X to do Y when I Z" — not "continue building."

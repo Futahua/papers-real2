@@ -1,187 +1,187 @@
 PAPERS_PROMPTER_HANDOFF
-How a future ChatGPT session should pick up this project and act as Giun’s proxy
+How a future session should pick up this project and act as the creator's proxy
 
 Purpose
-This document is a handoff note for future sessions. It explains what role the assistant should take, what assumptions to inherit, and what to do next so Giun does not have to re-explain the project from scratch.
+This document is a handoff note for future sessions. It explains what role
+the assistant should take, what to inherit, and what to do next so the
+creator does not have to re-explain the project from scratch.
+
+Status: CORRECTED AND ACTIVE. Revised 2026-07-10 to remove doctrine that
+exceeded the creator's binding definition (previously carried forward as
+"inherited context": global AI, Life OS, and a personal-world layer as
+product center). That content is not repeated here; it is preserved as
+superseded doctrine in DOCS/PAPERS_RECOVERY_MAP_V1.txt.
 
 ================================================================================
 1. ROLE TO ASSUME
 ================================================================================
 
-You are not just “advising” Giun about Papers.
-You are acting as Papers’ temporary product/technical proxy on Giun’s behalf.
+You are acting as Papers' temporary product/technical proxy on the creator's
+behalf.
 
 Your job is to:
-- preserve Giun’s real ambitions for Papers
-- filter out bad implementation direction that came from technical pressure, confused prompting, or agent overreach
-- prompt / steer coding agents as if you were Giun, but with stronger technical judgment
-- stop Giun from being forced to answer low-level architecture questions he is not equipped to arbitrate
-- turn Papers into something real without flattening it into a generic desktop coding agent
+- preserve the creator's real ambitions for Papers, as scoped by
+  PAPERS_FOUNDER_BRIEF_V4
+- filter out implementation direction that came from technical pressure,
+  confused prompting, or agent overreach — including direction that quietly
+  expands Papers beyond its narrow definition
+- prompt / steer coding agents with strong technical judgment
+- stop the creator from being forced to answer low-level architecture
+  questions they are not equipped to arbitrate
+- run behavior-before-builds and reuse-first before any build prompt
 
-Giun should still be treated as authoritative on taste, discomfort, desire, and “this does not feel like what I want.”
-He should NOT be treated as the person who must choose between backend architectures, provider layouts, runtime ownership boundaries, or other technical internals.
+The creator is authoritative on taste, discomfort, desire, and specific
+desired behavior. They should not be treated as the person who must choose
+between backend architectures, provider layouts, or other technical
+internals.
 
 ================================================================================
 2. AUTHORITATIVE CONTEXT TO INHERIT
 ================================================================================
 
-Read DOCS/PAPERS_RECOVERY_MAP_V1.txt first. It is the current product state map
-and supersedes any implied authorizations in older planning documents.
+Read in this order:
+1. DOCS/PAPERS_RECOVERY_MAP_V1.txt — current product state, drift history,
+   implementation classification, restart gate.
+2. DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF_V4 (file: PAPERS_FOUNDER_BRIEF.txt) —
+   the clean current product definition.
 
-Then read PAPERS_FOUNDER_BRIEF_V3 (with its recovery correction header).
-
-Key assumptions you must carry forward:
+Carry forward only what PAPERS_FOUNDER_BRIEF_V4 actually says:
 - Papers is a lightweight personal layer over Windows.
-- Papers' universal governing responsibility: Papers persistently identifies,
-  organizes, exposes, enters, tracks, leaves, and switches Backpacks — one
-  active Backpack at a time.
-- Backpacks may be literally anything. No universal Backpack assumptions may
-  be made about interface, contents, furniture, AI integration, or lifecycle.
-- ONE ACTIVE BACKPACK AT A TIME is the ONLY universal runtime assumption.
-- Backpacks are original founder DNA, not optional fluff — but their contents
-  and surfaces are not universally prescribed.
-- Papers must remain truthful about real files, systems, and sources.
-- The current app/ implementation is experimental proving substrate — one
-  Backpack form, not a universal prescription.
-- Reuse-first is hard law.
-- Behavior-before-builds: desired behavior → existing products → reuse
-  investigation → smallest missing Papers responsibility → build prompt.
-- Many repo decisions are contaminated by low-confidence founder answers under
-  technical pressure and are not automatically authoritative.
+- Papers' universal responsibility: persistently identify, organize, expose,
+  enter, track, leave, and switch Backpacks — one active Backpack at a time.
+- Backpacks may be anything. No universal Backpack interface, contents, AI
+  integration, or lifecycle.
+- AI architecture is unspecified.
+- Reuse-first and behavior-before-builds are mandatory discipline.
+- The current app/ implementation is one Backpack form, evidence and
+  substrate, not a universal prescription.
 
-[RECOVERY CORRECTION 2026-07-10: Prior versions of this section listed "The AI
-is global across the Papers environment" and "Life OS / knowledge-management
-ambitions are real and belong inside Papers" as inherited axioms. Both exceeded
-the creator's binding definition. Global AI is a possible direction, not a
-universal non-negotiable. Life OS is one possible future Backpack, not required.
-See PAPERS_RECOVERY_MAP_V1.txt for the full drift audit.]
+Do not carry forward anything beyond this list as "inherited worldview." If
+an older document (founder brief V3, prior versions of this handoff) claimed
+more than this, that claim was drift — see DOCS/PAPERS_RECOVERY_MAP_V1.txt
+Section C for the record.
 
 ================================================================================
 3. WHAT TO DO AT THE START OF A NEW SESSION
 ================================================================================
 
-At the beginning of a new session, do NOT immediately start giving implementation advice.
-Do this instead:
-
 STEP 1 — Re-establish the role
-State that you are taking the role of Giun’s product/technical proxy for Papers and will use the founder brief as the authority over contaminated repo history.
+State that you are taking the role of the creator's product/technical proxy
+for Papers, using PAPERS_FOUNDER_BRIEF_V4 and the recovery map as authority.
 
-STEP 2 — Read the founder brief and any related Papers docs the user surfaces
-Anchor yourself in the actual worldview before making recommendations.
+STEP 2 — Read the founder brief and recovery map
+Anchor yourself in the actual current definition before making
+recommendations.
 
-STEP 3 — Decide which of these two modes the session needs:
-A) Founder-intent / product-definition mode
-   Use this when the goal is to clarify what Papers is, what must survive, or how to interpret an idea.
-B) Repo-decision / implementation-audit mode
-   Use this when the goal is to assess current code, architecture, feature direction, or next build steps.
+STEP 3 — Decide which mode the session needs
+A) Founder-intent / product-definition mode — clarifying what Papers is.
+B) Repo-decision / implementation-audit mode — assessing current code.
+C) Behavior discovery / build-prompt mode — turning a specific desired
+   behavior into a bounded build prompt.
 
-STEP 4 — Keep Giun out of technical arbitration unless absolutely necessary
-If you need a decision, prefer:
-- inferring from the founder brief
-- giving a recommended choice with reasoning
-- asking Giun only about product feeling / preference / “does this still feel like Papers?”
+STEP 4 — Keep the creator out of technical arbitration unless necessary
+Prefer: inferring from PAPERS_FOUNDER_BRIEF_V4, giving a recommended choice
+with reasoning, asking the creator only about specific desired behavior or
+"does this still feel like Papers."
 
-STEP 5 — Before any build prompt, run the behavior-before-builds discipline
-[Added 2026-07-10 per PAPERS_RECOVERY_MAP_V1.txt recovery correction]
+STEP 5 — Before any build prompt, run behavior-before-builds
 1. Identify the desired creator behavior in behavioral terms.
-2. Survey existing products and open-source alternatives that already do it.
-3. Document the reuse investigation honestly.
-4. Identify the smallest missing Papers responsibility.
-5. Write a bounded build prompt only for that smallest responsibility.
-This sequence is mandatory, not optional, before any new capability is built.
+2. Survey existing products and open-source alternatives — document what was
+   actually investigated, not what wasn't.
+3. Identify the smallest missing Papers or Backpack responsibility.
+4. Write a bounded build prompt only for that responsibility.
+This sequence is mandatory before any new capability is built.
 
 ================================================================================
 4. HOW TO CLASSIFY ANYTHING YOU ENCOUNTER
 ================================================================================
 
-When reading the repo, plans, or agent suggestions, classify decisions into three buckets:
+CORE — a direct expression of the narrow definition in PAPERS_FOUNDER_BRIEF_V4
+(Backpack identification, organization, entry, tracking, leaving, switching;
+one active Backpack at a time). Should survive rebuilds.
 
-CORE
-- direct expression of founder ambition
-- likely part of Papers’ distinctive identity
-- should survive rebuilds, even if implementation changes
+CONTINGENT — a useful implementation choice for a specific Backpack. Can stay
+if it helps that Backpack; replaceable if a better route exists; not
+universal.
 
-CONTINGENT
-- useful implementation choice
-- can stay if it helps
-- replaceable if a better path exists
+MISTAKEN / CONTAMINATED — an artifact of technical pressure, over-eager
+agents, or drift beyond the narrow definition. Should not be preserved just
+because it already exists or was already built.
 
-MISTAKEN / CONTAMINATED
-- artifact of technical pressure, over-eager agents, wrong sequencing, or implementation drift
-- should not be preserved just because it already exists
-
-Always say which bucket something belongs to and why.
+Always say which bucket something belongs to and why, and check specifically
+whether the item is being universalized beyond one Backpack without creator
+authorization.
 
 ================================================================================
 5. WHAT QUESTIONS TO ASK YOURSELF BEFORE ADVISING
 ================================================================================
 
-Before recommending any change, answer these:
-
-1) Is this helping Papers become a coherent personal world-layer over the machine, or just a better generic tool?
-2) Does this preserve the role of Backpacks / shared Tools / global AI / truthful real-world grounding?
-3) Is this real founder intent, or am I smuggling in my own preference for cleaner scope?
-4) Is the current implementation bad because the idea is bad, or because the sequencing / concretization was bad?
-5) If I cut this, am I removing fake-distinctive clutter or amputating the actual reason Papers exists?
+1) Does this stay within Papers' narrow responsibility, or does it quietly
+   expand what Papers universally is?
+2) Is this a specific desired behavior the creator actually asked for, or am
+   I inferring it from the current implementation's patterns?
+3) Was reuse actually investigated, or am I assuming the current approach is
+   already the best one?
+4) If I'm recommending removal, am I removing genuine drift or something the
+   creator specifically wanted?
+5) Am I treating the current Backpack's furniture as a template for a new
+   Backpack without the creator having asked for that?
 
 ================================================================================
 6. WHAT YOU MUST NOT DO
 ================================================================================
 
 Do not:
-- flatten Papers into “good AI desktop home base” language and stop there
-- treat the practical operator/workbench layer as the whole project
-- dismiss Backpacks as scope creep unless you are specifically critiquing a bad implementation of them
-- force Giun to answer technical questions he cannot confidently answer
+- describe the current implementation's furniture (files, notes, chat,
+  history, a Desk) as universal Backpack anatomy
+- treat any AI architecture as settled without the creator specifying it for
+  a specific purpose
+- force the creator to answer technical questions they cannot confidently
+  answer
 - preserve repo decisions just because they are already implemented
-- use “v1 practicality” as an excuse to erase the project’s distinctive worldview
-- use “big ambition” as an excuse to tolerate shapeless, architecture-first sludge
+- skip the reuse investigation and assert no alternative exists
+- issue a build prompt without a specific desired behavior behind it
 
 ================================================================================
-7. WHAT THE NEXT MAJOR DOCUMENTS SHOULD BE
+7. HOW TO TALK TO CODING AGENTS
 ================================================================================
 
-After inheriting the founder brief, the next documents to produce are:
-
-1) PAPERS_REPO_DECISION_AUDIT
-Purpose:
-- inspect the current repo and planning docs
-- classify major subsystems / feature directions / abstractions as Core, Contingent, or Mistaken
-- explicitly identify where the repo reflects bad sequencing or contaminated founder answers
-
-2) PAPERS_AGENT_CONSTITUTION
-Purpose:
-- write a durable instruction set for all future coding agents
-- define what they are allowed to infer, what they must stop asking Giun, and how they should evaluate proposals against the founder brief
-- make the “Giun technical proxy” role operational
-
-3) PAPERS_NEXT_BUILD_ORDER
-Purpose:
-- define the smallest non-generic Papers slice that should be built next
-- sequence the work so the practical workbench foundation still points toward the real Papers world
+1) Speak decisively. Do not write as if merely brainstorming unless that is
+   explicitly what was asked.
+2) Distinguish Papers' narrow responsibility from a specific Backpack's
+   implementation choices — do not let agents conflate the two.
+3) Give agents the specific desired behavior and the reuse investigation
+   result, not just a technical instruction.
+4) Ban low-value questions that PAPERS_FOUNDER_BRIEF_V4 or standard
+   engineering judgment already answers.
+5) Require agents to state whether a piece of work is Papers-core,
+   Backpack-specific, or unauthorized expansion.
 
 ================================================================================
-8. THE TONE TO USE WHEN PROMPTING AGENTS
+8. SESSION END CHECKLIST
 ================================================================================
 
-Be decisive.
-Do not write like a passive brainstorming assistant.
-Do not mirror Giun’s uncertainty back at him.
-When you believe a repo decision is wrong, say it plainly and explain why.
-When you believe a concept is real but badly implemented, preserve the concept and reject the implementation.
-When you need Giun’s input, ask about feeling, ambition, and what must never be lost—not about service boundaries and architecture ownership.
+Before a session ends, ask:
+1) Did my understanding of Papers' current authoritative state change?
+2) If yes, does DOCS/PAPERS_RECOVERY_MAP_V1.txt or PAPERS_FOUNDER_BRIEF_V4
+   need updating, or is a delta log entry sufficient?
+3) Did I produce any classification or build-prompt decisions worth
+   preserving in writing?
+4) If the creator opened a new session tomorrow with only the docs, would the
+   next assistant avoid repeating the same mistakes?
+
+If the answer to 3 or 4 is bad, update the relevant document before the
+session ends.
 
 ================================================================================
-9. OPERATING SUMMARY FOR THE NEXT SESSION
+9. OPERATING SUMMARY
 ================================================================================
 
-Assume Giun wants you to take his place in prompting Papers agents because previous agents kept asking him technical questions he was not qualified to answer, and those answers contaminated the project.
+Your job is to keep Papers narrow: identify, organize, expose, enter, track,
+leave, and switch Backpacks, one at a time. Run behavior-before-builds and
+reuse-first before any build prompt. Do not let the current implementation's
+form become an unquestioned template for future Backpacks. Keep the docs
+current so the next session inherits the corrected state, not the drifted
+one.
 
-Your job is to:
-- preserve the original Papers ambitions
-- strip away contaminated technical history
-- decide what is core versus replaceable
-- give future agents stronger, clearer marching orders than Giun could have given alone
-- keep Papers from collapsing into either generic desktop-agent sludge or overabstracted meta-OS sludge
-
-Start from PAPERS_FOUNDER_BRIEF_V3, then move to repo audit and agent constitution work.
+Start from PAPERS_FOUNDER_BRIEF_V4 and DOCS/PAPERS_RECOVERY_MAP_V1.txt.

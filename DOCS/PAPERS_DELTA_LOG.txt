@@ -3,6 +3,80 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-10 (ninth pass) — documents made internally consistent: clean rewrites
+replace bracket-annotated corrections
+================================================================================
+
+The eighth-pass recovery (below) correctly identified 12 drift points and
+produced DOCS/PAPERS_RECOVERY_MAP_V1.txt, but its document amendments mostly
+left the original drifted text in place with [RECOVERY CORRECTION] brackets
+appended below it. That approach preserved evidence but left active governing
+documents containing mutually contradictory instructions — a future agent
+reading PAPERS_FOUNDER_BRIEF.txt would still see "the AI is global across the
+Papers environment" and "Life OS ... is one major expression of what Papers is
+for" as the primary text, with a correction bracket easy to skip.
+
+This pass replaces that approach. Superseded doctrine is REMOVED from active
+governing documents, not merely annotated. The removed text, its source, and
+its effects remain fully preserved as forensic history in
+DOCS/PAPERS_RECOVERY_MAP_V1.txt Section C — nothing was deleted from the
+record, only from active doctrine.
+
+WHAT CHANGED
+1. PAPERS_FOUNDER_BRIEF.txt — FULL REWRITE. New version is
+   PAPERS_FOUNDER_BRIEF_V4, superseding V3 in full. States only: Papers as a
+   lightweight layer over Windows; the narrow universal responsibility
+   (identify/organize/expose/enter/track/leave/switch Backpacks, one active
+   at a time); Backpacks/Tools/AI as unspecified beyond that; reuse-first;
+   behavior-before-builds; current implementation as evidence, not ontology.
+   Classification: CANONICAL.
+2. PAPERS_AGENT_CONSTITUTION_V1.txt — Sections 1 and 2 (product laws)
+   rewritten from scratch: 13 laws scoped to the narrow definition, replacing
+   the prior 10 laws built around "one coherent world," global AI, and
+   accumulation as identity. Sections 3-11 revised to remove "world-first"
+   framing. Section 6's Disallowed Question Type 3 remains reversed (agents
+   must ask about new Backpack behavior, not infer it).
+3. PAPERS_PROMPTER_HANDOFF.txt and PAPERS_PROXY_OPERATING_MANUAL.txt — full
+   rewrites. Removed global AI / Life OS / Backpack-furniture as illustrative
+   CORE examples in the classification systems; removed "coherent
+   personal-world layer" as the test for good recommendations.
+4. PAPERS_ONTOLOGY_CLARIFICATION_V1.txt — full rewrite. "World" removed as
+   product ontology. Active vocabulary is now Papers / Backpack / Tool only;
+   "world" and "room" stated as historical implementation labels, not
+   corrected-but-still-present ontology.
+5. DOCS/PAPERS_RECOVERY_MAP_V1.txt — Section F (implementation classification)
+   substantially narrowed: F1 "keep as current core" now contains only the
+   six items directly implementing Papers' narrow responsibility (identity,
+   naming, access, tracking, leaving, switching, one-at-a-time). Electron,
+   WorldStore, the engine seam, guarded actions, provenance, and honesty
+   mechanisms moved to F2 (current substrate) or F3 (optional Backpack
+   mechanism) — reclassified as good engineering, not Papers-universal
+   identity. F4 (quarantine) expanded with four additional code-shape risks
+   (getRoomView's universal furniture, world/room naming, world-view card
+   count assumptions, the shared per-room AI action set). Section G (salvage
+   map) revised to remove unsupported "no suitable alternative exists"
+   claims — replaced with "not investigated in this documentation-only
+   audit" where accurate. Section H (stopping point) revised to a three-tier
+   verification model: verified now (automated tests, this audit); historical
+   verification recorded in the repository (prior sessions' acceptance
+   scripts and headed renders, not re-run here); not yet verified by the
+   creator on their own machine (real interactive use, Tier 3). Restart gate
+   (Section I) gained condition 3a requiring Tier 3 verification before new
+   Windows-facing product code.
+6. AGENTS.md, README.md, DOCS/README.md — updated references from
+   "PAPERS_FOUNDER_BRIEF_V3 with recovery correction header" to
+   "PAPERS_FOUNDER_BRIEF_V4, CANONICAL." Removed a duplicate/contradictory
+   "Current REAL2 status" section in README.md that repeated old "world is
+   the real machine-and-life substrate" vocabulary as active doctrine.
+7. PAPERS_BACKPACK_DESK_V1.txt, PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt — minor
+   reference updates (V3 → V4; removed stale "global AI / Life OS / world-
+   layer" example list).
+
+WHAT DID NOT CHANGE
+No application code changed. 31/31 tests continue to pass. No new roadmap.
+No merge performed.
+
+================================================================================
 2026-07-10 (eighth pass) — documentation drift audit and recovery
 ================================================================================
 

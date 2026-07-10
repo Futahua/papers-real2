@@ -65,7 +65,7 @@ Use when the change affects:
 - what Papers fundamentally is
 - what the founder actually intended
 - what is non-negotiable product identity
-- the meaning of Backpacks / Tools / global AI / Life OS / world-layer ideas
+- the meaning of Backpacks / Tools / Papers' narrow universal responsibility
 
 B) PAPERS_PROXY_OPERATING_MANUAL
 Use when the change affects:
@@ -186,7 +186,7 @@ A closeout is incomplete if the assistant only summarizes in chat but does not u
 
 Unless newer versions exist, the default handoff bundle for the next Papers chat should contain:
 
-1) PAPERS_FOUNDER_BRIEF_V3 (or latest)
+1) PAPERS_FOUNDER_BRIEF_V4 (or latest)
 2) PAPERS_PROMPTER_HANDOFF
 3) PAPERS_PROXY_OPERATING_MANUAL
 4) PAPERS_SESSION_CLOSEOUT_PROTOCOL

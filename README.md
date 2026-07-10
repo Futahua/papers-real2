@@ -60,11 +60,11 @@ Founder statement (CANONICAL): `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_
 ## Authority chain (highest wins)
 
 1. **The creator’s live direction in the current session** — explicit instruction given now always outranks older documents, including AI-written planning docs.
-2. **`DOCS/PAPERS_RECOVERY_MAP_V1.txt`** — the current product state map, drift audit, implementation classification, and restart gate. Read before any product expansion or new build prompt.
-3. **`DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`** (PAPERS_FOUNDER_BRIEF_V4) — CANONICAL statement of what Papers fundamentally is.
+2. **`DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`** (PAPERS_FOUNDER_BRIEF_V4) — CANONICAL, clean statement of what Papers fundamentally is.
+3. **`DOCS/PAPERS_RECOVERY_MAP_V1.txt`** — forensic drift history, current implementation classification, stopping point, and restart gate. Authoritative on those specific operational-recovery subjects; does not redefine product identity. Read before any product expansion or new build prompt.
 4. Later explicit correction documents that say they supersede the founder brief on a specific point.
-5. Operational rebuild documents — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`.
-6. Legacy repo history, old plans, and legacy implementation details — **weak evidence, often contaminated**.
+5. Operational rebuild documents — `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt` and other corrected operational docs.
+6. Historical evidence and legacy repo history — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`, legacy repo, old plans — **weak evidence, often contaminated or superseded**.
 
 Supporting behavioral docs:
 

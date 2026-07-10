@@ -3,11 +3,11 @@
 ## Authority order (highest first)
 
 1. **Creator’s current explicit direction** — any instruction given in the current session or task prompt. This outranks every document in this repository, including older AI-written planning docs.
-2. `DOCS/PAPERS_RECOVERY_MAP_V1.txt` — current product state map, drift audit, implementation classification, and restart gate. Read before any product expansion.
-3. `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4) — CANONICAL statement of foundational product identity.
+2. `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4) — CANONICAL, clean statement of what Papers is.
+3. `DOCS/PAPERS_RECOVERY_MAP_V1.txt` — forensic drift history, current implementation classification, stopping point, and restart gate. Authoritative on those specific operational-recovery subjects; does not redefine product identity. Read before any product expansion.
 4. Later explicit creator corrections that supersede or clarify the founder brief on a specific point.
-5. Operational rebuild documents (`DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`).
-6. Legacy repo history — weak evidence, often contaminated.
+5. Operational rebuild documents (`DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and other corrected operational docs).
+6. Historical evidence and legacy repo history (`DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`, legacy repo) — weak evidence, often contaminated or superseded.
 
 ## Rules for narrow coding tasks
 

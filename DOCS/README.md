@@ -44,12 +44,14 @@ Read second. This is the current product state map and restart gate. It was prod
 
 It documents:
 
-* the binding creator definition (outranks all other documents)
+* the binding creator definition, quoted and cross-referenced from `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4), which is the CANONICAL source for that definition
 * the 12 drift points found across governing documents, their sources and effects
 * the classification of all documents (canonical / corrected / historical / superseded)
-* the classification of all implementation subsystems (keep as core, neutral substrate, optional Backpack mechanism, quarantined assumption, unresolved)
+* the classification of all implementation subsystems (keep as core, current substrate, optional Backpack mechanism, quarantined assumption, unresolved)
 * where product development is currently stopped and why
-* the 8-condition restart gate that must be satisfied before another build prompt is authorized
+* the 9-condition restart gate that must be satisfied before another build prompt is authorized
+
+This map does not redefine or outrank the founder brief on product identity — it is authoritative on the forensic drift history, current implementation classification, stopping point, and restart gate specifically.
 
 **Read this before any product expansion, new slice, or build prompt.**
 

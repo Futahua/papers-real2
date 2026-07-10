@@ -551,7 +551,7 @@ test('previewing a detached or unknown reference is refused honestly', () => {
   assert.equal(unknown.ok, false);
 });
 
-test('preview creates nothing persistent, changes no real source, and never loads the engine', () => {
+test('preview creates no artifact or interaction record, changes no real source, and never loads the engine', () => {
   const dir = tempDir('previewinert');
   const realDir = tempDir('previewinertreal');
   const realFile = path.join(realDir, 'stable.txt');

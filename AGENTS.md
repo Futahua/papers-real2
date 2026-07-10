@@ -3,10 +3,11 @@
 ## Authority order (highest first)
 
 1. **Creator’s current explicit direction** — any instruction given in the current session or task prompt. This outranks every document in this repository, including older AI-written planning docs.
-2. `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt` — foundational product identity.
-3. Later explicit creator corrections that supersede or clarify the founder brief on a point.
-4. Operational rebuild documents (`DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`).
-5. Legacy repo history — weak evidence, often contaminated.
+2. `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4) — CANONICAL, clean statement of what Papers is.
+3. `DOCS/PAPERS_RECOVERY_MAP_V1.txt` — forensic drift history, current implementation classification, stopping point, and restart gate. Authoritative on those specific operational-recovery subjects; does not redefine product identity. Read before any product expansion.
+4. Later explicit creator corrections that supersede or clarify the founder brief on a specific point.
+5. Operational rebuild documents (`DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and other corrected operational docs).
+6. Historical evidence and legacy repo history (`DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`, legacy repo) — weak evidence, often contaminated or superseded.
 
 ## Rules for narrow coding tasks
 
@@ -18,6 +19,7 @@
 - **Do not introduce unrelated cleanup** (formatting, naming, refactoring) outside your assigned scope.
 - **Do not convert an experiment or local fix into a universal rule** that changes product-wide behavior.
 - **Do not create new governing or doctrine documents** unless the task prompt explicitly asks for one.
+- **Behavior before builds.** Before any new implementation, the required discipline is: desired creator behavior → existing products and reuse candidates → identify the smallest missing Papers responsibility → only then write a bounded build prompt. Reuse-first is hard law.
 - **Do not describe your own interpretation as “the creator’s direction”** unless the creator explicitly said it in their current session or task prompt.
 - **Preserve existing behavior** outside the scope of your assignment.
 - **Stop and report** if the task would require a significantly larger change than described. Do not expand silently.

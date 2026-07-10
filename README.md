@@ -1,6 +1,6 @@
 # Papers — Canonical Rebuild (REAL2)
 
-This repository is the **canonical Papers rebuild** and the **only active Papers product line** from this point onward. It is a clean, world-first rebuild — **not** a cleaned-up copy of the legacy implementation.
+This repository is the **canonical Papers rebuild** and the **only active Papers product line** from this point onward. It is a clean rebuild of Papers' narrow definition (see below) — **not** a cleaned-up copy of the legacy implementation.
 
 If you are a **coding agent on a narrow task**, read [`AGENTS.md`](AGENTS.md) first, follow your task prompt, and read only the files it names. If you are doing broad orientation, read [`DOCS/PROMPTER/`](DOCS/PROMPTER/) and [`DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`](DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt). In all cases the creator’s live direction in the current session is the highest authority.
 
@@ -16,7 +16,7 @@ Papers has two separate local directories and two separate GitHub repositories. 
 | **Canonical (rebuild)** | `Papers are papers\REAL2` | `Futahua/papers-real2`      | Active product line. **All new work happens here.**             |
 
 * **REAL = legacy Papers v0.** A well-engineered but wrongly-shaped implementation: a safety-hardened cockpit for one specific agent runtime (Hermes), wrapped around a generic agent chat workbench, with Papers vocabulary painted onto a disabled menu. It is retained as a salvage source and a lesson. It is **not** the base for ongoing work.
-* **REAL2 = the canonical rebuild.** Its authority is the rebuild documentation in `DOCS/`, governed above all by `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`. Its center of gravity is the **Papers world model**, not an agent engine.
+* **REAL2 = the canonical rebuild.** Its authority is the rebuild documentation in `DOCS/`, governed above all by `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`. Its current product state is mapped in `DOCS/PAPERS_RECOVERY_MAP_V1.txt` — read that document before any product expansion or new build prompt.
 
 ### Why the repositories are split
 
@@ -37,28 +37,34 @@ The split is deliberate and structural. Its purpose is to stop future work from 
 
 ---
 
-## What Papers is (non-negotiable)
+## What Papers is (binding creator definition)
 
-Papers is an **AI-native personal layer over the existing computer**. Windows remains the operating system; Papers sits above it as one coherent, accumulative, inhabitable personal environment. Its distinctive concepts — all original founder DNA — are:
+Papers is a **lightweight personal layer over Windows**. Its universal governing responsibility:
 
-* **Backpacks**: persistent, overlapping rooms/lenses over the same real world, never sealed silos
-* **Tools**: reusable capabilities shared across that world
-* **A global AI**: present across the whole environment rather than trapped in one room
-* **Truthful grounding**: Papers points back to the creator’s real files, systems, and sources; it never pretends imported copies are the originals
+> **Papers persistently identifies, organizes, exposes, enters, tracks, leaves, and switches Backpacks — one active Backpack at a time.**
 
-The practical agent/operator workbench is a **foundation**, not the product’s identity. Papers must never collapse into an engine cockpit, provider console, or generic chat workbench with Papers language layered on top.
+Backpacks may be literally anything the creator designates. **One active Backpack at a time is the only universal runtime assumption.** No universal assumptions may be made about a Backpack’s interface, contents, furniture (dashboard, Desk, notes, files, chat, history, artifacts), AI integration, lifecycle, or state model — those are each Backpack’s own concern.
 
-Full statement: `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`.
+Papers itself must not prescribe: one global Papers AI; permanent World-level memory; universal Backpack context; AI in every Backpack; one provider or runtime; or any particular Backpack furniture as mandatory.
+
+**Reuse-first is hard law.** Before any new capability is built, the discipline is: desired creator behavior → existing products → reuse investigation → smallest missing Papers responsibility → implementation.
+
+The current REAL2 application code in `app/` is **experimental proving substrate** — it demonstrates one form a Backpack can take (things, notes, conversation, history, a Desk), not a prescription for what all future Backpacks must contain. See `DOCS/PAPERS_RECOVERY_MAP_V1.txt` for the forensic classification of what the current implementation is, what is reusable, what is quarantined assumption, and what must be resolved before expansion continues.
+
+Papers must never collapse into an engine cockpit, provider console, or generic chat workbench with Papers language layered on top.
+
+Founder statement (CANONICAL): `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4).
 
 ---
 
 ## Authority chain (highest wins)
 
 1. **The creator’s live direction in the current session** — explicit instruction given now always outranks older documents, including AI-written planning docs.
-2. **`DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`** — what Papers fundamentally is.
-3. Later explicit correction documents that say they supersede the founder brief on a point.
-4. Operational rebuild documents — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`, and `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`.
-5. Legacy repo history, old plans, and legacy implementation details — **weak evidence, often contaminated**.
+2. **`DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt`** (PAPERS_FOUNDER_BRIEF_V4) — CANONICAL, clean statement of what Papers fundamentally is.
+3. **`DOCS/PAPERS_RECOVERY_MAP_V1.txt`** — forensic drift history, current implementation classification, stopping point, and restart gate. Authoritative on those specific operational-recovery subjects; does not redefine product identity. Read before any product expansion or new build prompt.
+4. Later explicit correction documents that say they supersede the founder brief on a specific point.
+5. Operational rebuild documents — `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt` and other corrected operational docs.
+6. Historical evidence and legacy repo history — `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt`, `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`, legacy repo, old plans — **weak evidence, often contaminated or superseded**.
 
 Supporting behavioral docs:
 
@@ -70,21 +76,19 @@ These do not outrank the founder brief. They exist to keep future sessions, agen
 
 ---
 
-## Implementation gate
+## Implementation state
 
-**No implementation work should begin in REAL2 until the governing rebuild document set exists and is accepted as the active authority.**
+Slice 1 and Slice 2A are implemented in `app/`. The current code is **experimental proving substrate** — it demonstrates one Backpack form that has been built and tested, not a prescription for what all future Backpacks must contain.
 
-That minimum set is:
+**Product expansion is paused.** `DOCS/PAPERS_RECOVERY_MAP_V1.txt` documents the stopping point, the implementation classification, and the conditions (Section I of that document) that must be satisfied before another build prompt is authorized.
 
-1. `DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt` — present
-2. `DOCS/PAPERS_REPO_DECISION_AUDIT_V1.txt` — present
-3. `DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt` — present
-4. `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt` — present
+No new slices should be started until the restart gate in `DOCS/PAPERS_RECOVERY_MAP_V1.txt` Section I is cleared with the creator.
 
-The full set now exists. Implementation may begin **once the creator accepts these
-documents as the active authority**, and it must follow
-`DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt` — starting from **Slice 1 (one world, one
-room, real things)**, world-first, never from the legacy app shell.
+Present in the repository now: founder brief (V4, canonical); recovery map; repo decision audit (historical); agent constitution; build order (historical substrate-sequencing record); ontology clarification; Desk document (implementation-specific); prompter/proxy/closeout docs; delta log; application code in [`app/`](app/).
+
+**Vocabulary:** per `DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt`, Papers, Backpack, and Tool are the only active product vocabulary. "World" and "room" are historical implementation labels in the current code and persisted data — not product ontology.
+
+Current app state (see `app/README.md` and `DOCS/PAPERS_DELTA_LOG.txt` for the full record): one Backpack implementation with truthful file/folder references, durable AI-written notes with provenance, a scoped conversation, a navigable activity history, a landing surface showing the Backpack's own state, and a Desk (active work surface) — an optional experiment in this Backpack form only, not universal Backpack anatomy. The AI speaks through one Papers-native engine seam with interchangeable runtime backends. Unavailability is reported honestly, never faked. None of this is claimed as the definition of what a Backpack must be — see `DOCS/PAPERS_RECOVERY_MAP_V1.txt` Section F for classification.
 
 ---
 
@@ -98,9 +102,11 @@ REAL2/
 ├── app/                       (the Papers application — see app/README.md)
 └── DOCS/
     ├── README.md
+    ├── PAPERS_RECOVERY_MAP_V1.txt         (current product state and restart gate)
     ├── PAPERS_REPO_DECISION_AUDIT_V1.txt
     ├── PAPERS_NEXT_BUILD_ORDER_V1.txt
     ├── PAPERS_ONTOLOGY_CLARIFICATION_V1.txt
+    ├── PAPERS_BACKPACK_DESK_V1.txt
     ├── PAPERS_DELTA_LOG.txt
     └── PROMPTER/
         ├── PAPERS_FOUNDER_BRIEF.txt
@@ -122,26 +128,6 @@ REAL2/
 * Bulk imports from REAL
 * A generic Tauri/React chat workbench scaffold created “just to get started”
 * Provider-setup work, engine-management surfaces, or session plumbing treated as the product’s center of gravity
-
----
-
-## Current REAL2 status
-
-REAL2 is in **implementation — Slice 2A (room work becomes a real room surface)**, following `DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt`, world-first. **Slice 1 is implemented and merged** (PR #1), with its full flow verified live end-to-end.
-
-Present in the repository now:
-
-* **Founder brief** — present
-* **Repo decision audit** — present
-* **Agent constitution** — present
-* **Build order (`PAPERS_NEXT_BUILD_ORDER_V1`)** — present
-* **Prompter / proxy / closeout docs** — present
-* **Delta log (`PAPERS_DELTA_LOG`)** — present, the running record of implementation state
-* **Application code** — present in [`app/`](app/)
-
-**Vocabulary:** per `DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt`, the world is the real machine-and-life substrate Papers lives over; **Backpacks** are the core Papers-native places within it; "room" survives only as an internal implementation label for the first Backpack surface.
-
-Current app state (see `app/README.md` and `DOCS/PAPERS_DELTA_LOG.txt` for the full record): persistent world store; **Backpacks** with truthful file/folder references, durable AI-written Backpack notes with provenance, a Backpack-scoped conversation, and a Papers-owned Backpack history rendered as a navigable timeline; a Backpack landing that greets the creator with the Backpack's own state (description, honest snapshot, missing-reality callout, since-your-last-visit, pinned work); and a **Desk** on each existing Backpack surface (`DOCS/PAPERS_BACKPACK_DESK_V1.txt`) — brief, active things/notes, and a working note the Desk-grounded AI revises in place under guard. The AI speaks through one Papers-native engine seam with interchangeable runtime backends (Claude Code CLI by default; a local Ollama server as a verified-live alternative). The engine is never the custodian of continuity, and unavailability is reported honestly, never faked.
 
 ---
 

@@ -20,20 +20,42 @@ If a future session can read this folder and pick up the rebuild without having 
 
 If you are new to REAL2, read in this order.
 
-### 1) `PROMPTER/PAPERS_FOUNDER_BRIEF.txt`
+### 1) `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4)
 
-Read first. This is the highest-authority statement of what Papers fundamentally is.
+Read first. This is the CANONICAL, clean current statement of what Papers
+fundamentally is. It supersedes PAPERS_FOUNDER_BRIEF_V3 in full — V3's
+superseded claims and the causal history of how they entered the project are
+preserved in `PAPERS_RECOVERY_MAP_V1.txt`, not repeated here as active
+doctrine.
 
 It defines:
 
-* the non-negotiable identity of Papers
-* the original founder concepts (Backpacks, Tools, global AI, truthful grounding)
-* what the project must not collapse into
-* the tests new proposals must survive
+* Papers as a lightweight personal layer over Windows
+* Papers' narrow universal responsibility (Backpack identification,
+  organization, exposure, entry, tracking, leaving, switching — one active
+  Backpack at a time)
+* Backpacks, Tools, and AI/agents as unspecified beyond that narrow
+  responsibility
+* reuse-first and behavior-before-builds as binding discipline
 
-If you read only one document before making a judgment about Papers, read this one.
+### 2) `PAPERS_RECOVERY_MAP_V1.txt`
 
-### 2) `PAPERS_REPO_DECISION_AUDIT_V1.txt`
+Read second. This is the current product state map and restart gate. It was produced by a forensic audit of all governing documents and all implementation code.
+
+It documents:
+
+* the binding creator definition, quoted and cross-referenced from `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4), which is the CANONICAL source for that definition
+* the 12 drift points found across governing documents, their sources and effects
+* the classification of all documents (canonical / corrected / historical / superseded)
+* the classification of all implementation subsystems (keep as core, current substrate, optional Backpack mechanism, quarantined assumption, unresolved)
+* where product development is currently stopped and why
+* the 9-condition restart gate that must be satisfied before another build prompt is authorized
+
+This map does not redefine or outrank the founder brief on product identity — it is authoritative on the forensic drift history, current implementation classification, stopping point, and restart gate specifically.
+
+**Read this before any product expansion, new slice, or build prompt.**
+
+### 3) `PAPERS_REPO_DECISION_AUDIT_V1.txt`
 
 Read second. This is the full classification of legacy Papers v0 (`REAL` / `Futahua/papers-are-papers`) against founder intent, plus the rebuild recommendation for REAL2.
 
@@ -46,7 +68,7 @@ It explains:
 
 This document is the bridge between the founder vision and the actual code history.
 
-### 3) `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`
+### 4) `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`
 
 Read third. This is the operating constitution for coding agents working on REAL2.
 
@@ -60,13 +82,13 @@ It exists because the founder is not a developer and should not be forced to ans
 
 If you are implementing REAL2, this document is binding.
 
-### 4) `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt`
+### 5) `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt`
 
 Read fourth. This explains how a fresh session should be brought up to speed, what the active docs are, and what work is expected next.
 
 It is the handoff primer for new sessions.
 
-### 5) `PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt`
+### 6) `PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt`
 
 Read fifth. This governs how the “proxy prompter” should behave across sessions — meaning the assistant role that is effectively taking over the founder’s prompting/orchestration job.
 
@@ -77,13 +99,13 @@ It defines:
 * how to avoid cargo-culting buzzwords or flattening the project into generic architecture
 * how to keep the long-term shape intact while still making practical implementation decisions
 
-### 6) `PROMPTER/PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt`
+### 7) `PROMPTER/PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt`
 
 Read when ending a session or preparing to switch chats. This is the continuity-preservation protocol.
 
 It exists to make sure that when a conversation ends, the important decisions do not die with it. It should be used to produce closeout notes and doc updates before context is lost.
 
-### 7) `PAPERS_NEXT_BUILD_ORDER_V1.txt`
+### 8) `PAPERS_NEXT_BUILD_ORDER_V1.txt`
 
 Present. This is the operational sequencing document for the rebuild.
 
@@ -103,49 +125,50 @@ Not all docs have equal weight.
 
 **Highest authority**
 
-1. `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` — the source of truth for what Papers fundamentally is.
+1. `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` (PAPERS_FOUNDER_BRIEF_V4) — CANONICAL, clean current statement of Papers' product identity.
 
-**High authority**
+**Current state authority (read before any product expansion)**
 
-2. Explicit correction/supersession docs that clearly say they override the founder brief on a specific point.
-   * `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — canonical WORLD / BACKPACK / ROOM vocabulary (a clarification consistent with the founder brief; binding on implementation vocabulary, docs, and milestone framing).
+2. `PAPERS_RECOVERY_MAP_V1.txt` — forensic audit, implementation classification, and restart gate. This document is the current product state map and supersedes any implied authorizations in planning documents.
+
+**High authority (correction/clarification)**
+
+3. Explicit correction/supersession docs that clearly say they override the founder brief on a specific point.
+   * `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — canonical PAPERS / BACKPACK / TOOL vocabulary; "world" and "room" are historical implementation labels only, not product ontology.
 
 **Operational rebuild authority**
 
-3. `PAPERS_REPO_DECISION_AUDIT_V1.txt`
-4. `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`
-5. `PAPERS_NEXT_BUILD_ORDER_V1.txt`
+4. `PAPERS_REPO_DECISION_AUDIT_V1.txt`
+5. `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`
+6. `PAPERS_NEXT_BUILD_ORDER_V1.txt` — historical substrate sequencing record; no later slice is automatically authorized.
 
 These documents do not redefine Papers from scratch; they operationalize the founder brief and turn it into a rebuild program.
 
 **Session continuity / operating behavior**
 
-6. `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt`
-7. `PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt`
-8. `PROMPTER/PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt`
+7. `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt`
+8. `PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt`
+9. `PROMPTER/PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt`
 
-These are behavioral and continuity docs. They matter a lot, but they do not outrank the founder brief or explicit rebuild decisions.
+These are behavioral and continuity docs. They matter a lot, but they do not outrank the founder brief, the recovery map, or explicit rebuild decisions.
 
 ## Current document set
 
 **Present now**
 
-* `PAPERS_REPO_DECISION_AUDIT_V1.txt`
-* `PAPERS_NEXT_BUILD_ORDER_V1.txt`
-* `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — canonical WORLD / BACKPACK / ROOM vocabulary correction
-* `PAPERS_BACKPACK_DESK_V1.txt` — the Desk: the Backpack's active work surface (first-form concept)
-* `PAPERS_DELTA_LOG.txt` — lightweight cumulative record of material changes (newest first)
-* `PROMPTER/PAPERS_FOUNDER_BRIEF.txt`
-* `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt`
-* `PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt`
-* `PROMPTER/PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt`
-* `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt`
+* `PAPERS_RECOVERY_MAP_V1.txt` — current product state map, drift audit, implementation classification, restart gate (added 2026-07-10)
+* `PAPERS_REPO_DECISION_AUDIT_V1.txt` — historical evidence (legacy v0 audit)
+* `PAPERS_NEXT_BUILD_ORDER_V1.txt` — historical evidence (substrate sequencing record); no later slice automatically authorized
+* `PAPERS_ONTOLOGY_CLARIFICATION_V1.txt` — corrected and active: canonical PAPERS / BACKPACK / TOOL vocabulary
+* `PAPERS_BACKPACK_DESK_V1.txt` — implementation-specific: the Desk, an optional experiment in the current Backpack form only
+* `PAPERS_DELTA_LOG.txt` — historical evidence (lightweight cumulative record of material changes, newest first)
+* `PROMPTER/PAPERS_FOUNDER_BRIEF.txt` — CANONICAL (PAPERS_FOUNDER_BRIEF_V4, clean rewrite)
+* `PROMPTER/PAPERS_PROMPTER_HANDOFF.txt` — corrected and active
+* `PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt` — corrected and active
+* `PROMPTER/PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt` — corrected and active
+* `PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt` — corrected and active
 
-**Still expected**
-
-* None. The governing document set is complete.
-
-The full governing set now exists. REAL2 remains documentation-only until the creator authorizes implementation; once authorized, work follows `PAPERS_NEXT_BUILD_ORDER_V1.txt` starting from Slice 1.
+The governing set is complete. Slice 1 and Slice 2A are implemented. Product expansion is paused pending restart gate clearance (`PAPERS_RECOVERY_MAP_V1.txt` Section I).
 
 ## How these docs should be used during the rebuild
 
@@ -194,8 +217,12 @@ But the legacy repo is not an authority source for what Papers should become. If
 ```text
 DOCS/
 ├── README.md
+├── PAPERS_RECOVERY_MAP_V1.txt
 ├── PAPERS_REPO_DECISION_AUDIT_V1.txt
 ├── PAPERS_NEXT_BUILD_ORDER_V1.txt
+├── PAPERS_ONTOLOGY_CLARIFICATION_V1.txt
+├── PAPERS_BACKPACK_DESK_V1.txt
+├── PAPERS_DELTA_LOG.txt
 └── PROMPTER/
     ├── PAPERS_FOUNDER_BRIEF.txt
     ├── PAPERS_PROMPTER_HANDOFF.txt

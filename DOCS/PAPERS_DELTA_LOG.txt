@@ -3,6 +3,139 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-10 (ninth pass) — documents made internally consistent: clean rewrites
+replace bracket-annotated corrections
+================================================================================
+
+The eighth-pass recovery (below) correctly identified 12 drift points and
+produced DOCS/PAPERS_RECOVERY_MAP_V1.txt, but its document amendments mostly
+left the original drifted text in place with [RECOVERY CORRECTION] brackets
+appended below it. That approach preserved evidence but left active governing
+documents containing mutually contradictory instructions — a future agent
+reading PAPERS_FOUNDER_BRIEF.txt would still see "the AI is global across the
+Papers environment" and "Life OS ... is one major expression of what Papers is
+for" as the primary text, with a correction bracket easy to skip.
+
+This pass replaces that approach. Superseded doctrine is REMOVED from active
+governing documents, not merely annotated. The removed text, its source, and
+its effects remain fully preserved as forensic history in
+DOCS/PAPERS_RECOVERY_MAP_V1.txt Section C — nothing was deleted from the
+record, only from active doctrine.
+
+WHAT CHANGED
+1. PAPERS_FOUNDER_BRIEF.txt — FULL REWRITE. New version is
+   PAPERS_FOUNDER_BRIEF_V4, superseding V3 in full. States only: Papers as a
+   lightweight layer over Windows; the narrow universal responsibility
+   (identify/organize/expose/enter/track/leave/switch Backpacks, one active
+   at a time); Backpacks/Tools/AI as unspecified beyond that; reuse-first;
+   behavior-before-builds; current implementation as evidence, not ontology.
+   Classification: CANONICAL.
+2. PAPERS_AGENT_CONSTITUTION_V1.txt — Sections 1 and 2 (product laws)
+   rewritten from scratch: 13 laws scoped to the narrow definition, replacing
+   the prior 10 laws built around "one coherent world," global AI, and
+   accumulation as identity. Sections 3-11 revised to remove "world-first"
+   framing. Section 6's Disallowed Question Type 3 remains reversed (agents
+   must ask about new Backpack behavior, not infer it).
+3. PAPERS_PROMPTER_HANDOFF.txt and PAPERS_PROXY_OPERATING_MANUAL.txt — full
+   rewrites. Removed global AI / Life OS / Backpack-furniture as illustrative
+   CORE examples in the classification systems; removed "coherent
+   personal-world layer" as the test for good recommendations.
+4. PAPERS_ONTOLOGY_CLARIFICATION_V1.txt — full rewrite. "World" removed as
+   product ontology. Active vocabulary is now Papers / Backpack / Tool only;
+   "world" and "room" stated as historical implementation labels, not
+   corrected-but-still-present ontology.
+5. DOCS/PAPERS_RECOVERY_MAP_V1.txt — Section F (implementation classification)
+   substantially narrowed: F1 "keep as current core" now contains only the
+   six items directly implementing Papers' narrow responsibility (identity,
+   naming, access, tracking, leaving, switching, one-at-a-time). Electron,
+   WorldStore, the engine seam, guarded actions, provenance, and honesty
+   mechanisms moved to F2 (current substrate) or F3 (optional Backpack
+   mechanism) — reclassified as good engineering, not Papers-universal
+   identity. F4 (quarantine) expanded with four additional code-shape risks
+   (getRoomView's universal furniture, world/room naming, world-view card
+   count assumptions, the shared per-room AI action set). Section G (salvage
+   map) revised to remove unsupported "no suitable alternative exists"
+   claims — replaced with "not investigated in this documentation-only
+   audit" where accurate. Section H (stopping point) revised to a three-tier
+   verification model: verified now (automated tests, this audit); historical
+   verification recorded in the repository (prior sessions' acceptance
+   scripts and headed renders, not re-run here); not yet verified by the
+   creator on their own machine (real interactive use, Tier 3). Restart gate
+   (Section I) gained condition 3a requiring Tier 3 verification before new
+   Windows-facing product code.
+6. AGENTS.md, README.md, DOCS/README.md — updated references from
+   "PAPERS_FOUNDER_BRIEF_V3 with recovery correction header" to
+   "PAPERS_FOUNDER_BRIEF_V4, CANONICAL." Removed a duplicate/contradictory
+   "Current REAL2 status" section in README.md that repeated old "world is
+   the real machine-and-life substrate" vocabulary as active doctrine.
+7. PAPERS_BACKPACK_DESK_V1.txt, PAPERS_SESSION_CLOSEOUT_PROTOCOL.txt — minor
+   reference updates (V3 → V4; removed stale "global AI / Life OS / world-
+   layer" example list).
+
+WHAT DID NOT CHANGE
+No application code changed. 31/31 tests continue to pass. No new roadmap.
+No merge performed.
+
+================================================================================
+2026-07-10 (eighth pass) — documentation drift audit and recovery
+================================================================================
+
+A forensic audit of all governing documents and all implementation code was
+performed. The project returned to the creator's binding definition. No
+application behavior was changed; no application code was modified.
+
+WHAT WAS FOUND
+12 drift points were identified across 8 governing documents. The drift chain:
+"lightweight layer over Windows" → "Papers world model" as center of gravity →
+implemented universal Backpack furniture (things/notes/conversation/history/Desk)
+as if it were Papers anatomy. The creator's binding definition was recovered:
+Papers persistently identifies, organizes, exposes, enters, tracks, leaves, and
+switches Backpacks — one active Backpack at a time. No universal Backpack
+assumptions may be made. See DOCS/PAPERS_RECOVERY_MAP_V1.txt Section C for
+the full drift chain.
+
+WHAT WAS PRODUCED
+1. NEW: DOCS/PAPERS_RECOVERY_MAP_V1.txt — forensic recovery map with 10
+   sections: starting commit, binding definition, drift chain (12 items),
+   document classification (6 categories across all docs), implementation
+   classification (14 subsystems in 6 categories), salvage candidates, stopping
+   point, restart gate (8 conditions), known unknowns.
+
+2. AMENDED: All governing documents corrected per recovery map findings:
+   - README.md (root) — removed World-model as center of gravity; removed global
+     AI and Backpack furniture as non-negotiable; added binding definition;
+     labeled implementation as experimental substrate; recovery map in authority
+     chain at position 2.
+   - AGENTS.md — recovery map added at position 2; behavior-before-builds rule added.
+   - DOCS/README.md — recovery map added as reading position 2; authority hierarchy
+     corrected; current document set updated.
+   - DOCS/PROMPTER/PAPERS_FOUNDER_BRIEF.txt — recovery correction header added;
+     Sections 3, 4C, 6, and 8 item 6 corrected inline.
+   - DOCS/PROMPTER/PAPERS_AGENT_CONSTITUTION_V1.txt — recovery header added; Laws 5
+     and 9 corrected; Section 6 Type 3 reversed; Sections 12 and 13 (behavior-before-
+     builds and reuse-first) added.
+   - DOCS/PROMPTER/PAPERS_PROMPTER_HANDOFF.txt — Section 2 corrected; Step 5
+     (behavior-before-builds) added.
+   - DOCS/PROMPTER/PAPERS_PROXY_OPERATING_MANUAL.txt — Section 2 authority order
+     corrected; Section 15 operating summary corrected.
+   - DOCS/PAPERS_NEXT_BUILD_ORDER_V1.txt — recovery notice header added; no later
+     slice automatically authorized.
+   - DOCS/PAPERS_ONTOLOGY_CLARIFICATION_V1.txt — recovery header added; universal
+     hierarchy claim corrected to be implementation-specific.
+   - DOCS/PAPERS_BACKPACK_DESK_V1.txt — optional-experiment framing strengthened;
+     getDeskView() universality noted as known code issue, not product prescription.
+   - DOCS/PAPERS_DELTA_LOG.txt — this entry.
+   - app/README.md — experimental substrate note added; recovery map linked.
+
+CURRENT STATE
+- Product expansion is paused.
+- 31/31 tests continue to pass (no application code was changed).
+- The implementation classified: 4 items KEEP AS CURRENT CORE; 4 items NEUTRAL
+  SUBSTRATE; 8 items OPTIONAL BACKPACK MECHANISM; 1 item QUARANTINE (the Desk as
+  universal, not as optional experiment); 3 items UNRESOLVED.
+- Restart gate: 8 conditions in DOCS/PAPERS_RECOVERY_MAP_V1.txt Section I.
+
+================================================================================
 2026-07-09 (seventh pass) — the Desk: first inhabited Backpack slice
 ================================================================================
 

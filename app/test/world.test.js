@@ -9,8 +9,10 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 
 const { WorldStore } = require('../world/store');
+const revision = require('../world/revision');
 const { readThingContent, MAX_TEXT_BYTES, MAX_FOLDER_ENTRIES } = require('../world/things');
 
 function tempDir(name) {
@@ -579,13 +581,261 @@ test('preview creates no artifact or interaction record, changes no real source,
   assert.equal(store.getDesk(room.id).items.length, before.deskItems, 'nothing was put on the Desk');
   assert.equal(store.getActivity(room.id).length, before.activity, 'no history event was invented');
   assert.deepEqual(fs.readFileSync(realFile), before.bytes, 'the real source is untouched');
-  // The preview path is AI-free by construction: nothing under engine/ was
-  // ever loaded into this process (this test file requires only the world).
+  // The preview path is AI-free by construction: it never reaches the
+  // runtime seam (engine/index.js, which selects and calls a backend) or
+  // any runtime backend. This test file's own require of world/revision.js
+  // pulls in engine/prompts.js for prompt-string construction — pure text
+  // formatting with no runtime contact — so that module is deliberately
+  // excluded from this check.
   const engineDir = path.join(__dirname, '..', 'engine') + path.sep;
-  assert.ok(
-    !Object.keys(require.cache).some((p) => p.startsWith(engineDir)),
-    'previewing must not load, let alone call, the AI engine'
+  const runtimeContactModules = Object.keys(require.cache).filter(
+    (p) => p.startsWith(engineDir) && p !== require.resolve('../engine/prompts')
   );
+  assert.deepEqual(runtimeContactModules, [], 'previewing must not load, let alone call, the AI engine seam or a runtime backend');
+});
+
+test('any note in the current Backpack form can be revised in place — not just the working note', () => {
+  const dir = tempDir('revise');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Revisable');
+  const note = store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'Hinge notes',
+    body: 'The old hinges are rusted through.',
+    provenance: { createdBy: 'papers-ai', engine: 'test', sourceThings: [{ displayName: 'a.txt', path: 'C:\\a.txt', type: 'file' }] },
+  });
+  const revised = store.updateArtifact(room.id, note.id, {
+    title: 'Hinge notes',
+    body: 'Replacements bought: 4-inch, stainless.',
+    revision: {
+      engine: 'test-2',
+      requestedBy: 'creator',
+      direction: 'Fold in the purchase.',
+      sourceThings: [{ displayName: 'a.txt', path: 'C:\\a.txt', type: 'file' }],
+    },
+  });
+  assert.equal(revised.id, note.id, 'same durable note');
+  assert.equal(revised.kind, 'room-note', 'revision does not change what kind of note it is');
+  assert.equal(revised.provenance.revisions.length, 1);
+  const trail = revised.provenance.revisions[0];
+  assert.equal(trail.direction, 'Fold in the purchase.', "the creator's direction is honest provenance");
+  assert.equal(trail.previousBody, 'The old hinges are rusted through.', 'the replaced text stays in the trail');
+  assert.equal(trail.previousTitle, 'Hinge notes');
+  // The Backpack event says "note", not "working note" — in the current
+  // Backpack form, revision is a note behavior, not Desk-only furniture.
+  const last = store.getActivity(room.id).at(-1);
+  assert.equal(last.kind, 'note-updated');
+  assert.match(last.text, /revised the note "Hinge notes"/);
+  assert.equal(last.refs.noteId, note.id);
+  // Restart: the revision is durable.
+  const reopened = new WorldStore(dir).listArtifacts(room.id)[0];
+  assert.equal(reopened.body, 'Replacements bought: 4-inch, stainless.');
+  assert.equal(reopened.provenance.revisions[0].previousBody, 'The old hinges are rusted through.');
+});
+
+// --- Revision approval: eligibility and the exact-material fingerprint ------
+// One feature's gathering path (world/revision.js) — these tests pin the
+// current Backpack form's boundary and the approval binding, not a
+// universal contract.
+
+function seedRevisableNote(dirName) {
+  const dir = tempDir(dirName);
+  const realDir = tempDir(dirName + '-real');
+  const srcFile = path.join(realDir, 'source.txt');
+  fs.writeFileSync(srcFile, 'original source content');
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Approval');
+  const note = store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'Bound note',
+    body: 'The body as approved.',
+    provenance: {
+      createdBy: 'papers-ai',
+      engine: 'test',
+      sourceThings: [{ displayName: 'source.txt', path: path.resolve(srcFile), type: 'file' }],
+    },
+  });
+  return { store, room, note, srcFile };
+}
+
+test('only AI-made notes are revisable; others are refused at the gathering path', () => {
+  const { store, room } = seedRevisableNote('eligible');
+  const creatorNote = store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'Hand-made',
+    body: 'Not AI-made.',
+    provenance: { createdBy: 'creator' },
+  });
+  const refused = revision.gatherRevisionMaterial(store, room.id, creatorNote.id, 'shorter');
+  assert.equal(refused.error, revision.REVISION_NOT_AI_MADE_ERROR);
+});
+
+test('a revision needs a direction or at least one recorded source', () => {
+  const { store, room } = seedRevisableNote('material');
+  const sourceless = store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'Sourceless',
+    body: 'No recorded sources.',
+    provenance: { createdBy: 'papers-ai', engine: 'test' },
+  });
+  // neither direction nor sources: refused, with the exact message
+  const refused = revision.gatherRevisionMaterial(store, room.id, sourceless.id, '   ');
+  assert.equal(refused.error, revision.REVISION_NEEDS_MATERIAL_ERROR);
+  // direction without sources: accepted
+  const withDirection = revision.gatherRevisionMaterial(store, room.id, sourceless.id, 'Tighten it.');
+  assert.ok(!withDirection.error && withDirection.fingerprint);
+  assert.equal(withDirection.readings.length, 0);
+});
+
+test('sources without a direction are accepted', () => {
+  const { store, room, note } = seedRevisableNote('srconly');
+  const gathered = revision.gatherRevisionMaterial(store, room.id, note.id, '');
+  assert.ok(!gathered.error && gathered.fingerprint);
+  assert.equal(gathered.readings.length, 1);
+});
+
+test('the approval fingerprint is deterministic while nothing changes', () => {
+  const { store, room, note } = seedRevisableNote('stable');
+  const a = revision.gatherRevisionMaterial(store, room.id, note.id, 'Same direction.');
+  const b = revision.gatherRevisionMaterial(store, room.id, note.id, 'Same direction.');
+  assert.equal(a.fingerprint, b.fingerprint, 'unchanged material fingerprints identically');
+  assert.ok(revision.approvalMatches(b, a.fingerprint), 'the approval still matches');
+});
+
+test('a changed note body invalidates the approval', () => {
+  const { store, room, note } = seedRevisableNote('bodychange');
+  const approved = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  store.updateArtifact(room.id, note.id, { body: 'The body changed after approval.' });
+  const regathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.notEqual(regathered.fingerprint, approved.fingerprint);
+  assert.ok(!revision.approvalMatches(regathered, approved.fingerprint));
+});
+
+test('a changed source file invalidates the approval; a fresh preview matches again', () => {
+  const { store, room, note, srcFile } = seedRevisableNote('srcchange');
+  const approved = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  fs.appendFileSync(srcFile, ' — and then reality moved on');
+  const regathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.ok(!revision.approvalMatches(regathered, approved.fingerprint), 'stale approval no longer matches');
+  // The note itself was not mutated by the refusal path.
+  assert.equal(store.listArtifacts(room.id)[0].body, 'The body as approved.');
+  assert.equal(store.listArtifacts(room.id)[0].provenance.revisions, undefined);
+  // A fresh preview over the changed reality matches its own confirmation.
+  const fresh = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.ok(revision.approvalMatches(fresh, regathered.fingerprint));
+});
+
+test('a changed direction invalidates the approval', () => {
+  const { store, room, note } = seedRevisableNote('dirchange');
+  const approved = revision.gatherRevisionMaterial(store, room.id, note.id, 'Make it shorter.');
+  const other = revision.gatherRevisionMaterial(store, room.id, note.id, 'Make it longer.');
+  assert.ok(!revision.approvalMatches(other, approved.fingerprint));
+});
+
+test('a missing fingerprint never matches', () => {
+  const { store, room, note } = seedRevisableNote('nofp');
+  const gathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.ok(!revision.approvalMatches(gathered, undefined));
+  assert.ok(!revision.approvalMatches(gathered, null));
+  assert.ok(!revision.approvalMatches(gathered, ''));
+});
+
+test('the approval fingerprint equals sha256 of the exact runtime prompt', () => {
+  const { store, room, note } = seedRevisableNote('hashcheck');
+  const gathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Match this exactly.');
+  const expected = crypto.createHash('sha256').update(gathered.prompt).digest('hex');
+  assert.equal(gathered.fingerprint, expected);
+  assert.match(gathered.prompt, /Match this exactly\./);
+});
+
+test('a changed source display name invalidates the approval, even though body and path are unchanged', () => {
+  const { store, room, note, srcFile } = seedRevisableNote('displaynamechange');
+  const approved = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  // Record the recorded source under a new displayName for the SAME real
+  // path — the underlying file and its content are untouched. This is the
+  // one supported way to change an artifact's recorded sourceThings.
+  store.updateArtifact(room.id, note.id, {
+    title: note.title,
+    body: note.body,
+    revision: {
+      engine: 'test-setup',
+      sourceThings: [{ displayName: 'renamed-source.txt', path: path.resolve(srcFile), type: 'file' }],
+    },
+  });
+  const regathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.match(regathered.prompt, /renamed-source\.txt/, 'the new display name reaches the prompt');
+  assert.ok(!revision.approvalMatches(regathered, approved.fingerprint), 'a display-name-only change invalidates the approval');
+});
+
+test('unrelated conversation and Desk state never enter the revision prompt', () => {
+  const { store, room, note } = seedRevisableNote('ambient');
+  store.appendConversation(room.id, { role: 'creator', text: 'totally unrelated chat message' });
+  store.setBrief(room.id, 'An unrelated Desk brief');
+  store.renameRoom(room.id, 'A renamed Backpack, unrelated to this note');
+  store.addArtifact(room.id, {
+    kind: 'room-note',
+    title: 'An unrelated other note title',
+    body: 'unrelated body',
+    provenance: { createdBy: 'papers-ai', engine: 'test' },
+  });
+  const gathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Go.');
+  assert.ok(!gathered.prompt.includes('totally unrelated chat message'));
+  assert.ok(!gathered.prompt.includes('An unrelated Desk brief'));
+  assert.ok(!gathered.prompt.includes('A renamed Backpack'));
+  assert.ok(!gathered.prompt.includes('An unrelated other note title'));
+});
+
+test('confirmation sends byte-for-byte the approved prompt, and never reconstructs it a second time', async () => {
+  const { store, room, note } = seedRevisableNote('spy-exact');
+  const preview = revision.gatherRevisionMaterial(store, room.id, note.id, 'Spy check.');
+  // Mirrors main.js's note:revise handler exactly: re-gather, check the
+  // approval, then hand the ALREADY-BUILT prompt to the runtime call
+  // as-is — this is the seam under test, not a re-derived summary.
+  const calls = [];
+  const spyReviseNotePrepared = async (prompt) => {
+    calls.push(prompt);
+    return { ok: true, title: note.title, body: 'revised body', engineLabel: 'spy' };
+  };
+  async function confirmRevision(fingerprint) {
+    const gathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Spy check.');
+    if (gathered.error) return { ok: false, error: gathered.error };
+    if (!revision.approvalMatches(gathered, fingerprint)) {
+      return { ok: false, error: revision.REVISION_CHANGED_ERROR };
+    }
+    return spyReviseNotePrepared(gathered.prompt);
+  }
+  const result = await confirmRevision(preview.fingerprint);
+  assert.equal(result.ok, true);
+  assert.equal(calls.length, 1, 'the runtime is called exactly once');
+  assert.equal(calls[0], preview.prompt, 'the runtime receives byte-for-byte the prompt approved at preview');
+});
+
+test('stale-approval refusal makes zero runtime calls and mutates nothing', async () => {
+  const { store, room, note, srcFile } = seedRevisableNote('spy-refuse');
+  const preview = revision.gatherRevisionMaterial(store, room.id, note.id, 'Spy check.');
+  fs.appendFileSync(srcFile, ' — reality moved on before confirmation');
+  const calls = [];
+  const spyReviseNotePrepared = async (prompt) => {
+    calls.push(prompt);
+    return { ok: true, title: note.title, body: 'should never happen', engineLabel: 'spy' };
+  };
+  async function confirmRevision(fingerprint) {
+    const gathered = revision.gatherRevisionMaterial(store, room.id, note.id, 'Spy check.');
+    if (gathered.error) return { ok: false, error: gathered.error };
+    if (!revision.approvalMatches(gathered, fingerprint)) {
+      return { ok: false, error: revision.REVISION_CHANGED_ERROR };
+    }
+    return spyReviseNotePrepared(gathered.prompt);
+  }
+  const result = await confirmRevision(preview.fingerprint);
+  assert.equal(result.ok, false);
+  assert.equal(result.error, revision.REVISION_CHANGED_ERROR);
+  assert.equal(calls.length, 0, 'the stale approval never reaches the runtime call');
+  const stillArtifact = store.listArtifacts(room.id).find((a) => a.id === note.id);
+  assert.equal(stillArtifact.body, 'The body as approved.', 'the note was not mutated');
+  assert.equal(stillArtifact.provenance.revisions, undefined, 'no revision was recorded');
 });
 
 test('artifact provenance records the real sources it was made from', () => {

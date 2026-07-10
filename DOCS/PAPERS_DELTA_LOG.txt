@@ -3,6 +3,92 @@ Lightweight cumulative record of material changes to the REAL2 rebuild.
 Newest entries at the top. Created per PAPERS_SESSION_CLOSEOUT_PROTOCOL step G.
 
 ================================================================================
+2026-07-10 (tenth pass) — local pre-recovery slice reconciled onto recovered
+main: in-place note revision (current Backpack form), Desk copy softened,
+storage hardening
+================================================================================
+
+A local branch (backpack-note-revision) written just before the recovery
+passes was reconciled onto recovered main. Its documentation amendments were
+DROPPED where the ninth-pass rewrites already made the same corrections
+canonically. What was ported, adapted to recovered doctrine:
+
+1. IN-PLACE NOTE REVISION (current Backpack form). Any AI-made note in the
+   current Backpack implementation can be revised in place under the
+   creator's direction, with the standard guard shape: an exact preview
+   built from the same gathering code as the action, explicit approval,
+   durable attributable result, honest recorded failure. Each revision
+   records the direction used and preserves the replaced title/text in the
+   note's provenance trail; recorded sources are re-read from reality at
+   revision time, with missing/unreadable sources shown honestly. The
+   Desk's working note becomes one user of this action, not its owner.
+   Worded throughout as current-form behavior, not universal Backpack
+   anatomy. PAPERS_BACKPACK_DESK_V1 amended on this one point (its framing
+   correction was already made by the recovery pass and governs).
+
+2. ASSISTANT CONTEXT COPY SOFTENED. The AI-facing context block no longer
+   calls the Desk "your default working context" — when the Desk is in use
+   it is given first attention, one work surface inside the Backpack, not
+   the Backpack itself. The empty Desk renders as one quiet line, and
+   "Put on the Desk" copy says "flag it as active work" instead of "the
+   Backpack's active work". This is the code-side counterpart of the
+   recovery map's F4 observation; the substrate universality itself
+   (getDeskView inside getRoomView) is untouched and remains a known issue.
+
+3. EXACT APPROVAL BINDING. The revision prompt is deliberately
+   self-contained: reviseNotePrompt({ note, direction, readings }) builds
+   it from only the current note title, the exact capped note body, the
+   creator's trimmed direction, and each re-read source's display
+   name/path/type/status/exact content text/truncation counts — it does
+   NOT receive Backpack-wide context (no room/world identity, Desk state,
+   conversation, other things, or other notes; unlike the reply/note/Desk
+   prompts, it takes no `context` argument at all). Approval is bound to
+   the exact final prompt bytes: the preview builds this prompt and
+   fingerprints it (sha256, node:crypto); confirmation re-gathers,
+   rebuilds the identical prompt through the same one canonical path, and
+   refuses a stale approval (no runtime call, no note mutation) if the
+   hash no longer matches — the creator previews again. The already-built,
+   already-hashed prompt is then sent to the runtime as-is, never
+   reconstructed a further time. One feature's gathering + prompt path
+   (app/world/revision.js calling engine/prompts.js's reviseNotePrompt),
+   not an approval framework.
+
+4. REVISION ELIGIBILITY. The gathering path enforces the feature's stated
+   boundary: only notes with provenance.createdBy = "papers-ai" are
+   revisable (the UI offers no revise affordance otherwise), and a
+   revision needs material to revise with — a non-empty direction or at
+   least one recorded source; with neither, preview and action refuse.
+
+5. DUPLICATE-INSTANCE EXIT (separate commit). Ordinary Electron
+   single-instance protection for the application/profile
+   (requestSingleInstanceLock): a second normal Papers launch exits
+   immediately with code 1 instead of running two instances that would
+   write the same world files. This is NOT a PAPERS_WORLD_DIR lock — a
+   different Electron profile pointed at the same world directory is not
+   prevented. exit(1) rather than quit() because the ready-chain is
+   top-level and a graceful quit could still let the second instance write
+   world state before teardown.
+
+The local commit's corrupt-file quarantine experiment was NOT ported: it
+renamed damaged records aside with only terminal logging — records could
+appear to vanish with no creator-visible surface. Proper recovery behavior
+needs its own explicit design; the experiment remains preserved on the
+protected local branch.
+
+Tests: engine prompt tests updated for the softened Desk copy and the
+signature change (reviseNotePrompt no longer takes context); new tests for
+revision of a non-working note (trail preserves replaced text), revision
+prompt honesty, runtime-failure propagation, the eligibility boundary,
+fingerprint-equals-sha256-of-the-exact-prompt, mismatch refusal on changed
+body/source-content/source-display-name/direction, a proof that unrelated
+conversation/Desk/other-note state never enters the revision prompt, and
+spy-based proof (real function stubbed, not require.cache or timing) that
+confirmation sends byte-for-byte the approved prompt and that a stale
+approval makes zero runtime calls and mutates nothing.
+scripts/verify-note-revision.js extended with the same proofs against a
+live runtime, including a runtime-call spy.
+
+================================================================================
 2026-07-10 (ninth pass) — documents made internally consistent: clean rewrites
 replace bracket-annotated corrections
 ================================================================================

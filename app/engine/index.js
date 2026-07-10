@@ -70,4 +70,20 @@ async function synthesizeDesk(context, material) {
   return { ok: true, title, body, engineLabel: result.engineLabel };
 }
 
-module.exports = { roomReply, generateRoomNote, synthesizeDesk, activeRuntimeId };
+// Revise an existing Backpack note in place, under the creator's
+// direction. In this Backpack form any AI-made note qualifies — the Desk's
+// working note is one note this serves, not the owner of the action.
+//
+// Unlike the other actions, revision does not build its own prompt here:
+// the caller passes the exact, already-approved prompt string (see
+// world/revision.js), so what the runtime receives is byte-for-byte what
+// the creator's approval fingerprint was computed over — never
+// reconstructed a second time inside the engine seam.
+async function reviseNotePrepared(prompt) {
+  const result = await complete(prompt);
+  if (!result.ok) return result;
+  const { title, body } = prompts.parseNoteResponse(result.text);
+  return { ok: true, title, body, engineLabel: result.engineLabel };
+}
+
+module.exports = { roomReply, generateRoomNote, synthesizeDesk, reviseNotePrepared, activeRuntimeId };

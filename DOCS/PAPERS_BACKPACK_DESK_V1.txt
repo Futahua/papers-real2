@@ -26,6 +26,26 @@ Status
   not infer from this that the Desk is universal. It is a known issue to
   watch and to not extend further. See PAPERS_RECOVERY_MAP_V1.txt Section F4.
 
+AMENDMENT 2026-07-10 — supersedes the first form on one point, explicitly,
+per the rule above (the framing correction itself is already made canonically
+by the RECOVERY CORRECTION in Status, which governs):
+
+1. IN-PLACE REVISION IS NOT DESK-ONLY. In the current implemented Backpack
+   form, in-place artifact revision — first built for the Desk's working
+   note — now serves any AI-made note in the Backpack: revised in place
+   under the creator's direction, guarded the same way (exact preview
+   generated from the same gathering code, explicit approval, durable
+   attributable result, honest recorded failure). Each revision records the
+   direction used and preserves the replaced title/text in the artifact's
+   provenance trail. §4's "one working note per Backpack" limit still
+   governs the Desk's own synthesis action; it no longer implies that
+   revising in place is Desk-only. Consistent with the recovery correction,
+   the assistant's context copy no longer calls the Desk a "default working
+   context": when the Desk is in use it is given first attention; the
+   assistant stays grounded in the whole Backpack, and an empty Desk leaves
+   the Backpack fully inhabitable. This describes the current experiment
+   only — it is not a claim about what any future Backpack must offer.
+
 ================================================================================
 1. WHAT THE DESK IS
 ================================================================================

@@ -25,7 +25,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { newId } = require('./ids');
-const { createThingReference, checkThing } = require('./things');
+const { createThingReference, checkThing, readThingContent } = require('./things');
 
 function readJson(file, fallback) {
   try {
@@ -224,6 +224,22 @@ class WorldStore {
       }
     }
     return things;
+  }
+
+  // A read-only look at what a thing reference really holds right now:
+  // source inspection, not import. The reference is re-checked against
+  // reality and read through the same truthful path the AI actions use.
+  // No AI is involved, and no copy, artifact, conversation entry, or Desk
+  // membership is created. Papers does persist the truthful reference
+  // check itself — lastCheckedAt, and, if the real item disappeared or
+  // returned, the existing missing/recovered event in Backpack history.
+  previewThing(roomId, thingId) {
+    const things = this.refreshThings(roomId);
+    const thing = things.find((t) => t.id === thingId);
+    if (!thing) {
+      return { ok: false, error: 'That thing is no longer in this Backpack.' };
+    }
+    return { ok: true, thing, content: readThingContent(thing) };
   }
 
   // --- Artifacts: durable Papers-made objects that live in the room -----

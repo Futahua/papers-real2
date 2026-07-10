@@ -17,6 +17,7 @@ const state = {
   room: null, // { room, things, artifacts, conversation, activity }
   openNoteId: null, // when set, the room surface shows this note
   noteSources: null, // { artifactId, rows } — live reality-check of an open note's sources
+  preview: null, // { thingId, result } — read-only look at what a thing really holds
   selectedThings: new Set(),
   editingDescription: false,
   editingBrief: false,
@@ -65,6 +66,7 @@ async function enterRoom(roomId) {
   state.roomId = roomId;
   state.room = await window.papers.getRoom(roomId);
   state.openNoteId = null;
+  state.preview = null;
   state.selectedThings = new Set();
   state.inlineError = null;
   state.historyExpanded = false;
@@ -85,6 +87,7 @@ async function backToWorld() {
   state.roomId = null;
   state.room = null;
   state.openNoteId = null;
+  state.preview = null;
   state.guard = null;
   state.inlineError = null;
   await loadWorld();
@@ -155,6 +158,7 @@ function thingRow(t) {
         ${missing}
       </span>
       ${onDesk('thing', t.id) ? '<span class="ev-gone">on the Desk</span>' : `<button class="quiet" data-desk-add="thing:${esc(t.id)}" title="Put it on the Desk — the Backpack’s active work">Put on the Desk</button>`}
+      <button class="quiet" data-preview-thing="${esc(t.id)}" title="See what Papers can truthfully read from this — read-only, no AI">Preview</button>
       <button class="quiet" data-open-thing="${esc(t.id)}" ${t.status !== 'present' ? 'disabled title="The real item is missing"' : 'title="Open the real location on this machine"'}>Open real location</button>
       <button class="quiet" data-detach-thing="${esc(t.id)}" title="Remove the reference from this Backpack (the real item is not touched)">Remove</button>
     </div>`;
@@ -370,6 +374,7 @@ function deskThingRow(t) {
         <span class="thing-path" title="${esc(t.path)}">${esc(t.path)}</span>
         ${t.status === 'missing' ? '<span class="thing-missing-note">missing — the Desk does not pretend otherwise</span>' : ''}
       </span>
+      <button class="quiet" data-preview-thing="${esc(t.id)}" title="See what Papers can truthfully read from this — read-only, no AI">Preview</button>
       <button class="quiet" data-open-thing="${esc(t.id)}" ${t.status !== 'present' ? 'disabled' : 'title="Open the real location"'}>Open real location</button>
       <button class="quiet" data-desk-remove="thing:${esc(t.id)}" title="Take it off the Desk (it stays in the Backpack)">Take off</button>
     </div>`;
@@ -540,6 +545,95 @@ function openNoteSurface(artifactId) {
   loadNoteSources(artifactId);
 }
 
+// ---- Thing preview: read-only source inspection ----------------------------
+// A thing opened as a room surface of its own: what Papers can truthfully
+// read from the real item right now. Nothing is sent to an AI, nothing is
+// selected, and no note, copy, conversation entry, or Desk membership is
+// created. The truthful reference check is persisted as always — losing or
+// regaining contact with the real item stays an honest Backpack event.
+
+async function openPreview(thingId) {
+  const result = await window.papers.previewThing(state.roomId, thingId);
+  if (state.view !== 'room') return; // the creator moved on
+  state.preview = { thingId, result };
+  render();
+}
+
+function previewSurfaceHtml() {
+  const { result } = state.preview;
+  const back = '<button class="quiet" id="close-preview">← Back to the Backpack</button>';
+  if (!result.ok) {
+    return `
+      <div class="preview-surface">
+        ${back}
+        <div class="missing-callout">${esc(result.error)}</div>
+      </div>`;
+  }
+  const t = result.thing;
+  const c = result.content;
+  let readMeta;
+  if (c.kind === 'text') {
+    readMeta = c.truncated
+      ? `Text — showing the first ${c.shownBytes} of ${c.totalBytes} bytes. The rest exists in the real file but is not shown here.`
+      : `Text — showing all ${c.totalBytes} bytes.`;
+  } else if (c.kind === 'folder-listing') {
+    readMeta =
+      c.shownEntries < c.totalEntries
+        ? `Folder — listing the first ${c.shownEntries} of ${c.totalEntries} entries (top level only).`
+        : `Folder — listing all ${c.totalEntries} entr${c.totalEntries === 1 ? 'y' : 'ies'} (top level only).`;
+  } else if (c.kind === 'binary') {
+    readMeta = `Binary file, ${c.totalBytes} bytes — Papers can see it exists but does not render its content.`;
+  } else {
+    readMeta = 'Papers could not read this right now.';
+  }
+  const showBody = c.kind === 'text' || c.kind === 'folder-listing';
+  return `
+    <div class="preview-surface">
+      ${back}
+      <h2 class="note-title">${esc(t.displayName)}</h2>
+      <div class="note-provenance">
+        <span class="status-dot ${esc(t.status)}" title="${esc(t.status)}"></span>
+        ${esc(t.type)} · ${esc(t.status)} · checked against reality ${fmtDate(t.lastCheckedAt)}
+      </div>
+      <div class="thing-path preview-path" title="${esc(t.path)}">${esc(t.path)}</div>
+      ${t.status === 'missing' ? '<div class="missing-callout">Missing — nothing exists at this path right now. The reference is kept; the preview does not pretend.</div>' : ''}
+      <div class="preview-read-meta">${esc(readMeta)}</div>
+      ${showBody ? `<pre class="preview-body">${esc(c.text)}</pre>` : `<div class="preview-unreadable">${esc(c.text)}</div>`}
+      ${inlineError('preview')}
+      <div class="section-actions">
+        <button id="refresh-preview" title="Re-check the real item and read it again">Refresh preview</button>
+        <button id="preview-open-real" ${t.status !== 'present' ? 'disabled title="The real item is missing"' : 'title="Open the real location on this machine"'}>Open real location</button>
+      </div>
+      <div class="note-footer">Read-only preview. Papers made no copy or note and sent nothing to an AI. The real ${t.type === 'folder' ? 'folder' : 'file'} stays at its own path — Papers may record if contact with it is lost or restored.</div>
+    </div>`;
+}
+
+function wirePreview(room) {
+  document.getElementById('close-preview').addEventListener('click', async () => {
+    state.preview = null;
+    state.inlineError = null;
+    // Statuses may have moved while previewing; room:refresh keeps the room
+    // honest without counting as a re-entry, and the rest of the UI state
+    // (selection, history view) stays as the creator left it.
+    await refreshRoom();
+    render();
+  });
+  const refresh = document.getElementById('refresh-preview');
+  if (refresh) {
+    refresh.addEventListener('click', () => openPreview(state.preview.thingId));
+  }
+  const openReal = document.getElementById('preview-open-real');
+  if (openReal) {
+    openReal.addEventListener('click', async () => {
+      const result = await window.papers.openThing(room.id, state.preview.thingId);
+      if (!result.ok) {
+        state.inlineError = { scope: 'preview', text: result.error };
+        openPreview(state.preview.thingId); // reality moved on — re-check the preview too
+      }
+    });
+  }
+}
+
 function talkPanelHtml() {
   const { conversation } = state.room;
   if (!state.talkOpen) {
@@ -581,7 +675,7 @@ function renderRoom() {
       </div>
       <div class="room-body">
         <div class="room-contents">
-          ${openNote ? noteSurfaceHtml(openNote) : roomContentsHtml()}
+          ${openNote ? noteSurfaceHtml(openNote) : state.preview ? previewSurfaceHtml() : roomContentsHtml()}
         </div>
         ${talkPanelHtml()}
       </div>
@@ -615,6 +709,8 @@ function renderRoom() {
         render();
       });
     });
+  } else if (state.preview) {
+    wirePreview(room);
   } else {
     wireContents(room);
   }
@@ -721,6 +817,10 @@ function wireContents(room) {
       else state.selectedThings.delete(id);
       render();
     });
+  });
+
+  appEl.querySelectorAll('[data-preview-thing]').forEach((el) => {
+    el.addEventListener('click', () => openPreview(el.dataset.previewThing));
   });
 
   appEl.querySelectorAll('[data-open-thing]').forEach((el) => {

@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('papers', {
   attachThings: (roomId, kind) => ipcRenderer.invoke('room:attachThings', roomId, kind),
   detachThing: (roomId, thingId) => ipcRenderer.invoke('room:detachThing', roomId, thingId),
   openThing: (roomId, thingId) => ipcRenderer.invoke('room:openThing', roomId, thingId),
+  previewThing: (roomId, thingId) => ipcRenderer.invoke('room:previewThing', roomId, thingId),
   say: (roomId, text) => ipcRenderer.invoke('room:say', roomId, text),
   notePreview: (roomId, thingIds) => ipcRenderer.invoke('room:notePreview', roomId, thingIds),
   createNote: (roomId, thingIds) => ipcRenderer.invoke('room:createNote', roomId, thingIds),

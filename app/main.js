@@ -97,6 +97,15 @@ function registerHandlers(getWindow) {
     return { ok: true, things };
   });
 
+  // Read-only source inspection: what Papers can truthfully read from a
+  // thing right now. No AI is contacted and no copy, note, conversation
+  // entry, or Desk membership is created; the truthful reference refresh
+  // (lastCheckedAt, and any real missing/recovered transition event) is
+  // persisted, as on every room surface.
+  ipcMain.handle('room:previewThing', (_e, roomId, thingId) =>
+    store.previewThing(roomId, thingId)
+  );
+
   // --- The Desk: the Backpack's active work surface -----------------------
 
   ipcMain.handle('desk:add', (_e, roomId, type, id) => {

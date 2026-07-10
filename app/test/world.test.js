@@ -11,7 +11,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const { WorldStore } = require('../world/store');
-const { readThingContent, MAX_TEXT_BYTES } = require('../world/things');
+const { readThingContent, MAX_TEXT_BYTES, MAX_FOLDER_ENTRIES } = require('../world/things');
 
 function tempDir(name) {
   return fs.mkdtempSync(path.join(os.tmpdir(), `papers-${name}-`));
@@ -428,6 +428,164 @@ test('the working note is revised in place with an honest revision trail', () =>
   assert.equal(desk.workingNote.body, 'Second synthesis.');
   assert.equal(reopened.listArtifacts(room.id).length, 1);
   assert.equal(reopened.getActivity(room.id).at(-1).kind, 'note-updated');
+});
+
+// --- Preview: read-only source inspection ----------------------------------
+
+test('previewing a readable file reports its refreshed status and exact content', () => {
+  const dir = tempDir('preview');
+  const realDir = tempDir('previewreal');
+  const realFile = path.join(realDir, 'plan.txt');
+  fs.writeFileSync(realFile, 'the whole plan, in plain text');
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Previewed');
+  const thing = store.attachThing(room.id, realFile);
+
+  const preview = store.previewThing(room.id, thing.id);
+  assert.equal(preview.ok, true);
+  assert.equal(preview.thing.id, thing.id);
+  assert.equal(preview.thing.status, 'present');
+  assert.equal(preview.thing.path, path.resolve(realFile));
+  assert.equal(preview.content.kind, 'text');
+  assert.equal(preview.content.truncated, false);
+  assert.equal(preview.content.text, 'the whole plan, in plain text');
+  assert.equal(preview.content.totalBytes, Buffer.byteLength('the whole plan, in plain text'));
+  assert.equal(preview.content.shownBytes, preview.content.totalBytes);
+});
+
+test('preview reports truncation and binary content with exact counts', () => {
+  const dir = tempDir('previewtrunc');
+  const realDir = tempDir('previewtruncreal');
+  const bigFile = path.join(realDir, 'big.txt');
+  fs.writeFileSync(bigFile, 'a'.repeat(MAX_TEXT_BYTES + 500));
+  const binFile = path.join(realDir, 'photo.dat');
+  fs.writeFileSync(binFile, Buffer.from([137, 80, 0, 71, 13]));
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Exact counts');
+
+  const big = store.previewThing(room.id, store.attachThing(room.id, bigFile).id);
+  assert.equal(big.content.kind, 'text');
+  assert.equal(big.content.truncated, true);
+  assert.equal(big.content.shownBytes, MAX_TEXT_BYTES);
+  assert.equal(big.content.totalBytes, MAX_TEXT_BYTES + 500);
+  assert.match(big.content.text, new RegExp(`showing first ${MAX_TEXT_BYTES} of ${MAX_TEXT_BYTES + 500} bytes`));
+
+  const bin = store.previewThing(room.id, store.attachThing(room.id, binFile).id);
+  assert.equal(bin.content.kind, 'binary');
+  assert.equal(bin.content.totalBytes, 5);
+  assert.match(bin.content.text, /binary file, 5 bytes — content not included/);
+});
+
+test('preview lists folders honestly, including the entry cap', () => {
+  const dir = tempDir('previewfolder');
+  const smallDir = tempDir('previewsmall');
+  fs.writeFileSync(path.join(smallDir, 'one.txt'), '1');
+  fs.mkdirSync(path.join(smallDir, 'sub'));
+  const bigDir = tempDir('previewbig');
+  for (let i = 0; i < MAX_FOLDER_ENTRIES + 5; i++) {
+    fs.writeFileSync(path.join(bigDir, `f${String(i).padStart(3, '0')}.txt`), 'x');
+  }
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Folders');
+
+  const small = store.previewThing(room.id, store.attachThing(room.id, smallDir).id);
+  assert.equal(small.content.kind, 'folder-listing');
+  assert.equal(small.content.totalEntries, 2);
+  assert.equal(small.content.shownEntries, 2);
+  assert.match(small.content.text, /one\.txt \(1 bytes\)/);
+  assert.match(small.content.text, /sub\//);
+
+  const big = store.previewThing(room.id, store.attachThing(room.id, bigDir).id);
+  assert.equal(big.content.totalEntries, MAX_FOLDER_ENTRIES + 5);
+  assert.equal(big.content.shownEntries, MAX_FOLDER_ENTRIES);
+  assert.match(big.content.text, /and 5 more entries not listed/);
+});
+
+test('previewing missing reality is honest, and the transition stays a room event', () => {
+  const dir = tempDir('previewmissing');
+  const realDir = tempDir('previewmissingreal');
+  const realFile = path.join(realDir, 'gone.txt');
+  fs.writeFileSync(realFile, 'soon gone');
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Gone');
+  const thing = store.attachThing(room.id, realFile);
+  fs.rmSync(realFile);
+
+  const preview = store.previewThing(room.id, thing.id);
+  assert.equal(preview.ok, true, 'the reference is still in the Backpack');
+  assert.equal(preview.thing.status, 'missing');
+  assert.equal(preview.content.ok, false);
+  assert.equal(preview.content.kind, 'unreadable');
+  // Losing contact was noticed by the refresh — once, as the existing
+  // missing-reality behavior, not as a preview invention.
+  store.previewThing(room.id, thing.id);
+  const missingEvents = store.getActivity(room.id).filter((e) => e.kind === 'thing-missing');
+  assert.equal(missingEvents.length, 1);
+});
+
+test('previewing a detached or unknown reference is refused honestly', () => {
+  const dir = tempDir('previewdetached');
+  const realDir = tempDir('previewdetachedreal');
+  const realFile = path.join(realDir, 'was-here.txt');
+  fs.writeFileSync(realFile, 'x');
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Detached');
+  const thing = store.attachThing(room.id, realFile);
+  store.detachThing(room.id, thing.id);
+
+  const detached = store.previewThing(room.id, thing.id);
+  assert.equal(detached.ok, false);
+  assert.match(detached.error, /no longer in this Backpack/);
+
+  const unknown = store.previewThing(room.id, 'thing_nope');
+  assert.equal(unknown.ok, false);
+});
+
+test('preview creates no artifact or interaction record, changes no real source, and never loads the engine', () => {
+  const dir = tempDir('previewinert');
+  const realDir = tempDir('previewinertreal');
+  const realFile = path.join(realDir, 'stable.txt');
+  fs.writeFileSync(realFile, 'stable content');
+
+  const store = new WorldStore(dir);
+  store.loadWorld();
+  const room = store.createRoom('Inert');
+  const thing = store.attachThing(room.id, realFile);
+  store.refreshThings(room.id); // settle statuses so the preview refresh is a no-op transition
+
+  const before = {
+    artifacts: store.listArtifacts(room.id).length,
+    conversation: store.getConversation(room.id).length,
+    deskItems: store.getDesk(room.id).items.length,
+    activity: store.getActivity(room.id).length,
+    bytes: fs.readFileSync(realFile),
+  };
+  const preview = store.previewThing(room.id, thing.id);
+  assert.equal(preview.ok, true);
+  store.previewThing(room.id, thing.id);
+
+  assert.equal(store.listArtifacts(room.id).length, before.artifacts, 'no artifact was created');
+  assert.equal(store.getConversation(room.id).length, before.conversation, 'no conversation entry was created');
+  assert.equal(store.getDesk(room.id).items.length, before.deskItems, 'nothing was put on the Desk');
+  assert.equal(store.getActivity(room.id).length, before.activity, 'no history event was invented');
+  assert.deepEqual(fs.readFileSync(realFile), before.bytes, 'the real source is untouched');
+  // The preview path is AI-free by construction: nothing under engine/ was
+  // ever loaded into this process (this test file requires only the world).
+  const engineDir = path.join(__dirname, '..', 'engine') + path.sep;
+  assert.ok(
+    !Object.keys(require.cache).some((p) => p.startsWith(engineDir)),
+    'previewing must not load, let alone call, the AI engine'
+  );
 });
 
 test('artifact provenance records the real sources it was made from', () => {

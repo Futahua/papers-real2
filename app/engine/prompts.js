@@ -163,9 +163,15 @@ function deskSynthesisPrompt(context, { readings, deskNotes, previousNote }) {
 // serves, not the owner of the action. `readings` re-reads the
 // note's real sources as they are right now; `direction` is the creator's
 // own instruction, if they gave one.
-function reviseNotePrompt(context, { note, direction, readings }) {
-  const parts = [roomContextBlock(context)];
-  parts.push('');
+//
+// Deliberately self-contained: unlike reply/note/Desk prompts, this one
+// does NOT prepend roomContextBlock(context). Revision approval is bound to
+// the exact final prompt bytes (see world/revision.js), so nothing may
+// enter this prompt that was not itemized in the guard the creator
+// approved — no Backpack description, Desk state, conversation, or other
+// notes.
+function reviseNotePrompt({ note, direction, readings }) {
+  const parts = [];
   parts.push(
     `The creator asked you to revise the Backpack note "${note.title}" in place. ` +
       'It stays the same durable note — evolve it, do not start from scratch. ' +

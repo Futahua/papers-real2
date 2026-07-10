@@ -99,7 +99,7 @@ test('desk synthesis prompt shares material honestly and evolves the previous no
 });
 
 test('note revision prompt shares the direction, current text, and re-read sources honestly', () => {
-  const prompt = prompts.reviseNotePrompt(context, {
+  const prompt = prompts.reviseNotePrompt({
     note: { title: 'Hinge notes', body: 'CURRENT-NOTE-BODY' },
     direction: 'Fold in the new measurements and drop the paint question.',
     readings: [
@@ -121,7 +121,7 @@ test('note revision prompt shares the direction, current text, and re-read sourc
 });
 
 test('note revision without a direction asks for an honest update, not an invention', () => {
-  const prompt = prompts.reviseNotePrompt(context, {
+  const prompt = prompts.reviseNotePrompt({
     note: { title: 'Hinge notes', body: 'CURRENT-NOTE-BODY' },
     direction: null,
     readings: [],
@@ -131,13 +131,32 @@ test('note revision without a direction asks for an honest update, not an invent
   assert.ok(!prompt.includes("The creator's direction"));
 });
 
+test('note revision prompt is self-contained: no Backpack-wide context leaks in', () => {
+  // Unlike reply/note/Desk prompts, reviseNotePrompt takes no `context` —
+  // it cannot see the room, world, other things, other notes, or
+  // conversation, because none of that is passed to it. This test pins
+  // that shape: passing extra ambient-looking data has nowhere to go.
+  const prompt = prompts.reviseNotePrompt({
+    note: { title: 'Hinge notes', body: 'CURRENT-NOTE-BODY' },
+    direction: 'Tighten it.',
+    readings: [],
+  });
+  assert.ok(!prompt.includes('Test world'));
+  assert.ok(!prompt.includes('Test room'));
+  assert.ok(!prompt.includes('Old note'));
+  assert.ok(!prompt.includes('engine hiccup'));
+  assert.ok(!prompt.includes('lost.txt')); // an unrelated attached thing
+  assert.equal(prompts.reviseNotePrompt.length, 1, 'reviseNotePrompt takes exactly one argument — no context parameter');
+});
+
 test('note revision propagates runtime failure instead of inventing a revision', async () => {
   await withEnv({ PAPERS_ENGINE: 'imaginary-runtime' }, async () => {
-    const result = await engine.reviseNote(context, {
+    const prompt = prompts.reviseNotePrompt({
       note: { title: 'T', body: 'B' },
       direction: 'shorter',
       readings: [],
     });
+    const result = await engine.reviseNotePrepared(prompt);
     assert.equal(result.ok, false);
     assert.match(result.error, /imaginary-runtime/);
     assert.equal(result.body, undefined);

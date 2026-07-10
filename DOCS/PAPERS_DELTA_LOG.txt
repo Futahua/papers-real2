@@ -35,15 +35,23 @@ canonically. What was ported, adapted to recovered doctrine:
    recovery map's F4 observation; the substrate universality itself
    (getDeskView inside getRoomView) is untouched and remains a known issue.
 
-3. EXACT APPROVAL BINDING. The revision guard's preview returns a
-   deterministic fingerprint (sha256, node:crypto) over the exact material
-   that would be sent — note title, exact capped body, the creator's
-   direction, and each re-read source's path/type/status/content-kind/
-   exact text/truncation counts. Confirmation re-gathers through the same
-   path and refuses a stale approval (no runtime call, no note mutation)
-   if anything changed since the preview; the creator previews again.
-   One feature's gathering path (app/world/revision.js), not an approval
-   framework.
+3. EXACT APPROVAL BINDING. The revision prompt is deliberately
+   self-contained: reviseNotePrompt({ note, direction, readings }) builds
+   it from only the current note title, the exact capped note body, the
+   creator's trimmed direction, and each re-read source's display
+   name/path/type/status/exact content text/truncation counts — it does
+   NOT receive Backpack-wide context (no room/world identity, Desk state,
+   conversation, other things, or other notes; unlike the reply/note/Desk
+   prompts, it takes no `context` argument at all). Approval is bound to
+   the exact final prompt bytes: the preview builds this prompt and
+   fingerprints it (sha256, node:crypto); confirmation re-gathers,
+   rebuilds the identical prompt through the same one canonical path, and
+   refuses a stale approval (no runtime call, no note mutation) if the
+   hash no longer matches — the creator previews again. The already-built,
+   already-hashed prompt is then sent to the runtime as-is, never
+   reconstructed a further time. One feature's gathering + prompt path
+   (app/world/revision.js calling engine/prompts.js's reviseNotePrompt),
+   not an approval framework.
 
 4. REVISION ELIGIBILITY. The gathering path enforces the feature's stated
    boundary: only notes with provenance.createdBy = "papers-ai" are
@@ -67,12 +75,18 @@ appear to vanish with no creator-visible surface. Proper recovery behavior
 needs its own explicit design; the experiment remains preserved on the
 protected local branch.
 
-Tests: engine prompt tests updated for the softened Desk copy; new tests for
+Tests: engine prompt tests updated for the softened Desk copy and the
+signature change (reviseNotePrompt no longer takes context); new tests for
 revision of a non-working note (trail preserves replaced text), revision
-prompt honesty, runtime-failure propagation on revision, exact-approval
-fingerprint stability and mismatch refusal, and the eligibility boundary.
-scripts/verify-note-revision.js added as the headless acceptance walk for
-this slice, including a stale-approval refusal check.
+prompt honesty, runtime-failure propagation, the eligibility boundary,
+fingerprint-equals-sha256-of-the-exact-prompt, mismatch refusal on changed
+body/source-content/source-display-name/direction, a proof that unrelated
+conversation/Desk/other-note state never enters the revision prompt, and
+spy-based proof (real function stubbed, not require.cache or timing) that
+confirmation sends byte-for-byte the approved prompt and that a stale
+approval makes zero runtime calls and mutates nothing.
+scripts/verify-note-revision.js extended with the same proofs against a
+live runtime, including a runtime-call spy.
 
 ================================================================================
 2026-07-10 (ninth pass) — documents made internally consistent: clean rewrites

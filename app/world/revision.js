@@ -5,17 +5,21 @@
 // approval framework).
 //
 // Everything a revision would share with the AI is gathered here, in one
-// place, so the guard preview and the actual action are built from exactly
-// the same material. The approval is bound to that material by a
-// fingerprint over the exact content — not summaries — so if the note or
-// any real source changes between preview and confirmation, the stale
-// approval is refused and the creator previews again.
+// place, and used to build the EXACT runtime prompt via
+// engine/prompts.js's reviseNotePrompt — a deliberately self-contained
+// prompt with no Backpack-wide context (no conversation, Desk state,
+// other things, or other notes). The approval is bound to that exact
+// prompt's bytes (sha256), not to a parallel summary of its inputs: if the
+// note, direction, or any real source changes between preview and
+// confirmation, the resulting prompt differs, the hash differs, and the
+// stale approval is refused. The creator previews again.
 //
-// This module never loads the AI engine: gathering and approval checking
-// are reality-reading only.
+// This module never loads the AI engine: gathering, prompt construction,
+// and approval checking are reality-reading and text-building only.
 
 const crypto = require('node:crypto');
 const { checkThing, readThingContent, MAX_TEXT_BYTES } = require('./things');
+const { reviseNotePrompt } = require('../engine/prompts');
 
 const REVISION_CHANGED_ERROR =
   'The note or one of its sources changed after the preview. Review the updated sharing preview before revising.';
@@ -24,36 +28,12 @@ const REVISION_NEEDS_MATERIAL_ERROR =
 const REVISION_NOT_AI_MADE_ERROR =
   'Only AI-made Papers notes can be revised this way.';
 
-// Deterministic fingerprint over the exact revision material. Key order is
-// fixed by construction (object literals serialize in insertion order), and
-// every content field that would reach the AI is included verbatim.
-function fingerprintRevisionMaterial({ roomId, artifactId, note, noteForPrompt, direction, readings }) {
-  const material = {
-    roomId,
-    artifactId,
-    title: note.title,
-    body: noteForPrompt.body, // the exact (possibly capped) text that would be sent
-    direction: direction || '',
-    sources: readings.map(({ thing, content }) => ({
-      path: thing.path,
-      type: thing.type,
-      status: thing.status,
-      kind: content.kind ?? null,
-      text: content.text ?? null, // the exact source text that would be sent
-      truncated: content.truncated ?? null,
-      shownBytes: content.shownBytes ?? null,
-      totalBytes: content.totalBytes ?? null,
-      shownEntries: content.shownEntries ?? null,
-      totalEntries: content.totalEntries ?? null,
-    })),
-  };
-  return crypto.createHash('sha256').update(JSON.stringify(material)).digest('hex');
-}
-
-// Gather everything a revision of this note would share with the AI. The
+// Gather everything a revision of this note would share with the AI, build
+// the exact runtime prompt from it, and fingerprint that exact prompt. The
 // note's recorded sources are re-read from reality as they are NOW —
-// missing or unreadable sources are reported honestly, and are part of the
-// fingerprint like everything else.
+// missing or unreadable sources are reported honestly, and their exact
+// wording is part of the prompt (and therefore the fingerprint) like
+// everything else.
 function gatherRevisionMaterial(store, roomId, artifactId, direction) {
   const note = store.listArtifacts(roomId).find((a) => a.id === artifactId);
   if (!note) return { error: 'That note is not in this Backpack.' };
@@ -80,26 +60,22 @@ function gatherRevisionMaterial(store, roomId, artifactId, direction) {
         `\n… (truncated: showing first ${MAX_TEXT_BYTES} of ${note.body.length} characters)`
       : note.body,
   };
-  const fingerprint = fingerprintRevisionMaterial({
-    roomId,
-    artifactId,
-    note,
-    noteForPrompt,
-    direction: dir,
-    readings,
-  });
-  return { note, noteForPrompt, capped, readings, direction: dir, fingerprint };
+  // The one canonical prompt-construction path — preview and confirmation
+  // both call this same function with the same inputs, so the string built
+  // here is exactly the string sent to the runtime.
+  const prompt = reviseNotePrompt({ note: noteForPrompt, direction: dir || null, readings });
+  const fingerprint = crypto.createHash('sha256').update(prompt).digest('hex');
+  return { note, noteForPrompt, capped, readings, direction: dir, prompt, fingerprint };
 }
 
-// Does a previously approved fingerprint still match this gathering?
-// A missing fingerprint never matches: no approval, no action.
+// Does a previously approved fingerprint still match this gathering's exact
+// prompt? A missing fingerprint never matches: no approval, no action.
 function approvalMatches(gathered, fingerprint) {
   return Boolean(fingerprint) && fingerprint === gathered.fingerprint;
 }
 
 module.exports = {
   gatherRevisionMaterial,
-  fingerprintRevisionMaterial,
   approvalMatches,
   REVISION_CHANGED_ERROR,
   REVISION_NEEDS_MATERIAL_ERROR,

@@ -277,23 +277,21 @@ function registerHandlers(getWindow) {
     return { ok: true, items, fingerprint: gathered.fingerprint };
   });
 
-  // Guarded note revision, step 2 of 2: re-gather through the same path,
-  // require the approved fingerprint to still match the material exactly —
-  // otherwise refuse before any runtime call or note mutation — then run it
-  // and keep the result as the same durable note, previous text preserved
-  // in the provenance trail.
+  // Guarded note revision, step 2 of 2: re-gather through the same path
+  // (which rebuilds the exact prompt and its hash), require the approved
+  // fingerprint to still match — otherwise refuse before any runtime call
+  // or note mutation — then send that already-built prompt to the runtime
+  // as-is (never reconstructed a second/third time), and keep the result
+  // as the same durable note, previous text preserved in the provenance
+  // trail.
   ipcMain.handle('note:revise', async (_e, roomId, artifactId, direction, fingerprint) => {
     const gathered = gatherRevisionMaterial(store, roomId, artifactId, direction);
     if (gathered.error) return { ok: false, error: gathered.error };
     if (!approvalMatches(gathered, fingerprint)) {
       return { ok: false, error: REVISION_CHANGED_ERROR };
     }
-    const { note, noteForPrompt, readings, direction: dir } = gathered;
-    const result = await engine.reviseNote(roomContext(roomId), {
-      note: noteForPrompt,
-      direction: dir || null,
-      readings,
-    });
+    const { note, readings, direction: dir, prompt } = gathered;
+    const result = await engine.reviseNotePrepared(prompt);
     if (!result.ok) {
       store.appendActivity(roomId, 'note-failed', `The note "${note.title}" could not be revised: ${result.error}`, {
         noteId: note.id,

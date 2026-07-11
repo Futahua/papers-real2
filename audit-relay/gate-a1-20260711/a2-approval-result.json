@@ -1,0 +1,33 @@
+{
+  "probeRevision": "a2.1-approval-denial-20260711-r1",
+  "codexVersion": "codex-cli 0.125.0",
+  "correctRootUsed": true,
+  "approvalPolicy": "on-request",
+  "approvalRequestMethod": null,
+  "approvalRequestObserved": false,
+  "approvalRequestSequence": null,
+  "commandStartedSequence": 57,
+  "commandProcessLaunchedBeforeApproval": false,
+  "targetExistedAtApproval": null,
+  "denialResponseSent": false,
+  "denialResponseSequence": null,
+  "denialResponseValue": null,
+  "approvalResolutionObserved": false,
+  "commandCompletionObserved": true,
+  "commandExitCode": -1,
+  "targetExistedAfterDenial": false,
+  "targetExistedAtTerminal": false,
+  "rejectionPreventedAction": false,
+  "terminalObservation": "completed",
+  "serverExited": true,
+  "unknownStructuredEvents": [],
+  "result": "INCONCLUSIVE",
+  "failureReasons": [
+    "no stable approval surface was reached (possible sandbox failure before an approval request could be emitted)"
+  ],
+  "limitations": [
+    "Only one approval-request attempt is permitted by the probe instruction; a second request (if any) forces INCONCLUSIVE.",
+    "Network access, cancellation, resume, creator input, and process supervision are out of scope for this probe.",
+    "Windows sandbox instability observed in prior probes (A1/A1R) may prevent a stable approval surface from being reached at all."
+  ]
+}

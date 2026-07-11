@@ -12,6 +12,7 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const { WorldStore } = require('./world/store');
 const { checkThing, readThingContent, MAX_TEXT_BYTES } = require('./world/things');
 const engine = require('./engine');
+const { registerCodexIpc } = require('./codex/ipc');
 
 const worldDir =
   process.env.PAPERS_WORLD_DIR ||
@@ -19,6 +20,8 @@ const worldDir =
 
 const store = new WorldStore(worldDir);
 let world = null;
+let codexBroker = null;
+let codexShuttingDown = false;
 
 function roomContext(roomId) {
   const view = store.getRoomView(roomId);
@@ -477,7 +480,7 @@ function createWindow() {
 // second instance says so and leaves, rather than corrupting continuity.
 if (!app.requestSingleInstanceLock()) {
   console.error('[papers] Another Papers instance already has this world open. Exiting instead of writing over it.');
-  app.quit();
+  app.exit(1);
 }
 
 app.whenReady().then(async () => {
@@ -494,9 +497,36 @@ app.whenReady().then(async () => {
   world = store.loadWorld();
   let win = createWindow();
   registerHandlers(() => win);
+
+  // The Codex runtime broker: Papers' isolated, safety-gated bridge to the
+  // Codex App Server. It runs in its own dedicated CODEX_HOME under the app's
+  // user-data directory and never against the user's global ~/.codex. Started
+  // lazily-safe: registration wires IPC + events immediately; the App Server
+  // itself starts on demand from the renderer. Failures here never block the
+  // world from opening — Papers stays usable without Codex.
+  try {
+    const { broker } = registerCodexIpc(ipcMain, () => win, {
+      userDataDir: path.join(app.getPath('userData')),
+    });
+    codexBroker = broker;
+  } catch (err) {
+    console.error('[papers] Codex runtime broker could not be registered:', err && err.message);
+  }
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) win = createWindow();
   });
+});
+
+// Ensure the Codex App Server is shut down cleanly (stdin EOF, exact-PID
+// wait) before Papers exits, so no attributable process is orphaned.
+app.on('before-quit', async (event) => {
+  if (codexBroker && !codexShuttingDown) {
+    codexShuttingDown = true;
+    event.preventDefault();
+    try { await codexBroker.stop(); } catch { /* best effort */ }
+    app.quit();
+  }
 });
 
 app.on('window-all-closed', () => {

@@ -29,3 +29,34 @@ contextBridge.exposeInMainWorld('papers', {
   synthesizePreview: (roomId) => ipcRenderer.invoke('desk:synthesizePreview', roomId),
   synthesize: (roomId) => ipcRenderer.invoke('desk:synthesize', roomId),
 });
+
+// The Codex runtime surface — a deliberately narrow, safety-gated bridge.
+// The renderer gets exactly these operations and nothing that could spawn a
+// process, run an arbitrary command, or read a credential. Every invoke maps
+// 1:1 onto a validated main-process handler; every `on*` is a sanitized push.
+contextBridge.exposeInMainWorld('papersCodex', {
+  getRuntimeStatus: () => ipcRenderer.invoke('codex:getRuntimeStatus'),
+  getAuthStatus: () => ipcRenderer.invoke('codex:getAuthStatus'),
+  beginAuth: () => ipcRenderer.invoke('codex:beginAuth'),
+  logout: () => ipcRenderer.invoke('codex:logout'),
+  startTask: (input) => ipcRenderer.invoke('codex:startTask', input),
+  submitApprovalDecision: (input) => ipcRenderer.invoke('codex:submitApprovalDecision', input),
+  cancelTask: (input) => ipcRenderer.invoke('codex:cancelTask', input),
+  getSanitizedHistory: (n) => ipcRenderer.invoke('codex:getSanitizedHistory', n),
+  exportDiagnosticBundle: () => ipcRenderer.invoke('codex:exportDiagnosticBundle'),
+  // Event subscriptions return an unsubscribe function. Listeners receive only
+  // pre-sanitized payloads from the main process.
+  onRuntimeStatus: (cb) => subscribe('codex:event:runtimeStatus', cb),
+  onApproval: (cb) => subscribe('codex:event:approval', cb),
+  onTaskError: (cb) => subscribe('codex:event:taskError', cb),
+  onTurnCompleted: (cb) => subscribe('codex:event:turnCompleted', cb),
+  onAppServerExit: (cb) => subscribe('codex:event:appServerExit', cb),
+});
+
+function subscribe(channel, cb) {
+  const listener = (_e, payload) => {
+    try { cb(payload); } catch { /* renderer callback errors are its own */ }
+  };
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+}

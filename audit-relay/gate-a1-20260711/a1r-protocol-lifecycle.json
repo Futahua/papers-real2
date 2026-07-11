@@ -1,0 +1,27 @@
+{
+  "probeRevision": "a1r-correct-root-20260711-r1",
+  "codexVersion": "codex-cli 0.125.0",
+  "correctRootUsed": true,
+  "preflightFilesObserved": true,
+  "temporaryRepository": "D:\\LapSlop brotherhood\\Programs\\Papers are papers\\_agent_gate1_probe_fresh_20260711\\temporary-repositories\\a1r-local-fixture",
+  "structuredLifecycleObserved": true,
+  "commandEventsObserved": true,
+  "commandProcessLaunched": false,
+  "commandSucceeded": false,
+  "commandExitCode": -1,
+  "startBeforeExecutionProven": false,
+  "fileChangeEventsObserved": true,
+  "terminalObservation": "completed",
+  "serverPid": 49188,
+  "serverExited": true,
+  "unknownStructuredEvents": [],
+  "limitations": [
+    "Windows sandbox setup on this machine fails command execution before process launch (observed previously); this run may show the same behavior.",
+    "Approval semantics untested by design (approvalPolicy=never).",
+    "Command was attempted exactly once per instruction; no retry was performed."
+  ],
+  "result": "PARTIAL",
+  "failureReasons": [
+    "command did not launch a real process before failing (processId null)"
+  ]
+}

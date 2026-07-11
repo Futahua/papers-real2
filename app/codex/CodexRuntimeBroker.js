@@ -28,6 +28,8 @@ const { validateEffectiveSandbox, validateSelectedModel } = require('./protocol/
 const { classifyBoundary } = require('./protocol/paths');
 const { CodexError, CODE, classifyServerError } = require('./CodexErrors');
 const { safeClone } = require('./protocol/redact');
+const { PapersPatchController } = require('../patch/PapersPatchController');
+const { SERVER_REQUEST } = require('./protocol/constants');
 
 class CodexRuntimeBroker extends EventEmitter {
   // opts: { config?, userDataDir?, env?, transportFactory? }
@@ -59,6 +61,8 @@ class CodexRuntimeBroker extends EventEmitter {
     this.effectiveNetworkAccess = false;
     this.lastError = null;
     this.lastSelectedModel = null;
+    this.fileChangeItems = new Map();
+    this.patchController = null;
   }
 
   // --- lifecycle ---------------------------------------------------------
@@ -92,6 +96,12 @@ class CodexRuntimeBroker extends EventEmitter {
       emit: (evt) => this._emitApproval(evt),
       acceptEnabled: this.config.approvalAcceptEnabled,
       journal: this.journal,
+    });
+    this.patchController = new PapersPatchController({
+      approvals: this.approvals,
+      journal: this.journal,
+      emit: (event) => this.emit('patch', safeClone(event)),
+      prohibitedRoots: this.config.prohibitedPatchRoots || [],
     });
 
     this.machine.to('ready');
@@ -187,6 +197,12 @@ class CodexRuntimeBroker extends EventEmitter {
     return r;
   }
 
+  listPatchProposals() { return this.patchController ? this.patchController.list() : []; }
+  getPatchProposal(id) { return this.patchController.get(id); }
+  applyPatchProposal(id) { return this.patchController.apply(id); }
+  denyPatchProposal(id) { return this.patchController.deny(id); }
+  listPatchReceipts() { return this.patchController ? this.patchController.listReceipts() : []; }
+
   // Conservative cancellation. Sends one interrupt; verifies via terminal
   // evidence; never claims success from acceptance alone.
   async cancelTask(threadId, turnId) {
@@ -233,6 +249,8 @@ class CodexRuntimeBroker extends EventEmitter {
     const params = msg.params || {};
     if (msg.method === 'turn/started') this.activeTurnId = (params.turn && params.turn.id) || this.activeTurnId;
     const item = params.item;
+    if (item && item.type === 'fileChange' && item.id) this.fileChangeItems.set(item.id, safeClone(item));
+    if (this.patchController) this.patchController.observeProviderEvent(msg);
     if (item && item.processId != null) this.supervisor.noteCommandPid(item.processId);
     if (msg.method === 'error') {
       const typed = classifyServerError(params.error || params);
@@ -256,6 +274,31 @@ class CodexRuntimeBroker extends EventEmitter {
     const result = this.approvals.handleServerRequest(msg, {
       threadId: this.activeThreadId, turnId: this.activeTurnId, workspaceRoot: this.activeWorkspace,
     });
+    if (msg.method === SERVER_REQUEST.FILE_CHANGE_APPROVAL && !result.safetyClosed) {
+      const params = msg.params || {};
+      const itemId = params.itemId || (params.item && params.item.id);
+      const captured = this.fileChangeItems.get(itemId) || params.item || {};
+      const changes = captured.changes || params.changes || [];
+      const rawDiff = captured.rawDiff || captured.diff || params.rawDiff || params.diff ||
+        changes.map((change) => change && change.diff).filter(Boolean).join('\n');
+      try {
+        this.patchController.capture({
+          threadId: this.activeThreadId || params.threadId,
+          turnId: this.activeTurnId || params.turnId,
+          itemId,
+          approvalRequestId: msg.id,
+          approvalId: result.approvalId,
+          repositoryRoot: this.activeWorkspace,
+          worktreeRoot: this.activeWorkspace,
+          rawDiff,
+          provider: 'codex',
+          model: this.lastSelectedModel || this.config.model,
+        });
+      } catch (err) {
+        this.lastError = err && err.toJSON ? err.toJSON() : { code: 'PATCH_CAPTURE_FAILED', message: 'Patch proposal capture failed.' };
+        this.emit('task-error', this.lastError);
+      }
+    }
     if (cls === 'approval' && !result.safetyClosed) {
       this.machine.to('waitingForApproval');
     }

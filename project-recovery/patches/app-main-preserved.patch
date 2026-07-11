@@ -1,0 +1,13 @@
+diff --git a/app/main.js b/app/main.js
+index bef7e42..48c9d77 100644
+--- a/app/main.js
++++ b/app/main.js
+@@ -477,7 +477,7 @@ function createWindow() {
+ // second instance says so and leaves, rather than corrupting continuity.
+ if (!app.requestSingleInstanceLock()) {
+   console.error('[papers] Another Papers instance already has this world open. Exiting instead of writing over it.');
+-  app.quit();
++  app.exit(1);
+ }
+ 
+ app.whenReady().then(async () => {

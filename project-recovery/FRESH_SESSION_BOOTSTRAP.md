@@ -1,0 +1,3 @@
+# Fresh session bootstrap
+
+You are resuming Papers after total context loss. Canonical repository: Futahua/papers-real2. Read `project-recovery/START_HERE.md` and all manifests. Do not modify REAL2, discard the broker, merge automatically, or claim Gate A passed. Protected base: `16fbb3baaf1dcc10520e1f35b18cb55a741e2a9d`; broker branch/HEAD: `agent/codex-runtime-broker-v1-20260711` / `4458fbc8691d28c8b66ea984fc088f77765e41d7`; Gate A branch/HEAD: `relay/gate-a1-20260711` / `44c886e892b61d73797007ffdb4b795f9c6b0705`; decision FAIL: `NETWORK_UNEXPECTEDLY_ALLOWED`. Next: independent broker review, Gate B Job Objects, Gate C worktree proof, provider-independent fake-adapter controller, then reference-adapter decision.

@@ -1,1 +1,16 @@
-{"schemaVersion":1,"generatedAt":"2026-07-11","canonicalRepository":"Futahua/papers-real2","recoveryBranch":"recovery/papers-complete-handoff-20260711","protectedBaseTag":"papers-protected-base-20260711","brokerTag":"papers-codex-runtime-broker-v1-20260711","protectedRepository":{"path":"D:\\LapSlop brotherhood\\Programs\\Papers are papers\\REAL2","branch":"backpack-note-revision","head":"16fbb3baaf1dcc10520e1f35b18cb55a741e2a9d","soleIntentionalUnstagedFile":"app/main.js","patchId":"e7d6e1c2cf1a15694967c32fe3f6913e5a4899ff"},"brokerImplementation":{"branch":"agent/codex-runtime-broker-v1-20260711","head":"4458fbc8691d28c8b66ea984fc088f77765e41d7","base":"16fbb3baaf1dcc10520e1f35b18cb55a741e2a9d","commits":4,"status":"implemented-experimental-unmerged"},"gateAEvidence":{"branch":"relay/gate-a1-20260711","head":"44c886e892b61d73797007ffdb4b795f9c6b0705","decision":"FAIL","headlineFailure":"NETWORK_UNEXPECTEDLY_ALLOWED"},"reportedValidation":["86 tests passing","live denial smoke test PASS"],"independentlyVerifiedFacts":["repository history","commit ancestry","patch application and checksums"],"knownLimitations":["no proven outer network isolation","workspace-write unproven","cancellation and resume unproven"],"nextSequence":["independent broker review","Gate B","Gate C","provider-independent fake-adapter controller","reference-adapter decision"],"recoveryFiles":"See SHA256SUMS.txt","integrity":"verified before commit"}
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-11",
+  "canonicalRepository": "Futahua/papers-real2",
+  "recoveryBranch": "recovery/papers-complete-handoff-20260711",
+  "protectedBaseTag": "papers-protected-base-20260711",
+  "brokerTag": "papers-codex-runtime-broker-v1-20260711",
+  "protectedRepository": {"path":"D:\\LapSlop brotherhood\\Programs\\Papers are papers\\REAL2","branch":"backpack-note-revision","head":"16fbb3baaf1dcc10520e1f35b18cb55a741e2a9d","soleIntentionalUnstagedFile":"app/main.js","patchId":"e7d6e1c2cf1a15694967c32fe3f6913e5a4899ff"},
+  "brokerImplementation": {"branch":"agent/codex-runtime-broker-v1-20260711","head":"4458fbc8691d28c8b66ea984fc088f77765e41d7","base":"16fbb3baaf1dcc10520e1f35b18cb55a741e2a9d","commits":4,"status":"implemented-experimental-unmerged"},
+  "gateAEvidence": {"branch":"relay/gate-a1-20260711","head":"44c886e892b61d73797007ffdb4b795f9c6b0705","decision":"FAIL","headlineFailure":"NETWORK_UNEXPECTEDLY_ALLOWED"},
+  "reportedValidation":["86 tests passing","live denial smoke test PASS"],
+  "independentlyVerifiedFacts":["repository history","commit ancestry","patch application and checksums"],
+  "knownLimitations":["no proven outer network isolation","workspace-write unproven","cancellation and resume unproven"],
+  "nextSequence":["independent broker review","Gate B","Gate C","provider-independent fake-adapter controller","reference-adapter decision"],
+  "integrity": {"status":"PASS_AFTER_METADATA_CORRECTION","verificationBasis":"canonical committed Git blob bytes","gateASnapshots":{"result":"PASS","gateAFinalBlob":"b96583846d0b6ce50cfb1cef9823c548afdf6e5f","consolidationResultBlob":"5381732b3f7a334dc1dbe77ce8a150bda10c93e7","note":"Relay source and recovery snapshot blob IDs match exactly."},"workingTreeLineEndings":"Not used as canonical evidence identity."}
+}

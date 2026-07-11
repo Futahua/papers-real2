@@ -11,3 +11,7 @@ Before application, Papers requires a clean linked worktree with stable branch, 
 Receipts distinguish `providerDecision: decline` from `outcome: applied-by-papers`, include pre/post hashes and canonical patch/resulting-diff hashes, and omit credentials and avoid full local paths. Failures do not trigger destructive rollback; the disposable worktree is reported for inspection.
 
 Codex network flags are not treated as a security boundary. The broker’s offline-required policy remains fail-closed, and this patch subsystem does not alter that Gate A conclusion.
+
+## July 12 blitz status
+
+The current implementation is on `agent/papers-owned-patch-v0-20260711` at `c79791797ef35c60f9222ed217109a6b2442f4af`, targeting a private creator-usable Backpack v0 by Sunday, July 12, 2026, Asia/Bangkok time. The implementing agent reported 127 passing tests. Live creator-machine acceptance remains pending. This feature is the core tomorrow vertical slice; the next task is live acceptance, not architecture expansion. It is not production-ready.

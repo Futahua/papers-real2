@@ -13,13 +13,30 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   function nonEmptyString(v) { return typeof v === 'string' && v.trim().length > 0; }
 
-  // A receipt is truthful only when it proves the full Backpack v0 contract:
-  // Papers applied after a confirmed provider decline, with verifiable hashes.
+  // Two authority models, each with its own truth conditions:
+  //  - structured fileChange: Papers applied only after a confirmed provider
+  //    decline (providerDecision must be exactly 'decline');
+  //  - provider-message JSON proposal: no provider-side action ever existed,
+  //    so providerDecision must be exactly 'not-applicable', the provider
+  //    must not have requested an action, and turn completion is confirmed.
+  // A receipt may never claim 'decline' for a message proposal or
+  // 'not-applicable' for a structured one.
+  function decisionTruthful(r) {
+    if (r.proposalSource === 'provider-message-json') {
+      return r.providerDecision === 'not-applicable'
+        && r.providerActionRequested === false
+        && r.turnTerminalConfirmed === true;
+    }
+    return r.providerDecision === 'decline';
+  }
+
+  // A receipt is truthful only when it proves the full Backpack v0 contract
+  // for its authority model, with verifiable hashes.
   function isTruthfulReceipt(r) {
     return !!(r && typeof r === 'object' && !Array.isArray(r)
       && nonEmptyString(r.receiptId)
       && r.outcome === 'applied-by-papers'
-      && r.providerDecision === 'decline'
+      && decisionTruthful(r)
       && nonEmptyString(r.providerTerminalStatus)
       && Array.isArray(r.affectedPaths) && r.affectedPaths.length > 0
       && r.affectedPaths.every(nonEmptyString)
@@ -36,6 +53,7 @@
     if (!isTruthfulReceipt(r)) return [];
     return [
       ['Outcome', r.outcome],
+      ['Proposal source', r.proposalSource === 'provider-message-json' ? 'Codex final-message JSON' : 'Codex structured file-change'],
       ['Provider decision', r.providerDecision],
       ['Provider terminal status', r.providerTerminalStatus],
       ['Affected files', r.affectedPaths.join(', ')],

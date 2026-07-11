@@ -195,23 +195,41 @@
 
   function renderPatchProposal(p) {
     if (!p || pendingCards.has(p.proposalId)) return;
+    // Two authority models with distinct, truthful wording. A message
+    // proposal involves no provider action and therefore no provider denial.
+    const isMessage = p.proposalSource === 'provider-message-json';
     const card = el('div', 'codex-approval-card'); card.setAttribute('role','alertdialog');
-    card.appendChild(el('h3','codex-approval-title','Review proposed file changes'));
+    card.appendChild(el('h3','codex-approval-title',isMessage?'Review provider proposal':'Review proposed file changes'));
     card.appendChild(el('div','codex-boundary codex-inside','Inside disposable worktree boundary'));
     const details=el('div','codex-approval-details');
+    if(isMessage){
+      details.appendChild(row('Proposal source','Codex final-message JSON'));
+      details.appendChild(row('Provider action requested','No'));
+      details.appendChild(row('Provider decision required','No'));
+      details.appendChild(row('Turn completed',p.turnTerminalConfirmed?'Yes':'No'));
+    }
     details.appendChild(row('Files affected',(p.affectedPaths||[]).join(', ')));
     details.appendChild(row('Patch validation',p.validationStatus||'captured'));
-    details.appendChild(row('Requested provider action','Decline'));
+    if(!isMessage)details.appendChild(row('Requested provider action','Decline'));
     details.appendChild(row('Effective sandbox',lastStatus&&lastStatus.effectiveSandbox));
     card.appendChild(details);
-    card.appendChild(el('p','codex-warn-line','Codex will be denied. Papers will apply the reviewed patch directly to the disposable worktree.'));
+    const warnText=isMessage
+      ?'Codex did not request permission to modify files and did not apply this change. Papers will independently validate and apply the reviewed proposal to the disposable worktree.'
+      :'Codex will be denied. Papers will apply the reviewed patch directly to the disposable worktree.';
+    card.appendChild(el('p','codex-warn-line',warnText));
     const preview=document.createElement('pre');preview.className='codex-diff-preview';preview.textContent=clip(p.rawDiff||'',12000);card.appendChild(preview);
     const buttons=el('div','codex-approval-buttons');
     const applyBtn=el('button','codex-approve codex-primary','Apply safely with Papers');applyBtn.type='button';
-    const denyBtn=el('button','codex-deny','Deny change');denyBtn.type='button';
+    const denyBtn=el('button','codex-deny',isMessage?'Discard proposal':'Deny change');denyBtn.type='button';
+    const confirmText=isMessage
+      ?'Codex has completed without modifying the worktree. Papers will apply this reviewed proposal directly to the disposable worktree.'
+      :'Codex will be denied. Papers will apply the reviewed patch directly to the disposable worktree.';
+    const appliedLabel=isMessage
+      ?'Applied safely by Papers from a reviewed provider proposal'
+      :'Applied safely by Papers after provider denial';
     let decided=false;const disable=()=>{decided=true;applyBtn.disabled=true;denyBtn.disabled=true;};
-    applyBtn.addEventListener('click',async()=>{if(decided)return;if(!window.confirm('Codex will be denied. Papers will apply the reviewed patch directly to the disposable worktree.'))return;disable();const r=await api.applyPatchProposal(p.proposalId);const res=receiptView.applyResolution(r);showResolution(card,res.state,res.message);if(res.receipt)renderReceipt(res.receipt,card);});
-    denyBtn.addEventListener('click',async()=>{if(decided)return;disable();const r=await api.denyPatchProposal(p.proposalId);showResolution(card,r&&r.ok?'denied':'failed',r&&r.error&&r.error.message);});
+    applyBtn.addEventListener('click',async()=>{if(decided)return;if(!window.confirm(confirmText))return;disable();const r=await api.applyPatchProposal(p.proposalId);const res=receiptView.applyResolution(r);showResolution(card,res.state,res.message,appliedLabel);if(res.receipt)renderReceipt(res.receipt,card);});
+    denyBtn.addEventListener('click',async()=>{if(decided)return;disable();const r=await api.denyPatchProposal(p.proposalId);const state=r&&r.ok?(r.value&&r.value.resolution==='discarded'?'discarded':'denied'):'failed';showResolution(card,state,r&&r.error&&r.error.message);});
     buttons.appendChild(applyBtn);buttons.appendChild(denyBtn);card.appendChild(buttons);approvalHost.appendChild(card);pendingCards.set(p.proposalId,{card});denyBtn.focus();
   }
 
@@ -232,10 +250,11 @@
     approvalHost.appendChild(card);
   }
 
-  function showResolution(card, state, message) {
+  function showResolution(card, state, message, appliedLabel) {
     const line = el('div', 'codex-resolution codex-res-' + state,
       state === 'denied' ? 'Denied'
-        : state === 'applied' ? 'Applied safely by Papers after provider denial'
+        : state === 'applied' ? (appliedLabel || 'Applied safely by Papers after provider denial')
+        : state === 'discarded' ? 'Discarded'
         : state === 'approved' ? 'Approved'
           : state === 'superseded' ? 'Superseded'
             : state === 'expired' ? 'Expired'
@@ -266,6 +285,16 @@
   api.onPatch((event) => {
     if (event.type === 'patch-proposal-captured') { launcherMessage.textContent = 'Review the proposed change below.'; renderPatchProposal(event.proposal); }
     else if (event.type === 'patch-apply-completed') renderReceipt(event.receipt);
+    else if (event.type === 'proposal-turn-ended') {
+      // Terminal launcher truth: never leave "Waiting for Codex proposal…"
+      // after the turn has actually ended.
+      if (event.outcome === 'captured' || event.outcome === 'structured') launcherMessage.textContent = 'Review the proposed change below.';
+      else if (event.outcome === 'rejected') launcherMessage.textContent = 'Codex completed without a valid Papers proposal.' + (event.category ? ' (' + event.category + ')' : '');
+      else if (event.outcome === 'no-proposal') launcherMessage.textContent = 'Codex completed without returning a proposal.';
+      else if (event.outcome === 'conflict') launcherMessage.textContent = 'Codex produced conflicting proposal forms; nothing will be applied.';
+      else if (event.outcome === 'command-suppressed') launcherMessage.textContent = 'Codex requested command execution; no proposal was accepted from this turn.';
+      else launcherMessage.textContent = 'Codex turn ended without a proposal (' + String(event.outcome).replace(/^turn-/, '') + ').';
+    }
   });
 
   // Initial pull.

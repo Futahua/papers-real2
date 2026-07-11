@@ -29,7 +29,9 @@ const { classifyBoundary } = require('./protocol/paths');
 const { CodexError, CODE, classifyServerError } = require('./CodexErrors');
 const { safeClone } = require('./protocol/redact');
 const { PapersPatchController } = require('../patch/PapersPatchController');
+const { parseProviderMessageProposal, buildProposalOnlyInstruction } = require('../patch/ProviderMessageProposalParser');
 const { SERVER_REQUEST } = require('./protocol/constants');
+const crypto = require('node:crypto');
 
 class CodexRuntimeBroker extends EventEmitter {
   // opts: { config?, userDataDir?, env?, transportFactory? }
@@ -64,6 +66,9 @@ class CodexRuntimeBroker extends EventEmitter {
     this.lastSelectedModel = null;
     this.fileChangeItems = new Map();
     this.patchController = null;
+    // Main-process-owned proposal-only turn state. The renderer never sees
+    // the nonce and can never supply mode, schema, diff, or nonce.
+    this.proposalTurn = null;
     this._startPromise = null;
     this._taskStartPromise = null;
     this._lastStartResult = null;
@@ -195,6 +200,19 @@ class CodexRuntimeBroker extends EventEmitter {
     const workspace = input.workspace;
     this.activeWorkspace = workspace;
 
+    // Backpack v0: every creator task runs in proposal-only mode. The main
+    // process generates the nonce and prepends the fixed contract; the
+    // renderer supplied only workspace + instruction + requireOffline.
+    const nonce = crypto.randomBytes(16).toString('hex');
+    this.proposalTurn = {
+      mode: 'proposalOnly', nonce, workspace,
+      instruction: input.instruction, createdAt: new Date().toISOString(),
+      threadId: null, turnId: null, candidate: null, parseFailure: null,
+      fileChangeSeen: false, commandApprovalSeen: false,
+      seenItemIds: new Set(), resolved: false,
+    };
+    const effectiveInstruction = buildProposalOnlyInstruction(nonce, input.instruction);
+
     const started = await this.transport.request(CLIENT_METHOD.THREAD_START, {
       cwd: workspace,
       model: this.config.model,
@@ -223,12 +241,13 @@ class CodexRuntimeBroker extends EventEmitter {
 
     const threadId = (started.thread && started.thread.id) || null;
     this.activeThreadId = threadId;
+    this.proposalTurn.threadId = threadId;
     this.threads.remember({ threadId, workspace, model: this.lastSelectedModel });
 
     this.machine.to('running');
     await this.transport.request(CLIENT_METHOD.TURN_START, {
       threadId,
-      input: [{ type: 'text', text: input.instruction }],
+      input: [{ type: 'text', text: effectiveInstruction }],
     });
 
     this.emit('runtime-status', this.getRuntimeStatus());
@@ -301,10 +320,14 @@ class CodexRuntimeBroker extends EventEmitter {
     const delta = this.reducer.applyNotification(msg);
     // Track turn ids and command pids.
     const params = msg.params || {};
-    if (msg.method === 'turn/started') this.activeTurnId = (params.turn && params.turn.id) || this.activeTurnId;
+    if (msg.method === 'turn/started') {
+      this.activeTurnId = (params.turn && params.turn.id) || this.activeTurnId;
+      if (this.proposalTurn && !this.proposalTurn.turnId) this.proposalTurn.turnId = this.activeTurnId;
+    }
     const item = params.item;
     if (item && item.type === 'fileChange' && item.id) this.fileChangeItems.set(item.id, safeClone(item));
     if (this.patchController) this.patchController.observeProviderEvent(msg);
+    if (msg.method === 'item/completed') this._observeFinalMessage(msg);
     if (item && item.processId != null) this.supervisor.noteCommandPid(item.processId);
     if (msg.method === 'error') {
       const typed = classifyServerError(params.error || params);
@@ -315,6 +338,7 @@ class CodexRuntimeBroker extends EventEmitter {
       if (this.machine.snapshot() === 'running' || this.machine.snapshot() === 'waitingForApproval') {
         this.machine.to('ready');
       }
+      this._resolveProposalTurn(delta.status);
       this.emit('turn-completed', { status: delta.status });
     }
     this.emit('event-delta', safeClone(delta));
@@ -323,6 +347,12 @@ class CodexRuntimeBroker extends EventEmitter {
 
   _onServerRequest(msg) {
     this.journal.append('in', msg, this._msgMeta(msg));
+    // Proposal-only bookkeeping: structured actions take precedence over (and
+    // command attempts suppress) any provider-message proposal from the turn.
+    if (this.proposalTurn && !this.proposalTurn.resolved) {
+      if (msg.method === SERVER_REQUEST.FILE_CHANGE_APPROVAL) this.proposalTurn.fileChangeSeen = true;
+      if (msg.method === SERVER_REQUEST.COMMAND_APPROVAL) this.proposalTurn.commandApprovalSeen = true;
+    }
     // Reducer classifies; approvals coordinator responds.
     const cls = this.reducer.classifyServerRequest(msg.method);
     const result = this.approvals.handleServerRequest(msg, {
@@ -361,6 +391,65 @@ class CodexRuntimeBroker extends EventEmitter {
       this.emit('task-error', this.lastError);
     }
     this.emit('runtime-status', this.getRuntimeStatus());
+  }
+
+  // A final agent message is only ever a proposal CANDIDATE. It must parse
+  // against the strict nonce-bound contract, correlate to the active
+  // thread/turn, and the turn must complete before it becomes actionable.
+  _observeFinalMessage(msg) {
+    const t = this.proposalTurn;
+    if (!t || t.resolved || t.mode !== 'proposalOnly') return;
+    const params = msg.params || {};
+    const item = params.item;
+    if (!item || item.type !== 'agentMessage' || item.phase !== 'final_answer') return;
+    if (params.threadId !== t.threadId || params.turnId !== t.turnId) return;
+    if (!item.id || t.seenItemIds.has(item.id)) return;
+    t.seenItemIds.add(item.id);
+    if (t.candidate || t.parseFailure) return; // at most one proposal per turn
+    try {
+      const parsed = parseProviderMessageProposal(String(item.text || ''), { nonce: t.nonce });
+      t.candidate = { messageItemId: item.id, summary: parsed.summary, diff: parsed.diff };
+    } catch (err) {
+      t.parseFailure = err.category || 'unexpected response format';
+    }
+  }
+
+  // Runs exactly once per proposal-only turn, on the turn's terminal event.
+  _resolveProposalTurn(status) {
+    const t = this.proposalTurn;
+    if (!t || t.resolved) return;
+    t.resolved = true;
+    const ended = (outcome, extra) => this.emit('patch', safeClone({ type: 'proposal-turn-ended', outcome, ...(extra || {}) }));
+    if (status !== 'completed') { ended('turn-' + String(status)); return; }
+    if (t.fileChangeSeen && t.candidate) {
+      // Two authority models in one turn: protocol conflict, apply nothing.
+      if (this.patchController) this.patchController.invalidateTurnForConflict(t.threadId, t.turnId);
+      this.lastError = { code: 'PROTOCOL_CONFLICT', message: 'The provider produced both a structured file-change action and a message proposal; nothing will be applied.' };
+      this.emit('task-error', safeClone(this.lastError));
+      ended('conflict');
+      return;
+    }
+    if (t.fileChangeSeen) { ended('structured'); return; }
+    if (t.commandApprovalSeen) { ended('command-suppressed'); return; }
+    if (t.candidate) {
+      try {
+        this.patchController.captureProviderMessage({
+          threadId: t.threadId, turnId: t.turnId, messageItemId: t.candidate.messageItemId,
+          repositoryRoot: t.workspace, worktreeRoot: t.workspace,
+          rawDiff: t.candidate.diff, summary: t.candidate.summary,
+          provider: 'codex', model: this.lastSelectedModel || this.config.model,
+          turnTerminalConfirmed: true,
+        });
+        ended('captured');
+      } catch (err) {
+        this.lastError = err && err.toJSON ? err.toJSON() : { code: 'PATCH_CAPTURE_FAILED', message: 'Proposal capture failed.' };
+        this.emit('task-error', safeClone(this.lastError));
+        ended('rejected', { category: 'invalid diff' });
+      }
+      return;
+    }
+    if (t.parseFailure) { ended('rejected', { category: t.parseFailure }); return; }
+    ended('no-proposal');
   }
 
   _emitApproval(evt) {

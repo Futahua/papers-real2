@@ -20,6 +20,9 @@ function normalizePatchPath(raw) {
 function validateUnifiedDiff(rawDiff) {
   if (typeof rawDiff !== 'string' || !rawDiff.trim()) fail('Patch is empty.');
   if (rawDiff.includes('\0') || /GIT binary patch|Binary files .* differ/i.test(rawDiff)) fail('Binary patches are rejected.');
+  // git apply treats a patch whose last line has no terminating newline as
+  // corrupt; Papers must never validate what git would later reject.
+  if (!/\r?\n$/.test(rawDiff)) fail('Patch must end with a trailing newline.');
   if (/^(old mode|new mode|deleted file mode|similarity index|rename from|rename to|copy from|copy to) /m.test(rawDiff) || /^new file mode (?!100644$)/m.test(rawDiff)) fail('Mode, rename, copy, and deletion metadata are rejected.');
   const lines = rawDiff.replace(/\r\n/g, '\n').split('\n');
   const sections = []; let current = null; let oldHeader = null;

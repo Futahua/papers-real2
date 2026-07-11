@@ -463,3 +463,39 @@ textarea { resize: none; }
 .preview-item { margin-bottom: 10px; }
 .preview-item .thing-path { white-space: normal; }
 .preview-detail { color: var(--ink-soft); font-size: 13px; }
+
+/* --- Codex runtime + approval surface ---------------------------------- */
+/* A fixed corner panel showing runtime state, plus modal-weight approval    */
+/* cards. Reuses the paper/ink palette so it reads as part of Papers.        */
+#codex-panel { position: fixed; right: 16px; bottom: 16px; width: 340px; max-width: 90vw; z-index: 50; font-size: 13px; }
+.codex-statusbar { background: var(--paper-deep); border: 1px solid var(--ink-faint); border-radius: 8px; padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+.codex-head { display: flex; align-items: center; justify-content: space-between; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.codex-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--ink-faint); color: var(--paper); text-transform: uppercase; letter-spacing: 0.03em; }
+.codex-state-ready, .codex-state-running { background: #3c7a4a; }
+.codex-state-waitingForApproval { background: #b5842b; }
+.codex-state-failed { background: #a23b32; }
+.codex-grid { display: grid; grid-template-columns: 1fr; gap: 2px; }
+.codex-row { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
+.codex-k { color: var(--ink-soft); }
+.codex-v { color: var(--ink); text-align: right; word-break: break-word; }
+.codex-warn .codex-v { color: #8a5a12; }
+.codex-error .codex-v { color: #a23b32; font-weight: 600; }
+.codex-approvals { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+.codex-approval-card { background: var(--paper); border: 2px solid var(--ink-faint); border-radius: 8px; padding: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.14); }
+.codex-approval-title { margin: 0 0 6px; font-size: 14px; color: var(--ink); }
+.codex-boundary { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+.codex-inside { background: #dceadf; color: #2e5c39; }
+.codex-outside { background: #f2d7d2; color: #a23b32; font-weight: 700; }
+.codex-unknown { background: #efe4c8; color: #8a5a12; }
+.codex-approval-details { margin: 6px 0; }
+.codex-approval-details .codex-v { max-width: 210px; overflow-wrap: anywhere; }
+.codex-warn-line { color: #8a5a12; font-size: 12px; margin: 4px 0; }
+.codex-approval-buttons { display: flex; gap: 8px; margin-top: 10px; }
+.codex-approval-buttons button { flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--ink-faint); cursor: pointer; font-size: 13px; }
+.codex-deny { background: var(--paper-deep); color: var(--ink); }
+.codex-deny.codex-primary { background: #a23b32; color: #fff; border-color: #8a2f27; font-weight: 600; }
+.codex-approve:disabled { opacity: 0.5; cursor: not-allowed; }
+.codex-resolution { margin-top: 8px; font-size: 12px; font-weight: 600; }
+.codex-res-denied { color: #2e5c39; }
+.codex-res-approved { color: #8a5a12; }
+.codex-res-failed, .codex-res-superseded, .codex-res-expired { color: #a23b32; }

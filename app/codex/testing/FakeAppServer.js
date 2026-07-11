@@ -78,7 +78,10 @@ class FakeAppServer extends EventEmitter {
 
   notify() { /* client notifications are ignored by the fake */ }
 
-  respond(requestId, payload) { this.decisions.push({ requestId, payload }); }
+  respond(requestId, payload) {
+    this.decisions.push({ requestId, payload });
+    if (this.script.onRespond) this.script.onRespond(requestId, payload, this._emitter());
+  }
 
   async shutdown() {
     this.stdinClosedNormally = true;

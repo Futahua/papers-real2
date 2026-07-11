@@ -1,0 +1,48 @@
+{
+  "probeRevision": "a2.0b-appserver-direct-exec-20260711-r1",
+  "codexVersion": "codex-cli 0.125.0",
+  "directExecMethod": "command/exec (v2 App Server client request; params: command argv, cwd, sandboxPolicy, timeoutMs; response: {exitCode, stdout, stderr}; requires no thread or model turn)",
+  "safeSandboxParametersConfirmed": true,
+  "safeSandboxParametersDetail": "schema confirms per-request sandboxPolicy with workspaceWrite type whose networkAccess defaults to restricted and was explicitly set false; cwd set to the probe workspace; no thread/turn objects involved",
+  "modelTurnsStarted": 0,
+  "commandAttempted": true,
+  "commandArgv": ["C:\\Program Files\\PowerShell\\7\\pwsh.exe", "-NoProfile", "-Command", "Write-Output A2_APPSERVER_EXEC_OK"],
+  "commandStarted": false,
+  "processId": null,
+  "commandExitCode": null,
+  "markerPrinted": false,
+  "approvalRequestObserved": false,
+  "denialSent": false,
+  "jsonRpcError": {
+    "code": -32603,
+    "message": "exec failed: windows sandbox: setup refresh failed with status exit code: 1"
+  },
+  "appServerStderr": "2026-07-11T08:40:58.655975Z ERROR codex_core::exec: exec error: windows sandbox: setup refresh failed with status exit code: 1",
+  "setupRefreshFailureObserved": true,
+  "serverExited": true,
+  "serverPid": 37084,
+  "serverExitCode": 0,
+  "unknownStructuredEvents": [],
+  "configurationKeyNames": {
+    "configTomlExists": true,
+    "matchingKeyNames": ["[windows]", "sandbox", "[projects.'d:\\lapslop brotherhood\\programs\\papers are papers\\_agent_gate1_probe_fresh_20260711\\temporary-repositories\\a2-approval-fixture']", "[features]"],
+    "memoriesDirExists": true
+  },
+  "codexProcessesBefore": [
+    {
+      "pid": 22032,
+      "startTime": "2026-07-11T13:07:47.1229423+07:00",
+      "commandLine": "\"C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.707.3748.0_x64__2p2nqsd0c76g0\\app\\resources\\codex.exe\" -c features.code_mode_host=true app-server --analytics-default-enabled",
+      "note": "pre-existing Codex desktop app-server; not created or terminated by this probe"
+    }
+  ],
+  "classification": "APP_SERVER_SETUP_REFRESH_FAILURE",
+  "differentialFinding": "The identical harmless command succeeds under the direct CLI 'codex sandbox windows' path (A2.0, exit 0, marker printed) but fails inside the App Server's command/exec path before any process launch, with the same 'windows sandbox: setup refresh failed with status exit code: 1' signature seen in model turns (A1/A1R). The failure is therefore located in the App Server exec path's sandbox setup-refresh step and is independent of the model and of thread/turn machinery.",
+  "limitations": [
+    "Exactly one command attempt was made; no retries or alternate sandbox policies were tried.",
+    "The failure is surfaced as a JSON-RPC error response (-32603) rather than structured command events, so no command start/completion events exist for this request.",
+    "config.toml key names matching sandbox/windows/approval/feature were recorded names-only; values were not read.",
+    "The '[projects...a2-approval-fixture]' config entry appears to have been added by Codex itself during the A2.1 probe (trust record); it was observed read-only and not modified.",
+    "No setup-helper invocation, configuration change, or repair was performed; root-causing codex-windows-sandbox-setup.exe's internal failure is out of scope."
+  ]
+}

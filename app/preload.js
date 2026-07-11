@@ -44,6 +44,11 @@ contextBridge.exposeInMainWorld('papersCodex', {
   cancelTask: (input) => ipcRenderer.invoke('codex:cancelTask', input),
   getSanitizedHistory: (n) => ipcRenderer.invoke('codex:getSanitizedHistory', n),
   exportDiagnosticBundle: () => ipcRenderer.invoke('codex:exportDiagnosticBundle'),
+  listPatchProposals: () => ipcRenderer.invoke('codex:listPatchProposals'),
+  getPatchProposal: (proposalId) => ipcRenderer.invoke('codex:getPatchProposal', { proposalId }),
+  applyPatchProposal: (proposalId) => ipcRenderer.invoke('codex:applyPatchProposal', { proposalId }),
+  denyPatchProposal: (proposalId) => ipcRenderer.invoke('codex:denyPatchProposal', { proposalId }),
+  listPatchReceipts: () => ipcRenderer.invoke('codex:listPatchReceipts'),
   // Event subscriptions return an unsubscribe function. Listeners receive only
   // pre-sanitized payloads from the main process.
   onRuntimeStatus: (cb) => subscribe('codex:event:runtimeStatus', cb),
@@ -51,6 +56,7 @@ contextBridge.exposeInMainWorld('papersCodex', {
   onTaskError: (cb) => subscribe('codex:event:taskError', cb),
   onTurnCompleted: (cb) => subscribe('codex:event:turnCompleted', cb),
   onAppServerExit: (cb) => subscribe('codex:event:appServerExit', cb),
+  onPatch: (cb) => subscribe('codex:event:patch', cb),
 });
 
 function subscribe(channel, cb) {

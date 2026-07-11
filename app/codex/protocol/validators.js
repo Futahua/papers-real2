@@ -91,6 +91,12 @@ function validateCancel(input) {
   return { taskId: requireString(input.taskId, 'taskId', 200) };
 }
 
+function validateIdentifierOnly(input, field = 'proposalId') {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw ipcError(`${field} request requires an object`);
+  const keys = Object.keys(input); if (keys.length !== 1 || keys[0] !== field) throw ipcError(`only ${field} is allowed`);
+  return { [field]: requireString(input[field], field, 200) };
+}
+
 module.exports = {
   validateEffectiveSandbox,
   validateSelectedModel,
@@ -98,5 +104,6 @@ module.exports = {
   validateStartTask,
   validateApprovalDecision,
   validateCancel,
+  validateIdentifierOnly,
   ipcError,
 };

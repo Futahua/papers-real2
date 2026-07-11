@@ -499,3 +499,14 @@ textarea { resize: none; }
 .codex-res-denied { color: #2e5c39; }
 .codex-res-approved { color: #8a5a12; }
 .codex-res-failed, .codex-res-superseded, .codex-res-expired { color: #a23b32; }
+.codex-diff-preview {
+  max-height: 22rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 0.75rem;
+  border: 1px solid #b9b1a3;
+  background: #f8f5ee;
+  color: #29251f;
+  text-align: left;
+}

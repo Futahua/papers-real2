@@ -63,6 +63,7 @@
   }
 
   function renderApproval(a) {
+    if (a.kind === 'fileChange') return; // Papers-owned patch card arrives on the dedicated sanitized channel.
     // One card per approvalId; ignore duplicates.
     if (pendingCards.has(a.approvalId)) return;
     const card = el('div', 'codex-approval-card');
@@ -147,9 +148,32 @@
     denyBtn.focus();
   }
 
+  function renderPatchProposal(p) {
+    if (!p || pendingCards.has(p.proposalId)) return;
+    const card = el('div', 'codex-approval-card'); card.setAttribute('role','alertdialog');
+    card.appendChild(el('h3','codex-approval-title','Review proposed file changes'));
+    card.appendChild(el('div','codex-boundary codex-inside','Inside disposable worktree boundary'));
+    const details=el('div','codex-approval-details');
+    details.appendChild(row('Files affected',(p.affectedPaths||[]).join(', ')));
+    details.appendChild(row('Patch validation',p.validationStatus||'captured'));
+    details.appendChild(row('Requested provider action','Decline'));
+    details.appendChild(row('Effective sandbox',lastStatus&&lastStatus.effectiveSandbox));
+    card.appendChild(details);
+    card.appendChild(el('p','codex-warn-line','Codex will be denied. Papers will apply the reviewed patch directly to the disposable worktree.'));
+    const preview=document.createElement('pre');preview.className='codex-diff-preview';preview.textContent=clip(p.rawDiff||'',12000);card.appendChild(preview);
+    const buttons=el('div','codex-approval-buttons');
+    const applyBtn=el('button','codex-approve codex-primary','Apply safely with Papers');applyBtn.type='button';
+    const denyBtn=el('button','codex-deny','Deny change');denyBtn.type='button';
+    let decided=false;const disable=()=>{decided=true;applyBtn.disabled=true;denyBtn.disabled=true;};
+    applyBtn.addEventListener('click',async()=>{if(decided)return;if(!window.confirm('Codex will be denied. Papers will apply the reviewed patch directly to the disposable worktree.'))return;disable();const r=await api.applyPatchProposal(p.proposalId);showResolution(card,r&&r.ok?'applied':'failed',r&&r.error&&r.error.message);});
+    denyBtn.addEventListener('click',async()=>{if(decided)return;disable();const r=await api.denyPatchProposal(p.proposalId);showResolution(card,r&&r.ok?'denied':'failed',r&&r.error&&r.error.message);});
+    buttons.appendChild(applyBtn);buttons.appendChild(denyBtn);card.appendChild(buttons);approvalHost.appendChild(card);pendingCards.set(p.proposalId,{card});denyBtn.focus();
+  }
+
   function showResolution(card, state, message) {
     const line = el('div', 'codex-resolution codex-res-' + state,
       state === 'denied' ? 'Denied'
+        : state === 'applied' ? 'Applied safely by Papers after provider denial'
         : state === 'approved' ? 'Approved'
           : state === 'superseded' ? 'Superseded'
             : state === 'expired' ? 'Expired'
@@ -177,6 +201,7 @@
     else resolveFromServer(a);
   });
   api.onTaskError((e) => { if (lastStatus) { lastStatus.lastError = e; renderStatus(lastStatus); } });
+  api.onPatch((event) => { if (event.type === 'patch-proposal-captured') renderPatchProposal(event.proposal); });
 
   // Initial pull.
   api.getRuntimeStatus().then((r) => { if (r && r.ok) renderStatus(r.value); }).catch(() => {});

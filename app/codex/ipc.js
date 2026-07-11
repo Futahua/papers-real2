@@ -10,6 +10,7 @@
 
 const {
   validateStartTask, validateApprovalDecision, validateCancel,
+  validateIdentifierOnly,
 } = require('./protocol/validators');
 const { CodexRuntimeBroker } = require('./CodexRuntimeBroker');
 const { classifyBoundary } = require('./protocol/paths');
@@ -42,6 +43,7 @@ function registerCodexIpc(ipcMain, getWindow, opts) {
   broker.on('task-error', (e) => send('codex:event:taskError', e));
   broker.on('turn-completed', (t) => send('codex:event:turnCompleted', t));
   broker.on('app-server-exit', (i) => send('codex:event:appServerExit', i));
+  broker.on('patch', (p) => send('codex:event:patch', p));
 
   ipcMain.handle('codex:getRuntimeStatus', guard(async () => broker.getRuntimeStatus()));
   ipcMain.handle('codex:getAuthStatus', guard(async () => broker.getAuthStatus()));
@@ -70,6 +72,11 @@ function registerCodexIpc(ipcMain, getWindow, opts) {
   }));
 
   ipcMain.handle('codex:exportDiagnosticBundle', guard(async () => broker.exportDiagnosticBundle()));
+  ipcMain.handle('codex:listPatchProposals', guard(async () => broker.listPatchProposals()));
+  ipcMain.handle('codex:getPatchProposal', guard(async (_e, raw) => broker.getPatchProposal(validateIdentifierOnly(raw).proposalId)));
+  ipcMain.handle('codex:applyPatchProposal', guard(async (_e, raw) => broker.applyPatchProposal(validateIdentifierOnly(raw).proposalId)));
+  ipcMain.handle('codex:denyPatchProposal', guard(async (_e, raw) => broker.denyPatchProposal(validateIdentifierOnly(raw).proposalId)));
+  ipcMain.handle('codex:listPatchReceipts', guard(async () => broker.listPatchReceipts()));
 
   return { broker };
 }

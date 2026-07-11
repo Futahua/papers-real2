@@ -1,0 +1,4 @@
+{
+  "receipts": [],
+  "note": "No receipt exists. No structured fileChange proposal was ever captured, so no provider denial was sent and no Papers-owned application occurred. listPatchReceipts() returned an empty list in the live session (see SANITIZED_HISTORY.json companion capture)."
+}

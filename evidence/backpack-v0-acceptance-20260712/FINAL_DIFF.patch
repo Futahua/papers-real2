@@ -1,0 +1,3 @@
+# No patch was applied. The acceptance fixture worktree remained clean and
+# backpack-acceptance.txt still contains exactly one line: BACKPACK_V0_BEFORE.
+# git status --porcelain and git diff were both empty at final verification.

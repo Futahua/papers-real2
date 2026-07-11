@@ -191,3 +191,7 @@ The source-run application now includes a compact creator task launcher. Runtime
 Disposable linked worktree selection now uses Electron’s native directory picker. Main-process validation reuses the patch safety inspector and rejects protected, implementation, relay, recovery, probe, ordinary-clone, dirty, detached, and reparse-escaping roots. The selected path is retained as trusted main-process state; the renderer has no free-text workspace field.
 
 Live model-turn acceptance remains pending. The next task is the real creator-machine acceptance flow defined in Gate 3. The July 12 scope remains frozen, and this experimental vertical slice is not production-ready.
+
+## 2026-07-12 live acceptance verdict
+
+The live acceptance run concluded **BLOCKED** at `dd273a0f`. Everything Papers owns worked — source-run launch, native executable resolution, isolated-home sign-in, validated worktree selection, task launch, truthful receipt UI (166 automated tests, 0 failures) — but `gpt-5.4-mini` under codex-cli 0.125.0 app-server returned the patch as plain text in all completed turns and never emitted a structured `fileChange` approval request, so the capture → deny → Papers-apply → receipt path was never reached. The fixture worktree and the protected repository are unchanged. See `PAPERS_BACKPACK_V0_ACCEPTANCE.md` and `evidence/backpack-v0-acceptance-20260712/`. Backpack v0 is not accepted in this run.

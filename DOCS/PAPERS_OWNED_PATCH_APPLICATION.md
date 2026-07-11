@@ -21,3 +21,7 @@ The current implementation is on `agent/papers-owned-patch-v0-20260711` at `c797
 The visible Codex panel now lets the creator check isolated sign-in status, copy a fixed Papers-home device-login command, choose a native safety-validated disposable linked worktree, enter an instruction, and start one task. App Server startup is lazy and idempotent. The main process rechecks authentication and recognizes only the workspace returned by its own native picker. Provider approval acceptance remains disabled, and the existing proposal-review/decline/Papers-apply authority boundary is unchanged.
 
 No live model turn was used to implement this launcher. The next authoritative task is the real creator-machine acceptance flow; no architecture expansion should begin first.
+
+## 2026-07-12 live acceptance verdict
+
+Live acceptance at `dd273a0f` concluded **BLOCKED**. The Papers-owned patch path was never exercised because the provider emitted no structured `fileChange` approval request in any turn — the model answered with apply_patch-envelope text instead. Zero proposals, zero denials, zero applications, zero receipts; the fixture worktree stayed byte-identical. Details and sanitized evidence: `PAPERS_BACKPACK_V0_ACCEPTANCE.md` and `evidence/backpack-v0-acceptance-20260712/`.

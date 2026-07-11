@@ -1,0 +1,57 @@
+{
+  "probeRevision": "a2.0-sandbox-diagnostic-20260711-r1",
+  "codexVersion": "codex-cli 0.125.0",
+  "windows": {
+    "version": "Microsoft Windows NT 10.0.26200.0 (Windows 11 Pro)",
+    "architecture": "AMD64"
+  },
+  "elevated": false,
+  "codexExecutables": {
+    "cliShim": "C:\\Users\\admin\\AppData\\Roaming\\npm\\codex.cmd",
+    "nativeBinary": {
+      "path": "C:\\Users\\admin\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex\\codex.exe",
+      "fileVersion": "0.125.0",
+      "sizeBytes": 220304176
+    }
+  },
+  "sandboxHelpers": [
+    {
+      "name": "codex-command-runner.exe",
+      "path": "C:\\Users\\admin\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex\\codex-command-runner.exe",
+      "fileVersion": "0.125.0"
+    },
+    {
+      "name": "codex-windows-sandbox-setup.exe",
+      "path": "C:\\Users\\admin\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex\\codex-windows-sandbox-setup.exe",
+      "fileVersion": "0.125.0",
+      "helpBehavior": "does not expose --help; expects a base64-encoded request payload ('helper_request_args_failed: failed to decode payload b64: Invalid symbol 45, offset 0.')"
+    }
+  ],
+  "documentedSandboxCommandAvailable": true,
+  "documentedSandboxCommand": "codex sandbox windows [OPTIONS] [COMMAND]... — 'Run a command under Windows restricted token (Windows only)'",
+  "commandAttempted": true,
+  "commandArgv": ["codex", "sandbox", "windows", "--", "pwsh", "-NoProfile", "-Command", "Write-Output A2_SANDBOX_OK"],
+  "commandCwd": "D:\\LapSlop brotherhood\\Programs\\Papers are papers\\_agent_gate1_probe_fresh_20260711\\temporary-repositories\\a2-sandbox-diagnostic",
+  "commandExitCode": 0,
+  "commandStdout": "A2_SANDBOX_OK\r\n",
+  "commandStderr": "",
+  "markerPrinted": true,
+  "childProcessLaunchObserved": true,
+  "childProcessLaunchEvidence": "pwsh executed and produced the marker on stdout with exit code 0; output could only originate from a launched child process",
+  "failureStage": "none in this direct probe; the previously observed failure occurs only inside the App Server / model-turn exec path, at its sandbox 'setup refresh' stage, before process launch",
+  "failureSignature": "App Server exec path (A1/A1R/A2.1 runs): 'execution error: Io(Custom { kind: Other, error: \"windows sandbox: setup refresh failed with status exit code: 1\" })' with item/completed status=failed, exitCode=-1, processId=null. Not reproduced by the direct 'codex sandbox windows' probe, which succeeded.",
+  "orphanProcesses": {
+    "attributableToThisDiagnostic": [],
+    "note": "One pre-existing codex.exe process (PID 22032, started 2026-07-11T13:07:47+07:00, before any Gate A probe in this session) was observed; it is not attributable to this diagnostic and was left untouched."
+  },
+  "manualRepairPerformed": false,
+  "classification": "SANDBOX_READY",
+  "classificationNote": "The Windows restricted-token sandbox itself launches and runs a harmless command successfully when invoked directly and unelevated. The recurring failure is therefore not a missing component or a blanket permission/policy block; it is specific to the App Server exec path's 'setup refresh' step and could not be reproduced independently of the App Server in this probe.",
+  "nextSafeAction": "Rerun the A2.1 approval probe (or a minimal App Server exec probe) capturing App Server stderr around the 'setup refresh' step, and/or compare App Server sandbox configuration (e.g. features/windows sandbox settings in config.toml) against the direct 'codex sandbox windows' invocation — without performing any machine repair or configuration changes.",
+  "limitations": [
+    "Exactly one sandboxed command was attempted per the probe rules; no alternate shells or retries were used.",
+    "The App Server 'setup refresh' failure was not re-triggered here, so its root cause is characterized only by the prior runs' failure signature.",
+    "codex-windows-sandbox-setup.exe accepts only an encoded payload and was not invoked with one; no setup/refresh/repair was performed.",
+    "Process attribution is based on process start times and synchronous completion of the probe command; no descendant-tree supervision was performed (Gate B scope)."
+  ]
+}

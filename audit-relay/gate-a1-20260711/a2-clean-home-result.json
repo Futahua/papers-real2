@@ -1,0 +1,34 @@
+{
+  "probeRevision": "a2.0c-clean-home-isolation-20260711-r1",
+  "codexVersion": "codex-cli 0.125.0",
+  "requestedCodexHome": "D:\\LapSlop brotherhood\\Programs\\Papers are papers\\_agent_gate1_probe_fresh_20260711\\temporary-codex-home\\a2-clean-home",
+  "reportedCodexHome": "\\\\?\\D:\\LapSlop brotherhood\\Programs\\Papers are papers\\_agent_gate1_probe_fresh_20260711\\temporary-codex-home\\a2-clean-home",
+  "cleanHomeApplied": {
+    "strictStringEquality": false,
+    "effectivelyApplied": true,
+    "explanation": "The initialize response reported the requested clean home verbatim but in Windows extended-length form (\\\\?\\ prefix). This is the canonical NT form of exactly the requested directory, not a different home. The server demonstrably used the clean home: it created its state files (state_5.sqlite, logs_2.sqlite, memories, skills, tmp, .personality_migration) inside it, and %USERPROFILE%\\.codex was never inspected or referenced by the probe."
+  },
+  "modelTurnsStarted": 0,
+  "commandAttempted": false,
+  "commandNotAttemptedReason": "The harness enforced the mandated exact-string codexHome equality check; the \\\\?\\-prefixed serialization failed that strict comparison, so per the probe rules the harness stopped before sending command/exec. No retry or second App Server was permitted.",
+  "processId": null,
+  "commandExitCode": null,
+  "markerPrinted": false,
+  "jsonRpcError": null,
+  "appServerStderr": "",
+  "setupRefreshFailureObserved": false,
+  "approvalRequestObserved": false,
+  "serverExited": true,
+  "serverPid": 4588,
+  "serverExitCode": 0,
+  "cleanHomeTopLevelNames": [".personality_migration", "logs_2.sqlite", "logs_2.sqlite-shm", "logs_2.sqlite-wal", "memories", "skills", "state_5.sqlite", "state_5.sqlite-shm", "state_5.sqlite-wal", "tmp"],
+  "unknownStructuredEvents": [],
+  "classification": "AMBIGUOUS",
+  "classificationNote": "CLEAN_HOME_NOT_APPLIED would be factually wrong: initialize did not report another Codex home, it reported the requested clean home in extended-length (\\\\?\\) form, and the server materialized its state inside that clean home. Because the mandated strict string check nonetheless failed, the command was never attempted, so neither CLEAN_HOME_APP_SERVER_READY nor CLEAN_HOME_SAME_SETUP_FAILURE could be established. AMBIGUOUS is the only truthful classification.",
+  "limitations": [
+    "The isolation question (existing home/config vs broken runtime) remains unanswered: no command/exec was sent in this run.",
+    "The strict-equality requirement did not anticipate Windows extended-length path serialization; a rerun comparing normalized paths (stripping the \\\\?\\ prefix) would settle the question with one command attempt.",
+    "Exactly one App Server was launched and exited cleanly (PID 4588, exit code 0); the one-App-Server limit prevented a corrected rerun within this probe.",
+    "Clean-home contents were listed by top-level name only; no file contents were read. %USERPROFILE%\\.codex was not inspected or modified."
+  ]
+}

@@ -58,7 +58,13 @@ function registerCodexIpc(ipcMain, getWindow, opts) {
   ipcMain.handle('codex:beginAuth', guard(async (_e, raw) => {
     noPayload(raw, 'beginAuth');
     const login = await broker.beginAuth();
-    if (!login || !login.command || !opts.clipboard) return { state: 'failed', copied: false, reason: login && login.reason || 'clipboard-unavailable' };
+    if (!login || !login.command || !opts.clipboard) {
+      return {
+        state: 'failed', copied: false,
+        reason: (login && login.reason) || 'clipboard-unavailable',
+        message: (login && login.message) || null,
+      };
+    }
     opts.clipboard.writeText(login.command);
     return { state: 'authenticating', copied: true, instructions: 'Login command copied. Paste it into PowerShell, complete device sign-in, then check sign-in again.' };
   }));

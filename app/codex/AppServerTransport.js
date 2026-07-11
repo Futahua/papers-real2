@@ -8,16 +8,20 @@
 // bounded wait before an exact-PID last-resort kill. It never kills by name
 // and never touches an unrelated process.
 
+const fs = require('node:fs');
+const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { EventEmitter } = require('node:events');
 const { isJsonRpcMessage } = require('./protocol/validators');
 const { CodexError, CODE } = require('./CodexErrors');
+const { resolveCodexExecutable } = require('./CodexExecutableResolver');
 
 class AppServerTransport extends EventEmitter {
-  constructor(config, env) {
+  constructor(config, env, opts) {
     super();
     this.config = config;
     this.env = env;
+    this.resolveExecutable = (opts && opts.resolveExecutable) || resolveCodexExecutable;
     this.child = null;
     this.pid = null;
     this.nextId = 1;
@@ -33,10 +37,16 @@ class AppServerTransport extends EventEmitter {
   }
 
   start() {
+    // Same native-executable contract as auth: a configured absolute path
+    // that exists wins; otherwise resolve, and fail with the specific code.
+    let executable = this.config.codexExecutable;
+    if (!(executable && path.isAbsolute(executable) && fs.existsSync(executable) && fs.statSync(executable).isFile())) {
+      executable = this.resolveExecutable({}).path;
+    }
     const args = ['app-server', '--listen', 'stdio://'];
     let child;
     try {
-      child = spawn(this.config.codexExecutable, args, {
+      child = spawn(executable, args, {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: this.env,
         windowsHide: true,

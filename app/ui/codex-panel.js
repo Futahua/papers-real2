@@ -10,6 +10,9 @@
 (function () {
   const api = window.papersCodex;
   if (!api) return; // Codex surface not available; degrade silently.
+  const receiptView = window.PapersPatchReceiptView;
+  if (!receiptView) return; // Truthful receipt rules are required, not optional.
+  const receiptLedger = receiptView.createReceiptLedger();
 
   const root = document.createElement('section');
   root.id = 'codex-panel';
@@ -63,8 +66,8 @@
     startBtn.disabled = authState !== 'authenticated' || !selectedWorkspace || !instruction.value.trim() || runtimeBusy() || startPending;
     checkAuthBtn.disabled = authState === 'checking'; beginAuthBtn.disabled = authState === 'authenticating'; chooseWorkspaceBtn.disabled = startPending || runtimeBusy();
   }
-  checkAuthBtn.addEventListener('click', async () => { authState = 'checking'; launcherMessage.textContent = 'Checking sign-in…'; updateLauncher(); const r = await api.getAuthStatus(); authState = r && r.ok && r.value ? r.value.state : 'failed'; launcherMessage.textContent = authState === 'authenticated' ? 'Authenticated.' : authState === 'unauthenticated' ? 'Codex sign-in required.' : 'Sign-in check failed.'; updateLauncher(); });
-  beginAuthBtn.addEventListener('click', async () => { authState = 'authenticating'; launcherMessage.textContent = 'Preparing isolated Codex sign-in…'; updateLauncher(); const r = await api.beginAuth(); const value = r && r.ok ? r.value : null; authState = value && value.state || 'failed'; launcherMessage.textContent = value && value.copied ? value.instructions : 'Codex sign-in could not be prepared.'; updateLauncher(); });
+  checkAuthBtn.addEventListener('click', async () => { authState = 'checking'; launcherMessage.textContent = 'Checking sign-in…'; updateLauncher(); const r = await api.getAuthStatus(); authState = r && r.ok && r.value ? r.value.state : 'failed'; launcherMessage.textContent = authState === 'authenticated' ? 'Authenticated.' : authState === 'unauthenticated' ? 'Codex sign-in required.' : (r && r.ok && r.value && r.value.message) || 'Sign-in check failed.'; updateLauncher(); });
+  beginAuthBtn.addEventListener('click', async () => { authState = 'authenticating'; launcherMessage.textContent = 'Preparing isolated Codex sign-in…'; updateLauncher(); const r = await api.beginAuth(); const value = r && r.ok ? r.value : null; authState = value && value.state || 'failed'; launcherMessage.textContent = value && value.copied ? value.instructions : (value && value.message) || 'Codex sign-in could not be prepared.'; updateLauncher(); });
   chooseWorkspaceBtn.addEventListener('click', async () => { launcherMessage.textContent = 'Choose a clean disposable linked Git worktree.'; const r = await api.chooseWorkspace(); if (!r || !r.ok) { selectedWorkspace = null; launcherMessage.textContent = 'Selected folder is not a clean disposable linked worktree.'; } else if (!r.value.canceled) { selectedWorkspace = r.value; launcherMessage.textContent = `Validated ${r.value.branch} at ${String(r.value.head).slice(0,8)}.`; } updateLauncher(); });
   instruction.addEventListener('input', updateLauncher);
   startBtn.addEventListener('click', async () => {
@@ -207,9 +210,26 @@
     const applyBtn=el('button','codex-approve codex-primary','Apply safely with Papers');applyBtn.type='button';
     const denyBtn=el('button','codex-deny','Deny change');denyBtn.type='button';
     let decided=false;const disable=()=>{decided=true;applyBtn.disabled=true;denyBtn.disabled=true;};
-    applyBtn.addEventListener('click',async()=>{if(decided)return;if(!window.confirm('Codex will be denied. Papers will apply the reviewed patch directly to the disposable worktree.'))return;disable();const r=await api.applyPatchProposal(p.proposalId);showResolution(card,r&&r.ok?'applied':'failed',r&&r.error&&r.error.message);});
+    applyBtn.addEventListener('click',async()=>{if(decided)return;if(!window.confirm('Codex will be denied. Papers will apply the reviewed patch directly to the disposable worktree.'))return;disable();const r=await api.applyPatchProposal(p.proposalId);const res=receiptView.applyResolution(r);showResolution(card,res.state,res.message);if(res.receipt)renderReceipt(res.receipt,card);});
     denyBtn.addEventListener('click',async()=>{if(decided)return;disable();const r=await api.denyPatchProposal(p.proposalId);showResolution(card,r&&r.ok?'denied':'failed',r&&r.error&&r.error.message);});
     buttons.appendChild(applyBtn);buttons.appendChild(denyBtn);card.appendChild(buttons);approvalHost.appendChild(card);pendingCards.set(p.proposalId,{card});denyBtn.focus();
+  }
+
+  // Render one truthful receipt exactly once, in the proposal's own card when
+  // it is still on screen, otherwise as a standalone card (initial pull after
+  // a renderer reload). Malformed receipts never render as success.
+  function renderReceipt(receipt, cardHint) {
+    if (!receiptLedger.register(receipt)) return;
+    const host = cardHint
+      || (pendingCards.has(receipt.proposalId) ? pendingCards.get(receipt.proposalId).card : null);
+    const section = el('div', 'codex-approval-details codex-receipt');
+    section.appendChild(el('div', 'codex-head', 'Papers apply receipt'));
+    for (const [label, value] of receiptView.receiptRows(receipt)) section.appendChild(row(label, value));
+    if (host) { host.appendChild(section); return; }
+    const card = el('div', 'codex-approval-card');
+    card.appendChild(el('h3', 'codex-approval-title', 'Applied change receipt'));
+    card.appendChild(section);
+    approvalHost.appendChild(card);
   }
 
   function showResolution(card, state, message) {
@@ -243,8 +263,14 @@
     else resolveFromServer(a);
   });
   api.onTaskError((e) => { if (lastStatus) { lastStatus.lastError = e; renderStatus(lastStatus); } });
-  api.onPatch((event) => { if (event.type === 'patch-proposal-captured') { launcherMessage.textContent = 'Review the proposed change below.'; renderPatchProposal(event.proposal); } });
+  api.onPatch((event) => {
+    if (event.type === 'patch-proposal-captured') { launcherMessage.textContent = 'Review the proposed change below.'; renderPatchProposal(event.proposal); }
+    else if (event.type === 'patch-apply-completed') renderReceipt(event.receipt);
+  });
 
   // Initial pull.
   api.getRuntimeStatus().then((r) => { if (r && r.ok) renderStatus(r.value); }).catch(() => {});
+  api.listPatchReceipts().then((r) => {
+    if (r && r.ok && Array.isArray(r.value)) for (const receipt of r.value) renderReceipt(receipt);
+  }).catch(() => {});
 })();

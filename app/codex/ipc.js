@@ -13,8 +13,8 @@ const {
   validateIdentifierOnly,
 } = require('./protocol/validators');
 const { CodexRuntimeBroker } = require('./CodexRuntimeBroker');
-const { classifyBoundary } = require('./protocol/paths');
-const { CodexError } = require('./CodexErrors');
+const { CodexError, CODE } = require('./CodexErrors');
+const { GitPatchApplier } = require('../patch/GitPatchApplier');
 
 // Wrap a handler so any thrown CodexError/ipc rejection becomes a structured,
 // credential-free error result rather than an unhandled rejection.
@@ -31,7 +31,15 @@ function guard(fn) {
 
 // registerCodexIpc(ipcMain, getWindow, opts?) -> { broker }
 function registerCodexIpc(ipcMain, getWindow, opts) {
+  opts = opts || {};
   const broker = (opts && opts.broker) || new CodexRuntimeBroker(opts);
+  const workspaceInspector = opts.workspaceInspector || new GitPatchApplier({
+    prohibitedRoots: [opts.implementationRoot, ...(opts.prohibitedPatchRoots || [])].filter(Boolean),
+  });
+  let trustedWorkspace = null;
+  const noPayload = (raw, operation) => {
+    if (raw !== undefined) { const err = new Error(`${operation} accepts no renderer payload`); err.ipcRejected = true; throw err; }
+  };
 
   // Forward broker events to the renderer as sanitized pushes.
   const send = (channel, payload) => {
@@ -46,14 +54,35 @@ function registerCodexIpc(ipcMain, getWindow, opts) {
   broker.on('patch', (p) => send('codex:event:patch', p));
 
   ipcMain.handle('codex:getRuntimeStatus', guard(async () => broker.getRuntimeStatus()));
-  ipcMain.handle('codex:getAuthStatus', guard(async () => broker.getAuthStatus()));
-  ipcMain.handle('codex:beginAuth', guard(async () => broker.beginAuth()));
+  ipcMain.handle('codex:getAuthStatus', guard(async (_e, raw) => { noPayload(raw, 'getAuthStatus'); return broker.getAuthStatus(); }));
+  ipcMain.handle('codex:beginAuth', guard(async (_e, raw) => {
+    noPayload(raw, 'beginAuth');
+    const login = await broker.beginAuth();
+    if (!login || !login.command || !opts.clipboard) return { state: 'failed', copied: false, reason: login && login.reason || 'clipboard-unavailable' };
+    opts.clipboard.writeText(login.command);
+    return { state: 'authenticating', copied: true, instructions: 'Login command copied. Paste it into PowerShell, complete device sign-in, then check sign-in again.' };
+  }));
   ipcMain.handle('codex:logout', guard(async () => broker.logout()));
 
   ipcMain.handle('codex:startTask', guard(async (_e, raw) => {
     const input = validateStartTask(raw);
-    // Boundary classification is advisory context for the renderer.
+    if (!trustedWorkspace || input.workspace !== trustedWorkspace) {
+      const err = new Error('Workspace must come from the native validated worktree picker.'); err.ipcRejected = true; throw err;
+    }
+    const auth = await broker.getAuthStatus();
+    if (!auth || auth.state !== 'authenticated') throw new CodexError(CODE.AUTH_REQUIRED, 'Codex sign-in required.');
     return broker.startTask(input);
+  }));
+
+  ipcMain.handle('codex:chooseWorkspace', guard(async (_e, raw) => {
+    noPayload(raw, 'chooseWorkspace');
+    if (!opts.dialog) { const err = new Error('Native folder picker is unavailable.'); err.ipcRejected = true; throw err; }
+    const win = getWindow && getWindow();
+    const picked = await opts.dialog.showOpenDialog(win || undefined, { title: 'Choose a clean disposable linked Git worktree', properties: ['openDirectory'] });
+    if (picked.canceled || !picked.filePaths || !picked.filePaths[0]) return { canceled: true };
+    const inspection = workspaceInspector.inspect(picked.filePaths[0], []);
+    trustedWorkspace = inspection.worktreeRoot;
+    return { workspace: inspection.worktreeRoot, branch: inspection.branch, head: inspection.head, validation: 'passed' };
   }));
 
   ipcMain.handle('codex:submitApprovalDecision', guard(async (_e, raw) => {

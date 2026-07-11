@@ -14,15 +14,20 @@
   const root = document.createElement('section');
   root.id = 'codex-panel';
   root.setAttribute('aria-live', 'polite');
-  root.hidden = true;
+  root.hidden = false;
   document.body.appendChild(root);
 
+  const launcher = el('div', 'codex-statusbar');
   const statusBar = el('div', 'codex-statusbar');
   const approvalHost = el('div', 'codex-approvals');
+  root.appendChild(launcher);
   root.appendChild(statusBar);
   root.appendChild(approvalHost);
 
   let lastStatus = null;
+  let authState = 'unknown';
+  let selectedWorkspace = null;
+  let startPending = false;
   const pendingCards = new Map(); // approvalId -> { card, resolve }
 
   function el(tag, cls, text) {
@@ -37,6 +42,42 @@
     r.appendChild(el('span', 'codex-v', value == null ? '—' : String(value)));
     return r;
   }
+
+  const launcherTitle = el('div', 'codex-head', 'Start a Codex task');
+  const authLine = row('Codex sign-in status', authState);
+  const checkAuthBtn = el('button', 'codex-deny', 'Check sign-in'); checkAuthBtn.type = 'button';
+  const beginAuthBtn = el('button', 'codex-deny', 'Sign in to Codex for Papers'); beginAuthBtn.type = 'button';
+  const workspaceLine = row('Selected disposable worktree', 'None');
+  const chooseWorkspaceBtn = el('button', 'codex-deny', 'Choose worktree'); chooseWorkspaceBtn.type = 'button';
+  const instruction = document.createElement('textarea'); instruction.rows = 4; instruction.maxLength = 20000;
+  instruction.placeholder = 'Task instruction'; instruction.setAttribute('aria-label', 'Task instruction'); instruction.style.width = '100%';
+  const startBtn = el('button', 'codex-approve codex-primary', 'Start task'); startBtn.type = 'button';
+  const launcherMessage = el('p', 'codex-warn-line', 'Codex sign-in required.');
+  launcher.appendChild(launcherTitle); launcher.appendChild(authLine); launcher.appendChild(checkAuthBtn); launcher.appendChild(beginAuthBtn);
+  launcher.appendChild(workspaceLine); launcher.appendChild(chooseWorkspaceBtn); launcher.appendChild(instruction); launcher.appendChild(startBtn); launcher.appendChild(launcherMessage);
+
+  function setLineValue(line, value) { const node = line.querySelector('.codex-v'); if (node) node.textContent = String(value); }
+  function runtimeBusy() { return lastStatus && ['starting','running','waitingForApproval','interrupting','stopping'].includes(lastStatus.state); }
+  function updateLauncher() {
+    setLineValue(authLine, authState); setLineValue(workspaceLine, selectedWorkspace ? selectedWorkspace.workspace : 'None');
+    startBtn.disabled = authState !== 'authenticated' || !selectedWorkspace || !instruction.value.trim() || runtimeBusy() || startPending;
+    checkAuthBtn.disabled = authState === 'checking'; beginAuthBtn.disabled = authState === 'authenticating'; chooseWorkspaceBtn.disabled = startPending || runtimeBusy();
+  }
+  checkAuthBtn.addEventListener('click', async () => { authState = 'checking'; launcherMessage.textContent = 'Checking sign-in…'; updateLauncher(); const r = await api.getAuthStatus(); authState = r && r.ok && r.value ? r.value.state : 'failed'; launcherMessage.textContent = authState === 'authenticated' ? 'Authenticated.' : authState === 'unauthenticated' ? 'Codex sign-in required.' : 'Sign-in check failed.'; updateLauncher(); });
+  beginAuthBtn.addEventListener('click', async () => { authState = 'authenticating'; launcherMessage.textContent = 'Preparing isolated Codex sign-in…'; updateLauncher(); const r = await api.beginAuth(); const value = r && r.ok ? r.value : null; authState = value && value.state || 'failed'; launcherMessage.textContent = value && value.copied ? value.instructions : 'Codex sign-in could not be prepared.'; updateLauncher(); });
+  chooseWorkspaceBtn.addEventListener('click', async () => { launcherMessage.textContent = 'Choose a clean disposable linked Git worktree.'; const r = await api.chooseWorkspace(); if (!r || !r.ok) { selectedWorkspace = null; launcherMessage.textContent = 'Selected folder is not a clean disposable linked worktree.'; } else if (!r.value.canceled) { selectedWorkspace = r.value; launcherMessage.textContent = `Validated ${r.value.branch} at ${String(r.value.head).slice(0,8)}.`; } updateLauncher(); });
+  instruction.addEventListener('input', updateLauncher);
+  startBtn.addEventListener('click', async () => {
+    if (startBtn.disabled || startPending) return; startPending = true; launcherMessage.textContent = lastStatus && lastStatus.state === 'stopped' ? 'Preparing isolated Codex runtime…' : 'Starting task…'; updateLauncher();
+    const r = await api.startTask({ workspace: selectedWorkspace.workspace, instruction: instruction.value.trim(), requireOffline: false });
+    startPending = false;
+    if (r && r.ok) launcherMessage.textContent = 'Waiting for Codex proposal…';
+    else if (r && r.error && r.error.code === 'AUTH_REQUIRED') { authState = 'unauthenticated'; launcherMessage.textContent = 'Codex sign-in required.'; }
+    else if (r && r.error && /active/i.test(r.error.message || '')) launcherMessage.textContent = 'Another task is already active.';
+    else launcherMessage.textContent = 'Task could not start.';
+    updateLauncher();
+  });
+  updateLauncher();
 
   function renderStatus(s) {
     lastStatus = s;
@@ -60,6 +101,7 @@
     grid.appendChild(row('Thread resume', s.threadResumeEnabled ? 'enabled' : 'disabled'));
     if (s.lastError) grid.appendChild(row('Last error', s.lastError.code, 'codex-error'));
     statusBar.appendChild(grid);
+    updateLauncher();
   }
 
   function renderApproval(a) {
@@ -201,7 +243,7 @@
     else resolveFromServer(a);
   });
   api.onTaskError((e) => { if (lastStatus) { lastStatus.lastError = e; renderStatus(lastStatus); } });
-  api.onPatch((event) => { if (event.type === 'patch-proposal-captured') renderPatchProposal(event.proposal); });
+  api.onPatch((event) => { if (event.type === 'patch-proposal-captured') { launcherMessage.textContent = 'Review the proposed change below.'; renderPatchProposal(event.proposal); } });
 
   // Initial pull.
   api.getRuntimeStatus().then((r) => { if (r && r.ok) renderStatus(r.value); }).catch(() => {});

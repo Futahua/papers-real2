@@ -9,3 +9,5 @@ The target must be an already-created disposable linked Git worktree. Any existi
 ## Deadline interpretation
 
 These limitations are consciously accepted for the July 12 private creator build. Source-run operation is acceptable; in-memory receipts are acceptable; one active task is acceptable; disposable worktrees are mandatory; and provider approval acceptance remains disabled. Unresolved network isolation prevents arbitrary provider command execution but does not block the Papers-owned reviewed-patch flow. Any limitation that breaks the defined acceptance flow becomes a blocker; other limitations remain post-v0 work.
+
+The launcher does not persist selected worktrees or sign-in state beyond what Codex stores inside the dedicated Papers home. Login is completed in a creator-controlled PowerShell window using a fixed copied device-auth command because Papers does not capture terminal authentication output. Worktree selection is native and must pass the same strict linked-worktree safety inspection used by patch application. Live creator-machine acceptance is still pending; these constraints remain acceptable only if that complete flow passes repeatably.

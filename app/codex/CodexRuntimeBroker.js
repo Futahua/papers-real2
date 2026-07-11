@@ -40,6 +40,7 @@ class CodexRuntimeBroker extends EventEmitter {
     this.baseEnv = opts.env || process.env;
     this.transportFactory = opts.transportFactory ||
       ((cfg, env) => new AppServerTransport(cfg, env));
+    this.authFactory = opts.authFactory || ((cfg, env) => new CodexAuthManager(cfg, env));
 
     this.home = new CodexHomeManager(this.config);
     this.journal = new EventJournal(this.config.eventJournalLimit);
@@ -63,14 +64,56 @@ class CodexRuntimeBroker extends EventEmitter {
     this.lastSelectedModel = null;
     this.fileChangeItems = new Map();
     this.patchController = null;
+    this._startPromise = null;
+    this._taskStartPromise = null;
+    this._lastStartResult = null;
+    this._authEnv = null;
   }
 
   // --- lifecycle ---------------------------------------------------------
-  async start() {
-    this.machine.to('starting');
+  start() { return this.ensureStarted(); }
+
+  ensureAuthContext() {
+    if (this.auth) return this.auth;
     this.home.ensure();
-    const env = this.home.childEnv(this.baseEnv);
-    this.auth = new CodexAuthManager(this.config, env);
+    this._authEnv = this.home.childEnv(this.baseEnv);
+    this.auth = this.authFactory(this.config, this._authEnv);
+    return this.auth;
+  }
+
+  async ensureStarted() {
+    const state = this.machine.snapshot();
+    if (state === 'ready') return this._lastStartResult || { codexHomeVerified: true };
+    if (['running', 'waitingForApproval', 'interrupting'].includes(state)) {
+      throw new CodexError(CODE.PROTOCOL_INTEGRITY_ERROR, 'Another task is already active.', { state });
+    }
+    if (state === 'stopping') {
+      throw new CodexError(CODE.PROTOCOL_INTEGRITY_ERROR, 'The Codex runtime is stopping. Try again after it has stopped.', { state });
+    }
+    if (state === 'starting') {
+      if (this._startPromise) return this._startPromise;
+      throw new CodexError(CODE.PROTOCOL_INTEGRITY_ERROR, 'Codex startup state is inconsistent; no second runtime was launched.', { state });
+    }
+    if (this._startPromise) return this._startPromise;
+    this._startPromise = (async () => {
+      if (state === 'failed' && this.transport) {
+        try { await this.transport.shutdown(); } catch { /* exact failed runtime only */ }
+        this.transport = null;
+        this.approvals = null;
+        this.patchController = null;
+      }
+      const result = await this._startRuntime();
+      this._lastStartResult = result;
+      return result;
+    })();
+    try { return await this._startPromise; }
+    finally { this._startPromise = null; }
+  }
+
+  async _startRuntime() {
+    this.machine.to('starting');
+    this.ensureAuthContext();
+    const env = this._authEnv;
     this.transport = this.transportFactory(this.config, env);
     this._wireTransport();
 
@@ -110,6 +153,7 @@ class CodexRuntimeBroker extends EventEmitter {
   }
 
   async stop() {
+    if (this.machine.snapshot() === 'stopped') return { exited: true, forced: false };
     this.machine.to('stopping');
     if (this.approvals) this.approvals.clearPending('shutdown');
     let result = { exited: true, forced: false };
@@ -123,14 +167,24 @@ class CodexRuntimeBroker extends EventEmitter {
   }
 
   // --- auth --------------------------------------------------------------
-  async getAuthStatus() { return this.auth ? this.auth.getStatus() : { state: 'unknown' }; }
-  beginAuth() { return this.auth ? this.auth.beginAuthentication() : { state: 'unknown' }; }
-  async logout() { return this.auth ? this.auth.logout() : { state: 'unknown' }; }
+  async getAuthStatus() { return this.ensureAuthContext().getStatus(); }
+  beginAuth() { return this.ensureAuthContext().beginAuthentication(); }
+  async logout() { return this.ensureAuthContext().logout(); }
 
   // --- task execution ----------------------------------------------------
   // Start one model turn. Enforces: offline gate, model pin+verify,
   // effective-sandbox capture. Returns { threadId, turnId, effectiveSandbox }.
   async startTask(input) {
+    if (this._taskStartPromise) {
+      throw new CodexError(CODE.PROTOCOL_INTEGRITY_ERROR, 'Another task is already active.', { state: 'startingTask' });
+    }
+    this._taskStartPromise = this._startTask(input);
+    try { return await this._taskStartPromise; }
+    finally { this._taskStartPromise = null; }
+  }
+
+  async _startTask(input) {
+    await this.ensureStarted();
     if (this.machine.snapshot() !== 'ready') {
       throw new CodexError(CODE.PROTOCOL_INTEGRITY_ERROR,
         'Papers runtime is not ready to start a task.', { state: this.machine.snapshot() });
@@ -360,6 +414,7 @@ class CodexRuntimeBroker extends EventEmitter {
       lastError: this.lastError,
       // Never a raw home path in a status that can reach the renderer.
       codexHomeConfigured: true,
+      startupPending: !!this._startPromise,
     };
   }
 

@@ -55,9 +55,10 @@ function buildConfig(opts) {
 }
 
 function defaultCodexExe() {
-  // The npm shim resolves to the native binary; on Windows the shim is a .cmd.
-  // Callers may override via PAPERS_CODEX_EXE with the native exe path.
-  return process.platform === 'win32' ? 'codex.cmd' : 'codex';
+  // shell:false cannot safely launch a .cmd shim. The installed native binary
+  // is discoverable as codex.exe on Windows; callers may still provide an
+  // explicit native path through PAPERS_CODEX_EXE.
+  return process.platform === 'win32' ? 'codex.exe' : 'codex';
 }
 
 module.exports = { buildConfig };

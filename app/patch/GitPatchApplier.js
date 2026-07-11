@@ -16,6 +16,7 @@ class GitPatchApplier {
     return (r.stdout || '').replace(/\r?\n$/, '');
   }
   inspect(root, affectedPaths=[]) {
+    const selected=path.resolve(root);assertExistingChainSafe(path.dirname(selected),`${path.basename(selected)}/.papers-worktree-check`);
     const worktreeRoot = canonical(root); const repoRoot = canonical(this.gitRun(worktreeRoot, ['rev-parse','--show-toplevel']));
     if (repoRoot.toLowerCase() !== worktreeRoot.toLowerCase()) throw new PatchError(PATCH_CODE.PROHIBITED_WORKTREE, 'Selected root must be the exact Git worktree root.');
     for (const blocked of this.prohibitedRoots) {
@@ -27,6 +28,7 @@ class GitPatchApplier {
     const gitDir = this.gitRun(worktreeRoot, ['rev-parse','--git-dir']);
     if (!gitDir) throw new PatchError(PATCH_CODE.PROHIBITED_WORKTREE, 'Git worktree identity is missing.');
     const branch=this.gitRun(worktreeRoot,['branch','--show-current']); const head=this.gitRun(worktreeRoot,['rev-parse','HEAD']);
+    if(!branch||!head)throw new PatchError(PATCH_CODE.PROHIBITED_WORKTREE,'A known branch and HEAD are required.');
     const status=this.gitRun(worktreeRoot,['status','--porcelain=v1','--untracked-files=all']);
     if (status) throw new PatchError(PATCH_CODE.DIRTY_WORKTREE, 'Backpack v0 requires a completely clean disposable worktree.');
     if (this.gitRun(worktreeRoot,['diff','--cached','--name-only'])) throw new PatchError(PATCH_CODE.DIRTY_WORKTREE, 'Staged changes are rejected.');

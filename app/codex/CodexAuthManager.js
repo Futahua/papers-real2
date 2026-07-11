@@ -6,6 +6,8 @@
 // correct auth/model/transport buckets — never mislabeled.
 
 const { spawn } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const STATE = Object.freeze({
   UNKNOWN: 'unknown',
@@ -17,10 +19,11 @@ const STATE = Object.freeze({
 });
 
 class CodexAuthManager {
-  constructor(config, env) {
+  constructor(config, env, opts) {
     this.config = config;
     this.env = env; // already contains the Papers CODEX_HOME
     this.state = STATE.UNKNOWN;
+    this.spawn = (opts && opts.spawn) || spawn;
   }
 
   // Run `codex login status` under the Papers home. Returns a state without
@@ -43,19 +46,29 @@ class CodexAuthManager {
     return { state: this.state, reason: reason || null };
   }
 
-  // beginAuthentication is intentionally conservative in v1: it reports that
-  // interactive login must be completed in a terminal against the Papers home,
-  // rather than driving an interactive OAuth flow from the main process. This
-  // avoids any credential handling inside Papers.
-  beginAuthentication() {
+  // Device auth requires terminal-visible interaction. Papers therefore
+  // constructs one fixed PowerShell command for the main process to copy to
+  // the clipboard. No login output or credential material enters Papers.
+  async beginAuthentication() {
+    const available = await this._verifyExecutable();
+    if (!available) {
+      this.state = STATE.FAILED;
+      return { state: this.state, reason: 'codex-unavailable' };
+    }
     this.state = STATE.AUTHENTICATING;
     return {
       state: this.state,
-      instructions:
-        'Sign in to Codex for Papers by running `codex login` with the Papers Codex home. ' +
-        'Papers never stores or reads your credentials directly.',
+      command: `$env:CODEX_HOME=${psQuote(this.config.codexHome)}; & ${psQuote(this.config.codexExecutable)} login --device-auth`,
       codexHomeConfigured: true,
     };
+  }
+
+  async _verifyExecutable() {
+    const exe = this.config.codexExecutable;
+    if (path.isAbsolute(exe)) return fs.existsSync(exe) && fs.statSync(exe).isFile();
+    const finder = process.platform === 'win32' ? 'where.exe' : 'which';
+    const result = await this._runProcess(finder, [exe], 5000, process.env);
+    return !result.error && result.code === 0;
   }
 
   async logout() {
@@ -65,11 +78,15 @@ class CodexAuthManager {
   }
 
   _run(args, timeoutMs) {
+    return this._runProcess(this.config.codexExecutable, args, timeoutMs, this.env);
+  }
+
+  _runProcess(executable, args, timeoutMs, env) {
     return new Promise((resolve) => {
       let child;
       try {
-        child = spawn(this.config.codexExecutable, args, {
-          env: this.env, windowsHide: true,
+        child = this.spawn(executable, args, {
+          env, windowsHide: true, shell: false,
         });
       } catch (err) {
         resolve({ error: true, code: null, stdout: '', stderr: (err.message || '').slice(0, 200) });
@@ -86,4 +103,6 @@ class CodexAuthManager {
   }
 }
 
-module.exports = { CodexAuthManager, AUTH_STATE: STATE };
+function psQuote(value) { return `'${String(value).replace(/'/g, "''")}'`; }
+
+module.exports = { CodexAuthManager, AUTH_STATE: STATE, psQuote };

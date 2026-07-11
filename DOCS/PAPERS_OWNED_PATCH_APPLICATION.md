@@ -15,3 +15,9 @@ Codex network flags are not treated as a security boundary. The broker’s offli
 ## July 12 blitz status
 
 The current implementation is on `agent/papers-owned-patch-v0-20260711` at `c79791797ef35c60f9222ed217109a6b2442f4af`, targeting a private creator-usable Backpack v0 by Sunday, July 12, 2026, Asia/Bangkok time. The implementing agent reported 127 passing tests. Live creator-machine acceptance remains pending. This feature is the core tomorrow vertical slice; the next task is live acceptance, not architecture expansion. It is not production-ready.
+
+## Creator task launch
+
+The visible Codex panel now lets the creator check isolated sign-in status, copy a fixed Papers-home device-login command, choose a native safety-validated disposable linked worktree, enter an instruction, and start one task. App Server startup is lazy and idempotent. The main process rechecks authentication and recognizes only the workspace returned by its own native picker. Provider approval acceptance remains disabled, and the existing proposal-review/decline/Papers-apply authority boundary is unchanged.
+
+No live model turn was used to implement this launcher. The next authoritative task is the real creator-machine acceptance flow; no architecture expansion should begin first.

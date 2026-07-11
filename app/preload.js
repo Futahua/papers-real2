@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('papersCodex', {
   getRuntimeStatus: () => ipcRenderer.invoke('codex:getRuntimeStatus'),
   getAuthStatus: () => ipcRenderer.invoke('codex:getAuthStatus'),
   beginAuth: () => ipcRenderer.invoke('codex:beginAuth'),
+  chooseWorkspace: () => ipcRenderer.invoke('codex:chooseWorkspace'),
   logout: () => ipcRenderer.invoke('codex:logout'),
   startTask: (input) => ipcRenderer.invoke('codex:startTask', input),
   submitApprovalDecision: (input) => ipcRenderer.invoke('codex:submitApprovalDecision', input),

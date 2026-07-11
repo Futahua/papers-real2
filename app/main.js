@@ -8,7 +8,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron');
 const { WorldStore } = require('./world/store');
 const { checkThing, readThingContent, MAX_TEXT_BYTES } = require('./world/things');
 const engine = require('./engine');
@@ -507,6 +507,9 @@ app.whenReady().then(async () => {
   try {
     const { broker } = registerCodexIpc(ipcMain, () => win, {
       userDataDir: path.join(app.getPath('userData')),
+      dialog,
+      clipboard,
+      implementationRoot: path.resolve(__dirname, '..'),
     });
     codexBroker = broker;
   } catch (err) {

@@ -182,4 +182,12 @@ The July 12 objective is a repeatable, safe creator workflow—not production co
 
 ## 9. Next task
 
-NEXT AUTHORITATIVE TASK: independent review and live creator-machine acceptance of commit c79791797ef35c60f9222ed217109a6b2442f4af. Do not begin another feature task before this gate is resolved.
+NEXT AUTHORITATIVE TASK: independent review and live creator-machine acceptance of the current feature HEAD after the task-launch unblock. Do not begin another feature task before this gate is resolved.
+
+## Task-launch unblock status
+
+The source-run application now includes a compact creator task launcher. Runtime startup is lazy, serialized, and idempotent; simultaneous startup requests share one operation and active tasks reject overlap. Authentication status and login preparation use only the dedicated Papers `CODEX_HOME` without starting App Server. The creator login action copies a fixed `codex login --device-auth` PowerShell command in the main process; Papers does not capture or journal login output.
+
+Disposable linked worktree selection now uses Electron’s native directory picker. Main-process validation reuses the patch safety inspector and rejects protected, implementation, relay, recovery, probe, ordinary-clone, dirty, detached, and reparse-escaping roots. The selected path is retained as trusted main-process state; the renderer has no free-text workspace field.
+
+Live model-turn acceptance remains pending. The next task is the real creator-machine acceptance flow defined in Gate 3. The July 12 scope remains frozen, and this experimental vertical slice is not production-ready.

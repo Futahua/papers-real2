@@ -19,6 +19,9 @@ function createProposal(input) {
     messageItemId: input.messageItemId || null,
     turnTerminalConfirmed: input.turnTerminalConfirmed === true,
     summary: input.summary || null,
+    // Transport canonicalization truth (provider-message mode only).
+    terminalLfAppended: input.terminalLfAppended === true,
+    rawProviderDiffSHA256: input.rawProviderDiffSHA256 || null,
   };
   return Object.freeze(proposal);
 }
@@ -29,7 +32,7 @@ function publicProposal(p) {
     boundary:'inside', validationStatus:'captured',
     proposalSource:p.proposalSource, providerActionRequested:p.providerActionRequested,
     providerDecisionRequired:p.providerDecisionRequired, turnTerminalConfirmed:p.turnTerminalConfirmed,
-    summary:p.summary,
+    summary:p.summary, terminalLfAppended:p.terminalLfAppended,
     requestedProviderAction: p.providerDecisionRequired ? 'decline' : 'none' });
 }
 module.exports = { createProposal, publicProposal };

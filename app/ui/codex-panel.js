@@ -207,6 +207,7 @@
       details.appendChild(row('Provider action requested','No'));
       details.appendChild(row('Provider decision required','No'));
       details.appendChild(row('Turn completed',p.turnTerminalConfirmed?'Yes':'No'));
+      if(p.terminalLfAppended)details.appendChild(row('Transport normalization','Added required terminal line ending'));
     }
     details.appendChild(row('Files affected',(p.affectedPaths||[]).join(', ')));
     details.appendChild(row('Patch validation',p.validationStatus||'captured'));

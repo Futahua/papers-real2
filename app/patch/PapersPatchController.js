@@ -63,6 +63,7 @@ class PapersPatchController {
       const receipt=createReceipt({proposalId:p.proposalId,provider:p.provider,model:p.model,threadId:p.threadId,turnId:p.turnId,itemId:p.itemId,messageItemId:p.messageItemId,
         proposalSource:'provider-message-json',providerActionRequested:false,approvalRequestId:null,
         providerDecision:'not-applicable',providerTerminalStatus:'completed',turnTerminalConfirmed:true,
+        terminalLfAppended:p.terminalLfAppended===true,rawProviderDiffSHA256:p.rawProviderDiffSHA256||null,
         repositoryRoot:'selected-disposable-worktree',branch:p.capture.branch,headBefore:p.capture.head,
         affectedPaths:p.affectedPaths,preApplyHashes:p.capture.affectedFileHashes,...result,
         startedAt,completedAt:new Date().toISOString(),outcome:'applied-by-papers',failureCode:null});

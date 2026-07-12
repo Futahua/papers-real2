@@ -49,10 +49,16 @@
   }
 
   // Allowlisted label/value pairs. Anything not named here is never shown.
+  // The transport-normalization row appears only when Papers actually added
+  // the terminal LF — never implying the provider emitted git-ready bytes.
   function receiptRows(r) {
     if (!isTruthfulReceipt(r)) return [];
+    const rows = (r.proposalSource === 'provider-message-json' && r.terminalLfAppended === true)
+      ? [['Transport normalization', 'Added required terminal line ending']]
+      : [];
     return [
       ['Outcome', r.outcome],
+      ...rows,
       ['Proposal source', r.proposalSource === 'provider-message-json' ? 'Codex final-message JSON' : 'Codex structured file-change'],
       ['Provider decision', r.providerDecision],
       ['Provider terminal status', r.providerTerminalStatus],

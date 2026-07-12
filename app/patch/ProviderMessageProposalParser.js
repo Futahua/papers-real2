@@ -11,6 +11,7 @@
 // Categories: 'unexpected response format' | 'invalid JSON' | 'wrong schema'
 //             | 'wrong nonce' | 'invalid diff'
 
+const crypto = require('node:crypto');
 const { PATCH_CODE, PatchError } = require('./PatchErrors');
 
 const SCHEMA = 'papers.patch-proposal.v1';
@@ -109,7 +110,24 @@ function parseProviderMessageProposal(text, opts) {
   if (parsed.diff.includes('\0')) throw fail('invalid diff', 'Diff contains NUL.');
   if (parsed.diff.includes('*** Begin Patch')) throw fail('invalid diff', 'Diff is an apply_patch envelope, not a unified Git diff.');
 
-  return { summary: parsed.summary, diff: parsed.diff };
+  // Bounded transport canonicalization — provider-message mode ONLY, and
+  // only AFTER every strict check above has passed. JSON string transport
+  // routinely drops the final line terminator that git requires; Papers
+  // appends exactly one LF when (and only when) the nonempty diff lacks it,
+  // records that it did so, and performs no other repair. Structure faults
+  // (missing headers, malformed hunks, unsafe paths) still fail closed in
+  // the untouched, strict validateUnifiedDiff().
+  const rawProviderDiff = parsed.diff;
+  let canonical = rawProviderDiff.replace(/\r\n/g, '\n');
+  const terminalLfAppended = !canonical.endsWith('\n');
+  if (terminalLfAppended) canonical += '\n';
+
+  return {
+    summary: parsed.summary,
+    diff: canonical,
+    terminalLfAppended,
+    rawProviderDiffSHA256: crypto.createHash('sha256').update(rawProviderDiff, 'utf8').digest('hex'),
+  };
 }
 
 // The fixed Papers-owned contract prepended to every proposal-only turn.

@@ -408,7 +408,8 @@ class CodexRuntimeBroker extends EventEmitter {
     if (t.candidate || t.parseFailure) return; // at most one proposal per turn
     try {
       const parsed = parseProviderMessageProposal(String(item.text || ''), { nonce: t.nonce });
-      t.candidate = { messageItemId: item.id, summary: parsed.summary, diff: parsed.diff };
+      t.candidate = { messageItemId: item.id, summary: parsed.summary, diff: parsed.diff,
+        terminalLfAppended: parsed.terminalLfAppended, rawProviderDiffSHA256: parsed.rawProviderDiffSHA256 };
     } catch (err) {
       t.parseFailure = err.category || 'unexpected response format';
     }
@@ -437,6 +438,8 @@ class CodexRuntimeBroker extends EventEmitter {
           threadId: t.threadId, turnId: t.turnId, messageItemId: t.candidate.messageItemId,
           repositoryRoot: t.workspace, worktreeRoot: t.workspace,
           rawDiff: t.candidate.diff, summary: t.candidate.summary,
+          terminalLfAppended: t.candidate.terminalLfAppended === true,
+          rawProviderDiffSHA256: t.candidate.rawProviderDiffSHA256 || null,
           provider: 'codex', model: this.lastSelectedModel || this.config.model,
           turnTerminalConfirmed: true,
         });

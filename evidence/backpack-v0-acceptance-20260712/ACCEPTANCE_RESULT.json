@@ -3,7 +3,7 @@
   "runAt": "2026-07-12T01:46:44+07:00",
   "featureBranch": "agent/papers-owned-patch-v0-20260711",
   "testedCommit": "dd273a0fee8b0da4c275e36887821cf8c29d27f3",
-  "finalCommit": "branch head after the evidence commit that follows this file",
+  "finalCommit": "29ca94e2073e4ab6501e7af38d8ecefbb0fce2d2",
   "verdict": "BLOCKED",
   "blockingCause": "provider-instruction issue: gpt-5.4-mini via codex-cli 0.125.0 app-server returned the requested patch as plain agentMessage text in every turn and never emitted a structured fileChange approval request, so Papers had nothing authoritative to capture, decline, or apply. Papers correctly refused to parse patch text out of chat messages.",
   "model": "gpt-5.4-mini",

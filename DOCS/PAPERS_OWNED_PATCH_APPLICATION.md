@@ -25,3 +25,7 @@ No live model turn was used to implement this launcher. The next authoritative t
 ## 2026-07-12 live acceptance verdict
 
 Live acceptance at `dd273a0f` concluded **BLOCKED**. The Papers-owned patch path was never exercised because the provider emitted no structured `fileChange` approval request in any turn — the model answered with apply_patch-envelope text instead. Zero proposals, zero denials, zero applications, zero receipts; the fixture worktree stayed byte-identical. Details and sanitized evidence: `PAPERS_BACKPACK_V0_ACCEPTANCE.md` and `evidence/backpack-v0-acceptance-20260712/`.
+
+## Proposal-only companion mode
+
+A second authority model now exists alongside this path: provider-message proposals under a strict nonce-bound JSON contract (`PAPERS_BACKPACK_V0_PROPOSAL_MODE.md`). It never claims a provider decline — receipts record `providerDecision: not-applicable` — and never calls the approval coordinator; the structured decline-before-apply path documented above is preserved unchanged and takes precedence when a real `fileChange` approval occurs. Its 2026-07-12 live acceptance concluded **BLOCKED** on provider diff-serialization defects with zero mutation; see `evidence/backpack-v0-proposal-mode-acceptance-20260712/`.

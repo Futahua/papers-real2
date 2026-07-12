@@ -1,0 +1,4 @@
+{
+  "receipts": [],
+  "note": "No receipt exists. Turn 2's proposal was captured and reviewed, but the Papers-owned apply failed closed when git rejected the unterminated diff, so no application occurred and no receipt was created. listPatchReceipts() returned an empty list in the live session (see SANITIZED_HISTORY.json)."
+}

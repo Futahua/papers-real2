@@ -1,0 +1,4 @@
+# No patch was applied. The Papers-owned apply failed closed (git: corrupt
+# patch — the provider diff string had no final trailing newline) and the
+# acceptance worktree remained byte-identical: backpack-acceptance.txt still
+# contains exactly one line, BACKPACK_V0_BEFORE, and git status is empty.

@@ -1,5 +1,13 @@
 # Papers Backpack v0 — Live Acceptance Record
 
+> **2026-07-12 update.** This structured-fileChange acceptance record and
+> its BLOCKED verdict are preserved unchanged below. A second acceptance
+> path — proposal-only provider-message mode — was implemented and run the
+> same day and concluded **BLOCKED** as well (provider diff serialization
+> defects; zero mutation, all boundaries held). See
+> `PAPERS_BACKPACK_V0_PROPOSAL_MODE.md` and
+> `evidence/backpack-v0-proposal-mode-acceptance-20260712/`.
+
 - Tested commit: `dd273a0fee8b0da4c275e36887821cf8c29d27f3` on `agent/papers-owned-patch-v0-20260711`
 - Acceptance date: 2026-07-12 (Asia/Bangkok), run concluded ~01:46
 - Verdict: **BLOCKED**

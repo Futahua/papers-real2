@@ -15,3 +15,7 @@ The launcher does not persist selected worktrees or sign-in state beyond what Co
 ## 2026-07-12 live acceptance verdict
 
 The 2026-07-12 live acceptance run concluded **BLOCKED** (see `PAPERS_BACKPACK_V0_ACCEPTANCE.md`): the runtime, sign-in, worktree validation, and task launch all worked, but `gpt-5.4-mini` returned the requested patch as plain agent-message text in every turn and never emitted a structured `fileChange` approval request, so nothing reached the capture/deny/apply path. Papers does not parse patch text out of chat messages; that boundary is intentional and remains.
+
+## 2026-07-12 proposal-only mode limitations
+
+Proposal-only mode (`PAPERS_BACKPACK_V0_PROPOSAL_MODE.md`) accepts a provider final message only when it is exactly one nonce-bound `papers.patch-proposal.v1` JSON object whose diff passes the full Papers validator — arbitrary chat patch text is still never reinterpreted as a provider action. Its live acceptance also concluded **BLOCKED**: `gpt-5.4-mini` twice produced a diff with a serialization defect (missing `diff --git` header; missing final trailing newline). Papers now rejects unterminated diffs at capture instead of at git apply, and the contract states both requirements explicitly, but a passing live run has not yet occurred. Message proposals are single-turn, in-memory, and require a completed turn, a clean disposable linked worktree, and explicit creator review before Papers applies anything.

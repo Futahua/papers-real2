@@ -1,0 +1,7 @@
+diff --git a/backpack-acceptance.txt b/backpack-acceptance.txt
+index 3e9cbb4..5e1ee83 100644
+--- a/backpack-acceptance.txt
++++ b/backpack-acceptance.txt
+@@ -1 +1 @@
+-BACKPACK_V0_BEFORE
++BACKPACK_V0_AFTER

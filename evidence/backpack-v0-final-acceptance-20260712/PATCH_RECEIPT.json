@@ -1,0 +1,40 @@
+{
+  "receipts": [
+    {
+      "receiptId": "pr_0b4dc0af-dac1-4d7e-9d62-ffb96a61d806",
+      "proposalId": "pp_871eb1f4-cfec-4302-8497-c6ec6fcbc2be",
+      "provider": "codex",
+      "model": "gpt-5.4-mini",
+      "threadId": "019f53b4-a5ec-7b41-8293-5bc26339947f",
+      "turnId": "019f53b4-a5f9-7042-aff9-cb540512cb00",
+      "itemId": "msg_006d2dd3dd985772016a52de66ecc48191bb6997d4a76c05df",
+      "messageItemId": "msg_006d2dd3dd985772016a52de66ecc48191bb6997d4a76c05df",
+      "proposalSource": "provider-message-json",
+      "providerActionRequested": false,
+      "approvalRequestId": null,
+      "providerDecision": "not-applicable",
+      "providerTerminalStatus": "completed",
+      "turnTerminalConfirmed": true,
+      "terminalLfAppended": false,
+      "rawProviderDiffSHA256": "75c13def584f92e9eab8e28e3278cd8362c78518407b12f6f57154253ea6d767",
+      "repositoryRoot": "selected-disposable-worktree",
+      "branch": "acceptance/backpack-v0-20260712",
+      "headBefore": "7a503626834497c9f3111395d75b071e68836104",
+      "affectedPaths": [
+        "backpack-acceptance.txt"
+      ],
+      "preApplyHashes": {
+        "backpack-acceptance.txt": "c90966e61cfb34fa6176c0e7f82cb25ee4766dda4c0424e9b2fd1acdbb9f17c1"
+      },
+      "postApplyHashes": {
+        "backpack-acceptance.txt": "19eb541911af2fd44ce11da5ce111345aea5fcde52e1fe5e3622c28b2510ee28"
+      },
+      "patchSHA256": "75c13def584f92e9eab8e28e3278cd8362c78518407b12f6f57154253ea6d767",
+      "resultingDiffSHA256": "1f4caf9a4ff2543d2e175ff1cc570c6ae71942745f5c253b168a22581c28c516",
+      "startedAt": "2026-07-12T00:23:10.974Z",
+      "completedAt": "2026-07-12T00:23:11.502Z",
+      "outcome": "applied-by-papers",
+      "failureCode": null
+    }
+  ]
+}

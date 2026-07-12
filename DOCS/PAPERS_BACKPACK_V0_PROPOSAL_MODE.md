@@ -74,3 +74,43 @@ authorized no further turns. The contract now demands both details
 explicitly and the validator rejects unterminated diffs at capture, but
 that correction is unproven live. The fixture worktree and the protected
 repository are unchanged; 207 automated tests pass.
+
+## Terminal-LF transport canonicalization
+
+JSON string transport routinely drops the final line terminator git
+requires. In provider-message mode only, and only after every strict parse
+check passes (schema, exact nonce, field allowlist, size, NUL), the parser
+preserves the raw provider diff bytes for hashing, normalizes CRLF to LF,
+and appends exactly one `\n` when the nonempty diff lacks it — no other
+repair. It never adds a `diff --git` header, `---`/`+++`/hunk headers,
+alters paths or lines, or infers a patch from partial output; the resulting
+canonical diff then passes the complete, unmodified `validateUnifiedDiff()`.
+That validator stays strict for every other caller and still rejects
+unterminated patches passed directly to it; the exception is scoped to the
+authenticated, nonce-bound, correlated provider-message transport. Proposals
+and receipts record `terminalLfAppended`, `rawProviderDiffSHA256` (the exact
+provider bytes) and `patchSHA256` (the canonical applied bytes); the UI and
+receipt show "Transport normalization: Added required terminal line ending"
+only when Papers actually appended the LF, never implying the provider
+emitted git-ready bytes.
+
+## 2026-07-12 FINAL live acceptance verdict — PASS
+
+At `d15aca17` the single authorized proposal-only turn **PASSED**.
+`gpt-5.4-mini` returned exactly one nonce-bound `papers.patch-proposal.v1`
+JSON object affecting only `backpack-acceptance.txt`; the creator reviewed
+the exact `-BACKPACK_V0_BEFORE`/`+BACKPACK_V0_AFTER` diff; Papers validated
+and applied it itself; the file became exactly `BACKPACK_V0_AFTER` with a
+clean single-file git status; the visible receipt reported
+`providerDecision: not-applicable` with verifying hashes
+(`resultingDiffSHA256` matched the worktree diff, `patchSHA256` matched the
+applied bytes, no nonce present). This run's diff already ended in LF, so
+`terminalLfAppended` was false — the canonicalization is present and
+unit-proven but was not needed live this time. App Server exited cleanly
+with no orphan; restart readiness passed. Evidence:
+`evidence/backpack-v0-final-acceptance-20260712/`. 216 automated tests pass.
+
+The original structured fileChange acceptance remains BLOCKED for Codex CLI
+0.125.0 with gpt-5.4-mini. Backpack v0 proposal-only mode, using explicit
+terminal-LF transport canonicalization, is accepted for private creator use
+as a source-run experimental release candidate. It is not production-ready.

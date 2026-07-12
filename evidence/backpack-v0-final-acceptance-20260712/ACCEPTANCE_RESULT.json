@@ -3,7 +3,7 @@
   "runAt": "2026-07-12T00:23:11Z",
   "featureBranch": "agent/papers-owned-patch-v0-20260711",
   "testedCommit": "d15aca17f92e77a7390d7473658bf4a82e936cde",
-  "finalCommit": "branch head after the evidence commit that follows this file",
+  "finalCommit": "30fb891fa2f6f39a97f051517e73723b9b5c16f3",
   "verdict": "PASS",
   "mode": "proposal-only (provider-message-json) with terminal-LF transport canonicalization",
   "model": "gpt-5.4-mini",
